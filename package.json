@@ -19,10 +19,13 @@
     "db:push": "drizzle-kit push",
     "db:check": "drizzle-kit check",
     "db:studio": "drizzle-kit studio",
+    "trigger:dev": "trigger.dev dev",
+    "trigger:deploy": "trigger.dev deploy",
     "prepare": "husky"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
+    "@trigger.dev/sdk": "^4.4.4",
     "drizzle-orm": "^0.45.2",
     "next": "^15",
     "react": "^18",
@@ -31,6 +34,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",
     "@tailwindcss/postcss": "^4",
+    "@trigger.dev/build": "^4.4.4",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
@@ -42,6 +46,7 @@
     "lint-staged": "^16.4.0",
     "prettier": "^3.8.3",
     "tailwindcss": "^4",
+    "trigger.dev": "^4.4.4",
     "tsx": "^4.21.0",
     "typescript": "^5"
   },
