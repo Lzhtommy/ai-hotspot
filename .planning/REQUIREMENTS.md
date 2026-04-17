@@ -1,0 +1,254 @@
+# Requirements: AI Hotspot
+
+**Defined:** 2026-04-17
+**Core Value:** A single Chinese-language timeline where AI practitioners never miss a significant AI event, because the system hears it from every source, clusters duplicates, and ranks by LLM-judged importance — not chronology.
+
+## v1 Requirements
+
+Requirements for initial release. Each maps to a roadmap phase.
+
+### Infrastructure
+
+- [ ] **INFRA-01**: Next.js 15 App Router (TypeScript) project scaffolded and deploying to Vercel
+- [ ] **INFRA-02**: Neon Postgres provisioned with pgvector extension enabled
+- [ ] **INFRA-03**: Drizzle ORM schema migration defines `sources`, `items`, `clusters`, `item_clusters`, `tags`, `item_tags`, `users`, `favorites`, `votes`, `settings`, `pipeline_runs`
+- [ ] **INFRA-04**: Upstash Redis provisioned and reachable from Vercel
+- [ ] **INFRA-05**: Trigger.dev v4 project linked to the repo with deploy pipeline working
+- [ ] **INFRA-06**: RSSHub deployed on a HK/SG VPS (Railway or Hetzner) with ACCESS_KEY auth
+- [ ] **INFRA-07**: Environment variables wired across Vercel + Trigger.dev + RSSHub (Anthropic, Voyage AI, DB, Redis, RSSHub URL/key)
+- [ ] **INFRA-08**: CI builds, typechecks, and runs migrations on preview deployments
+
+### Ingestion
+
+- [ ] **INGEST-01**: Trigger.dev cron task polls all active sources via RSSHub once per hour
+- [ ] **INGEST-02**: Source URLs are normalized (strip UTM params, resolve shortlinks, canonical protocol) before fingerprinting
+- [ ] **INGEST-03**: Items are deduplicated by SHA-256 `url_fingerprint` with a UNIQUE DB index
+- [ ] **INGEST-04**: Each new item is written in `pending` status and enqueued for LLM processing
+- [ ] **INGEST-05**: Timestamps are stored as UTC; source-local time is preserved separately for display
+- [ ] **INGEST-06**: Source health is tracked: `last_fetched_at`, `consecutive_empty_count`, `consecutive_error_count`
+- [ ] **INGEST-07**: Source failures are logged and isolated — one bad source does not stop the others
+- [ ] **INGEST-08**: Ingestion task is idempotent — re-running an hour's poll does not create duplicates
+
+### LLM Pipeline
+
+- [ ] **LLM-01**: Per-item pipeline runs on Trigger.dev workers (never inside Next.js API routes)
+- [ ] **LLM-02**: Full-text extraction step (Readability-style) fetches article body when RSS excerpt is short; falls back to excerpt with a flag on failure
+- [ ] **LLM-03**: English-source items are translated to Chinese by Claude Haiku 4.5 before summarization
+- [ ] **LLM-04**: Claude Haiku 4.5 produces a Chinese summary (~2–4 sentences) per item
+- [ ] **LLM-05**: Claude Haiku 4.5 produces a 0–100 hotness score per item; score is immutable after publish
+- [ ] **LLM-06**: Claude Haiku 4.5 produces a one-line 推荐理由 per item
+- [ ] **LLM-07**: Claude Haiku 4.5 produces up to N auto-tags per item (e.g., Agent, 模型发布, 编码, Anthropic)
+- [ ] **LLM-08**: Prompt caching (`cache_control: ephemeral`) is enabled on all system prompts from the first call; `cache_read_input_tokens` verified > 0
+- [ ] **LLM-09**: All ingested article text is wrapped in `<untrusted_content>` delimiters to mitigate prompt injection
+- [ ] **LLM-10**: LLM outputs are validated (score in 0–100, required fields present) before DB write; invalid responses go to dead-letter state
+- [ ] **LLM-11**: Failed items transition to `failed` with error detail; max retries exceeded items land in dead-letter, never silently dropped
+- [ ] **LLM-12**: Token usage per item (input / cache-read / cache-write / output) is logged to `pipeline_runs`
+- [ ] **LLM-13**: LLM pipeline calls are instrumented with Langfuse traces
+
+### Event Clustering
+
+- [ ] **CLUST-01**: Voyage AI `voyage-3.5` generates a 1024-dim embedding for every published item
+- [ ] **CLUST-02**: Embeddings are stored in pgvector column with HNSW index for ANN search
+- [ ] **CLUST-03**: Cluster refresh task assigns each new item to nearest existing cluster if cosine similarity ≥ configurable threshold (default 0.82) within ±24h window; otherwise creates a new cluster
+- [ ] **CLUST-04**: Clustering threshold is stored in the `settings` table and adjustable without redeploy
+- [ ] **CLUST-05**: Each cluster tracks `member_count`, `primary_item_id`, `earliest_seen_at`, `latest_seen_at`
+- [ ] **CLUST-06**: Cluster refresh task is debounced to run once per ingestion wave (coalesces bursts)
+- [ ] **CLUST-07**: Primary item is selected by earliest timestamp within the cluster (stable)
+
+### Feed UI
+
+- [ ] **FEED-01**: `/` (精选) renders top-scoring items with ISR (5-minute revalidate), grouped by time
+- [ ] **FEED-02**: `/all` (全部 AI 动态) renders full chronological feed with pagination/infinite scroll
+- [ ] **FEED-03**: Item card shows: source name + badge, title, Chinese summary, hotness score, 推荐理由, tags, cluster count (`另有 N 个源也报道了此事件` when count > 0)
+- [ ] **FEED-04**: Item detail page `/items/[id]` shows full summary, cluster member list with source+link, original article link
+- [ ] **FEED-05**: Timeline groups items by HH:MM within a day; day headers for scrolling context
+- [ ] **FEED-06**: Dark-theme design matches reference screenshot (green accent, card spacing, left sidebar)
+- [ ] **FEED-07**: Responsive layout works on mobile (≥375px) and desktop
+- [ ] **FEED-08**: CJK fonts self-hosted (Noto Sans SC subset); never loaded from Google Fonts
+- [ ] **FEED-09**: OG tags (`og:title`, `og:description`, `og:image`) present on item detail pages for WeChat share cards
+- [ ] **FEED-10**: Redis feed cache (5-min TTL) invalidated when a new cluster refresh completes
+- [ ] **FEED-11**: Chinese-only UI; English source items show Chinese-translated title and summary
+- [ ] **FEED-12**: Source filter / tag filter controls on `/all` view
+
+### Authentication
+
+- [ ] **AUTH-01**: Auth.js v5 configured with Drizzle adapter
+- [ ] **AUTH-02**: GitHub OAuth login works end-to-end on production and preview URLs
+- [ ] **AUTH-03**: Email magic link login works via Resend (China-accessible email delivery)
+- [ ] **AUTH-04**: Google OAuth available as secondary option (not the default button)
+- [ ] **AUTH-05**: `AUTH_REDIRECT_PROXY_URL` configured so OAuth callbacks work on Vercel preview deployments
+- [ ] **AUTH-06**: Anonymous read works for all feed pages; no login wall
+- [ ] **AUTH-07**: User sessions persist across browser refresh
+- [ ] **AUTH-08**: Sign out works from any page
+
+### User Interactions
+
+- [ ] **FAV-01**: Authenticated user can favorite (收藏) an item; UI state reflects immediately
+- [ ] **FAV-02**: Authenticated user can unfavorite an item
+- [ ] **FAV-03**: `/favorites` page shows the user's saved items in reverse-chrono order
+- [ ] **VOTE-01**: Authenticated user can like an item
+- [ ] **VOTE-02**: Authenticated user can dislike an item
+- [ ] **VOTE-03**: Like/dislike UI includes honest copy that personalization is forthcoming
+- [ ] **VOTE-04**: Favorite/like/dislike actions require login — anonymous click prompts sign-in modal
+
+### Admin Backend
+
+- [ ] **ADMIN-01**: Admin-only route `/admin` protected by role check
+- [ ] **ADMIN-02**: 信源 list view with source name, URL, weight, active toggle, last-fetched, consecutive errors
+- [ ] **ADMIN-03**: Admin can create a new source (RSSHub route or raw RSS URL) with weight and category
+- [ ] **ADMIN-04**: Admin can edit source weight, name, active state
+- [ ] **ADMIN-05**: Admin can soft-delete a source (items preserved, source marked inactive)
+- [ ] **ADMIN-06**: 信源 health indicator: red when `consecutive_empty_count ≥ 3` or `consecutive_error_count ≥ 3`
+- [ ] **ADMIN-07**: 用户 list view with email, provider, created-at, role, ban toggle
+- [ ] **ADMIN-08**: Admin can ban a user (revokes sessions, blocks interactions)
+- [ ] **ADMIN-09**: Admin dashboard shows daily Claude token cost (input / cache-read / cache-write / output) from `pipeline_runs`
+
+### Operational
+
+- [ ] **OPS-01**: Sentry integrated for Next.js + Trigger.dev error capture
+- [ ] **OPS-02**: Langfuse dashboard shows per-item LLM cost and cache hit rate
+- [ ] **OPS-03**: Admin UI exposes dead-letter items with retry action
+- [ ] **OPS-04**: Basic sitemap.xml generated from published items
+- [ ] **OPS-05**: Vercel Analytics enabled (no Google Analytics due to GFW)
+
+## v2 Requirements
+
+Deferred to future release. Tracked but not in current roadmap.
+
+### Advanced Curation
+
+- **STRAT-01**: Admin-managed 精选策略 (global curation strategies — editable prompt)
+- **STRAT-02**: 策略迭代 UI — A/B prompt iteration and version history
+- **PERSO-01**: Per-user personalization driven by like/dislike signals
+- **PERSO-02**: User-custom curation strategies (private prompts)
+
+### Social Signals
+
+- **SOCIAL-01**: 低粉爆文 section — low-follower high-engagement social posts
+- **SOCIAL-02**: User-submitted source reporting (信源提报) with moderation queue
+
+### Discovery & Search
+
+- **SEARCH-01**: Full-text Chinese keyword search over items
+- **SEARCH-02**: Topic subscriptions with email/push alerts
+- **RSS-01**: Public RSS output feed (Feedly-style subscription)
+
+### Platform
+
+- **I18N-01**: English UI toggle
+- **MOBILE-01**: Native mobile apps (iOS / Android)
+- **WECHAT-01**: WeChat OAuth login (requires Chinese business entity)
+
+### Commercial
+
+- **COMMERCE-01**: Monetization (ads, sponsored items, subscription tiers)
+
+## Out of Scope
+
+Explicitly excluded. Documented to prevent scope creep.
+
+| Feature | Reason |
+|---------|--------|
+| Real-time (<5 min) ingestion | Hourly cadence is sufficient for AI news; real-time multiplies LLM + infra cost |
+| Mainland-China-hosted infrastructure | Triggers ICP 备案 requirement; 60-day process + Chinese business entity; HK/SG avoids this |
+| Google Fonts / Google Analytics | Blocked by the GFW for mainland Chinese users |
+| Google OAuth as primary login | Google is blocked by the GFW for mainland Chinese users |
+| Self-hosted Next.js | No operational upside vs Vercel; adds ops burden |
+| Comments / threaded discussion | Moderation burden; not core to "never miss AI news" value |
+| Video posts / video items | Not aligned with text-news aggregation |
+| Custom embedding model hosting | Voyage AI voyage-3.5 covers multilingual needs at low cost |
+| Prisma ORM | Cold-start penalty and Rust binary bloat vs Drizzle on serverless |
+| Inngest as worker platform | Vercel-route-bound steps still hit function timeout; Trigger.dev avoids this |
+
+## Traceability
+
+Which phases cover which requirements. Filled in during roadmap creation.
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| INFRA-01 | TBD | Pending |
+| INFRA-02 | TBD | Pending |
+| INFRA-03 | TBD | Pending |
+| INFRA-04 | TBD | Pending |
+| INFRA-05 | TBD | Pending |
+| INFRA-06 | TBD | Pending |
+| INFRA-07 | TBD | Pending |
+| INFRA-08 | TBD | Pending |
+| INGEST-01 | TBD | Pending |
+| INGEST-02 | TBD | Pending |
+| INGEST-03 | TBD | Pending |
+| INGEST-04 | TBD | Pending |
+| INGEST-05 | TBD | Pending |
+| INGEST-06 | TBD | Pending |
+| INGEST-07 | TBD | Pending |
+| INGEST-08 | TBD | Pending |
+| LLM-01 | TBD | Pending |
+| LLM-02 | TBD | Pending |
+| LLM-03 | TBD | Pending |
+| LLM-04 | TBD | Pending |
+| LLM-05 | TBD | Pending |
+| LLM-06 | TBD | Pending |
+| LLM-07 | TBD | Pending |
+| LLM-08 | TBD | Pending |
+| LLM-09 | TBD | Pending |
+| LLM-10 | TBD | Pending |
+| LLM-11 | TBD | Pending |
+| LLM-12 | TBD | Pending |
+| LLM-13 | TBD | Pending |
+| CLUST-01 | TBD | Pending |
+| CLUST-02 | TBD | Pending |
+| CLUST-03 | TBD | Pending |
+| CLUST-04 | TBD | Pending |
+| CLUST-05 | TBD | Pending |
+| CLUST-06 | TBD | Pending |
+| CLUST-07 | TBD | Pending |
+| FEED-01 | TBD | Pending |
+| FEED-02 | TBD | Pending |
+| FEED-03 | TBD | Pending |
+| FEED-04 | TBD | Pending |
+| FEED-05 | TBD | Pending |
+| FEED-06 | TBD | Pending |
+| FEED-07 | TBD | Pending |
+| FEED-08 | TBD | Pending |
+| FEED-09 | TBD | Pending |
+| FEED-10 | TBD | Pending |
+| FEED-11 | TBD | Pending |
+| FEED-12 | TBD | Pending |
+| AUTH-01 | TBD | Pending |
+| AUTH-02 | TBD | Pending |
+| AUTH-03 | TBD | Pending |
+| AUTH-04 | TBD | Pending |
+| AUTH-05 | TBD | Pending |
+| AUTH-06 | TBD | Pending |
+| AUTH-07 | TBD | Pending |
+| AUTH-08 | TBD | Pending |
+| FAV-01 | TBD | Pending |
+| FAV-02 | TBD | Pending |
+| FAV-03 | TBD | Pending |
+| VOTE-01 | TBD | Pending |
+| VOTE-02 | TBD | Pending |
+| VOTE-03 | TBD | Pending |
+| VOTE-04 | TBD | Pending |
+| ADMIN-01 | TBD | Pending |
+| ADMIN-02 | TBD | Pending |
+| ADMIN-03 | TBD | Pending |
+| ADMIN-04 | TBD | Pending |
+| ADMIN-05 | TBD | Pending |
+| ADMIN-06 | TBD | Pending |
+| ADMIN-07 | TBD | Pending |
+| ADMIN-08 | TBD | Pending |
+| ADMIN-09 | TBD | Pending |
+| OPS-01 | TBD | Pending |
+| OPS-02 | TBD | Pending |
+| OPS-03 | TBD | Pending |
+| OPS-04 | TBD | Pending |
+| OPS-05 | TBD | Pending |
+
+**Coverage:**
+- v1 requirements: 75 total
+- Mapped to phases: 0 (pending roadmap)
+- Unmapped: 75 ⚠️ (will be filled by roadmapper)
+
+---
+*Requirements defined: 2026-04-17*
+*Last updated: 2026-04-17 after initial definition*
