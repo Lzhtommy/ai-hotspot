@@ -1,0 +1,104 @@
+name: CI
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main, master]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+  id-token: write
+
+jobs:
+  ci:
+    name: Typecheck / Lint / Build / Migrate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.32.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Build
+        run: pnpm build
+        env:
+          # Build-time env: schema introspection, etc. Runtime secrets are Vercel's problem.
+          DATABASE_URL: ${{ secrets.DATABASE_URL_BUILD || 'postgres://build:build@localhost:5432/build' }}
+
+      - name: Drizzle schema drift check
+        run: pnpm db:check
+
+      # --- Per-PR Neon branch + migrate (D-11, D-17) ---
+
+      - name: Create Neon branch for PR
+        if: github.event_name == 'pull_request'
+        id: neon-branch
+        uses: neondatabase/create-branch-action@v6
+        with:
+          project_id: ${{ vars.NEON_PROJECT_ID }}
+          branch_name: pr-${{ github.event.number }}
+          parent: main
+          api_key: ${{ secrets.NEON_API_KEY }}
+          username: ${{ vars.NEON_DB_USERNAME || 'neondb_owner' }}
+
+      - name: Run Drizzle migrations on PR branch
+        if: github.event_name == 'pull_request'
+        run: pnpm db:migrate
+        env:
+          DATABASE_URL: ${{ steps.neon-branch.outputs.db_url }}
+
+      - name: Run Drizzle migrations on main Neon branch
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+        run: pnpm db:migrate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL_MAIN }}
+
+  trigger-deploy:
+    name: Deploy Trigger.dev tasks
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    needs: ci
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.32.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Deploy to Trigger.dev (prod)
+        run: pnpm trigger:deploy --env prod
+        env:
+          TRIGGER_ACCESS_TOKEN: ${{ secrets.TRIGGER_ACCESS_TOKEN }}
