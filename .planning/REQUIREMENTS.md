@@ -14,7 +14,7 @@ Requirements for initial release. Each maps to a roadmap phase.
 - [x] **INFRA-03**: Drizzle ORM schema migration defines `sources`, `items`, `clusters`, `item_clusters`, `tags`, `item_tags`, `users`, `favorites`, `votes`, `settings`, `pipeline_runs`
 - [x] **INFRA-04**: Upstash Redis provisioned and reachable from Vercel
 - [x] **INFRA-05**: Trigger.dev v4 project linked to the repo with deploy pipeline working
-- [ ] **INFRA-06**: RSSHub deployed on a HK/SG VPS (Railway or Hetzner) with ACCESS_KEY auth
+- [x] **INFRA-06**: RSSHub deployed on a HK/SG VPS (Railway or Hetzner) with ACCESS_KEY auth
 - [x] **INFRA-07**: Environment variables wired across Vercel + Trigger.dev + RSSHub (Anthropic, Voyage AI, DB, Redis, RSSHub URL/key)
 - [ ] **INFRA-08**: CI builds, typechecks, and runs migrations on preview deployments
 
@@ -171,7 +171,7 @@ Which phases cover which requirements.
 | INFRA-03 | Phase 1 | Complete |
 | INFRA-04 | Phase 1 | Complete |
 | INFRA-05 | Phase 1 | Complete |
-| INFRA-06 | Phase 1 | Pending |
+| INFRA-06 | Phase 1 | Complete |
 | INFRA-07 | Phase 1 | Complete |
 | INFRA-08 | Phase 1 | Pending |
 | INGEST-01 | Phase 2 | Pending |
