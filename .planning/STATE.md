@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 01-04-rsshub-health-PLAN.md
-last_updated: "2026-04-17T08:03:12.037Z"
+stopped_at: Completed 01-06-docs-runbooks-PLAN.md
+last_updated: "2026-04-17T08:10:08.558Z"
 last_activity: 2026-04-17
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 6
-  completed_plans: 4
-  percent: 67
+  completed_plans: 5
+  percent: 83
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 ## Current Position
 
 Phase: 1 of 6 (Infrastructure Foundation)
-Plan: 5 of 6 in current phase (next: 01-02-drizzle-schema)
+Plan: 6 of 6 in current phase (next: 01-02-drizzle-schema)
 Status: Ready to execute
 Last activity: 2026-04-17
 
@@ -59,6 +59,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 01 P02 | 15min | 3 tasks | 12 files |
 | Phase 01-infrastructure-foundation P03 | 5min | 3 tasks | 7 files |
 | Phase 01-infrastructure-foundation P04 | 10min | 3 tasks | 3 files |
+| Phase 01-infrastructure-foundation P06 | 4min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -81,6 +82,8 @@ Recent decisions affecting current work:
 - [Phase 01-infrastructure-foundation]: Plan 01-03: Upstash Redis module-scope singleton pattern adopted (mirrors Drizzle client — safe for HTTP-only clients, not TCP)
 - [Phase 01-infrastructure-foundation]: Plan 01-04: RSSHub fetch wrapper uses warmup HEAD (5s) + 60s measured budget for D-05 cold-start tolerance; ACCESS_KEY scrubbed from all error paths
 - [Phase 01-infrastructure-foundation]: Plan 01-04: /api/health uses Promise.allSettled over four service probes; Trigger.dev check uses whoami primary + tr_-prefix fallback (RESEARCH.md A1)
+- [Phase 01-infrastructure-foundation]: Plan 01-06: docs/ci.md + docs/vercel.md carry dated Status banners — they are the authoritative acceptance spec for Plan 05 CI YAML + vercel.json (forward reference, not fiction)
+- [Phase 01-infrastructure-foundation]: Plan 01-06: Runbook layout is one file per operational surface (rsshub, health, ci, vercel, database); README.md 'Further Reading' links to all five
 
 ### Pending Todos
 
@@ -100,6 +103,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-17T08:03:12.034Z
-Stopped at: Completed 01-04-rsshub-health-PLAN.md
+Last session: 2026-04-17T08:09:59.051Z
+Stopped at: Completed 01-06-docs-runbooks-PLAN.md
 Resume file: None

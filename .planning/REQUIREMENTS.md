@@ -16,7 +16,7 @@ Requirements for initial release. Each maps to a roadmap phase.
 - [x] **INFRA-05**: Trigger.dev v4 project linked to the repo with deploy pipeline working
 - [x] **INFRA-06**: RSSHub deployed on a HK/SG VPS (Railway or Hetzner) with ACCESS_KEY auth
 - [x] **INFRA-07**: Environment variables wired across Vercel + Trigger.dev + RSSHub (Anthropic, Voyage AI, DB, Redis, RSSHub URL/key)
-- [ ] **INFRA-08**: CI builds, typechecks, and runs migrations on preview deployments
+- [x] **INFRA-08**: CI builds, typechecks, and runs migrations on preview deployments
 
 ### Ingestion
 
@@ -173,7 +173,7 @@ Which phases cover which requirements.
 | INFRA-05 | Phase 1 | Complete |
 | INFRA-06 | Phase 1 | Complete |
 | INFRA-07 | Phase 1 | Complete |
-| INFRA-08 | Phase 1 | Pending |
+| INFRA-08 | Phase 1 | Complete |
 | INGEST-01 | Phase 2 | Pending |
 | INGEST-02 | Phase 2 | Pending |
 | INGEST-03 | Phase 2 | Pending |

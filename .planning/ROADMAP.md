@@ -37,7 +37,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] 01-03-PLAN.md — Trigger.dev v4 + Upstash Redis: trigger.config.ts, health-probe task (dashboard manual-trigger checkpoint), Redis client singleton
 - [x] 01-04-PLAN.md — RSSHub wrapper + /api/health: fetchRSSHub with warmup + 60s timeout, /api/health Node-runtime route aggregating 4 service checks
 - [ ] 01-05-PLAN.md — CI pipeline: GitHub Actions (typecheck/lint/build/migrate with Neon branch-per-PR), Trigger.dev deploy job, PR preview verification checkpoint
-- [ ] 01-06-PLAN.md — Docs & runbooks: README + docs/rsshub.md (key rotation runbook), docs/health.md, docs/ci.md, docs/vercel.md, docs/database.md
+- [x] 01-06-PLAN.md — Docs & runbooks: README + docs/rsshub.md (key rotation runbook), docs/health.md, docs/ci.md, docs/vercel.md, docs/database.md
 
 ### Phase 2: Ingestion Pipeline
 **Goal**: Hourly polling fetches all active sources via RSSHub, deduplicates by normalized URL fingerprint, and enqueues new items for LLM processing without data loss or cross-source interference
