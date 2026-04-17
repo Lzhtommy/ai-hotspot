@@ -1,0 +1,8 @@
+.next
+node_modules
+pnpm-lock.yaml
+drizzle/meta
+.planning/
+CLAUDE.md
+public/
+*.svg

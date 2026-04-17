@@ -1,0 +1,15 @@
+# Block commits containing UUID-shaped ACCESS_KEY values.
+# HF Space ACCESS_KEY format: UUID (8-4-4-4-12 hex) per D-08 / RESEARCH.md A2.
+# FIXME: verify exact HF Space ACCESS_KEY format with user; if not UUID, broaden the regex.
+STAGED=$(git diff --cached --name-only --diff-filter=ACM | grep -vE '^(\.env\.example|CLAUDE\.md)$' || true)
+if [ -n "$STAGED" ]; then
+  if echo "$STAGED" | xargs grep -lE '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}' 2>/dev/null; then
+    echo "ERROR: Staged content contains a UUID (possible ACCESS_KEY or DB URL token)."
+    echo "Remove the secret from staged files before committing. If this is a false positive"
+    echo "(e.g. a test fixture UUID), move it to .env.example or CLAUDE.md, or use --no-verify"
+    echo "with explicit user approval."
+    exit 1
+  fi
+fi
+
+pnpm lint-staged
