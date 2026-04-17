@@ -1,0 +1,205 @@
+// src/lib/db/schema.ts
+// Source: ARCHITECTURE.md schema sketch + REQUIREMENTS.md column inference
+// All 11 tables per D-09 (INFRA-03). pgvector 1024-dim per D-10 (Voyage voyage-3.5).
+import {
+  pgTable,
+  serial,
+  bigserial,
+  bigint,
+  text,
+  boolean,
+  integer,
+  smallint,
+  numeric,
+  timestamp,
+  uuid,
+  primaryKey,
+  index,
+  vector,
+} from 'drizzle-orm/pg-core';
+
+// SOURCES — RSSHub routes or raw RSS URLs
+export const sources = pgTable('sources', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  rssUrl: text('rss_url').notNull().unique(),
+  language: text('language').notNull().default('zh'), // 'zh' | 'en'
+  weight: numeric('weight', { precision: 3, scale: 1 }).notNull().default('1.0'),
+  isActive: boolean('is_active').notNull().default(true),
+  consecutiveEmptyCount: integer('consecutive_empty_count').notNull().default(0),
+  consecutiveErrorCount: integer('consecutive_error_count').notNull().default(0),
+  lastFetchedAt: timestamp('last_fetched_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+// ITEMS — one row per ingested RSS entry
+export const items = pgTable(
+  'items',
+  {
+    id: bigserial('id', { mode: 'bigint' }).primaryKey(),
+    sourceId: integer('source_id')
+      .notNull()
+      .references(() => sources.id),
+    url: text('url').notNull().unique(),
+    urlFingerprint: text('url_fingerprint').notNull().unique(), // SHA-256(normalized url)
+    contentHash: text('content_hash').notNull(), // SHA-256(url + title) for dedup
+    title: text('title').notNull(),
+    titleZh: text('title_zh'),
+    bodyRaw: text('body_raw'),
+    bodyZh: text('body_zh'),
+    summaryZh: text('summary_zh'),
+    recommendation: text('recommendation'), // 推荐理由
+    score: integer('score'), // 0-100
+    tags: text('tags').array(),
+    embedding: vector('embedding', { dimensions: 1024 }), // Voyage voyage-3.5
+    clusterId: bigint('cluster_id', { mode: 'bigint' }), // FK set after clusters defined
+    isClusterPrimary: boolean('is_cluster_primary').notNull().default(false),
+    status: text('status').notNull().default('pending'), // pending|processing|published|failed|dead_letter
+    publishedAt: timestamp('published_at', { withTimezone: true }).notNull(),
+    ingestedAt: timestamp('ingested_at', { withTimezone: true }).notNull().defaultNow(),
+    processedAt: timestamp('processed_at', { withTimezone: true }),
+    failureReason: text('failure_reason'),
+    retryCount: integer('retry_count').notNull().default(0),
+  },
+  (table) => ({
+    statusPublishedIdx: index('items_status_published_at_idx').on(
+      table.status,
+      table.publishedAt.desc(),
+    ),
+    clusterIdx: index('items_cluster_id_idx').on(table.clusterId),
+    sourceIdx: index('items_source_id_idx').on(table.sourceId),
+    tagsIdx: index('items_tags_idx').using('gin', table.tags),
+  }),
+);
+
+// CLUSTERS — one row per grouped event
+export const clusters = pgTable('clusters', {
+  id: bigserial('id', { mode: 'bigint' }).primaryKey(),
+  primaryItemId: bigint('primary_item_id', { mode: 'bigint' }),
+  centroid: vector('centroid', { dimensions: 1024 }),
+  memberCount: integer('member_count').notNull().default(1),
+  earliestSeenAt: timestamp('earliest_seen_at', { withTimezone: true }).notNull().defaultNow(),
+  latestSeenAt: timestamp('latest_seen_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+// ITEM_CLUSTERS — join table (allows many-to-many if needed later; v1: items.cluster_id suffices)
+export const itemClusters = pgTable(
+  'item_clusters',
+  {
+    itemId: bigint('item_id', { mode: 'bigint' })
+      .notNull()
+      .references(() => items.id, { onDelete: 'cascade' }),
+    clusterId: bigint('cluster_id', { mode: 'bigint' })
+      .notNull()
+      .references(() => clusters.id, { onDelete: 'cascade' }),
+    addedAt: timestamp('added_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.itemId, table.clusterId] }),
+  }),
+);
+
+// TAGS — canonical tag taxonomy
+export const tags = pgTable('tags', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull().unique(),
+  nameZh: text('name_zh'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+// ITEM_TAGS — normalized tag assignments
+export const itemTags = pgTable(
+  'item_tags',
+  {
+    itemId: bigint('item_id', { mode: 'bigint' })
+      .notNull()
+      .references(() => items.id, { onDelete: 'cascade' }),
+    tagId: integer('tag_id')
+      .notNull()
+      .references(() => tags.id, { onDelete: 'cascade' }),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.itemId, table.tagId] }),
+  }),
+);
+
+// USERS
+export const users = pgTable('users', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  email: text('email').notNull().unique(),
+  name: text('name'),
+  avatarUrl: text('avatar_url'),
+  role: text('role').notNull().default('user'), // 'user' | 'admin'
+  isBanned: boolean('is_banned').notNull().default(false),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  lastSeenAt: timestamp('last_seen_at', { withTimezone: true }),
+});
+
+// FAVORITES
+export const favorites = pgTable(
+  'favorites',
+  {
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    itemId: bigint('item_id', { mode: 'bigint' })
+      .notNull()
+      .references(() => items.id, { onDelete: 'cascade' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.userId, table.itemId] }),
+  }),
+);
+
+// VOTES
+export const votes = pgTable(
+  'votes',
+  {
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    itemId: bigint('item_id', { mode: 'bigint' })
+      .notNull()
+      .references(() => items.id, { onDelete: 'cascade' }),
+    value: smallint('value').notNull(), // -1 | 1
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.userId, table.itemId] }),
+  }),
+);
+
+// SETTINGS — admin-tunable config rows
+export const settings = pgTable('settings', {
+  key: text('key').primaryKey(),
+  value: text('value').notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+// PIPELINE_RUNS — LLM token usage audit trail per item per run
+export const pipelineRuns = pgTable(
+  'pipeline_runs',
+  {
+    id: bigserial('id', { mode: 'bigint' }).primaryKey(),
+    itemId: bigint('item_id', { mode: 'bigint' }).references(() => items.id, {
+      onDelete: 'set null',
+    }),
+    model: text('model').notNull(),
+    task: text('task').notNull(), // 'translate' | 'score' | 'summarize' | 'embed' | 'cluster'
+    inputTokens: integer('input_tokens'),
+    outputTokens: integer('output_tokens'),
+    cacheReadTokens: integer('cache_read_tokens'),
+    cacheWriteTokens: integer('cache_write_tokens'),
+    estimatedCostUsd: numeric('estimated_cost_usd', { precision: 10, scale: 6 }),
+    latencyMs: integer('latency_ms'),
+    status: text('status').notNull(), // 'ok' | 'error'
+    errorMessage: text('error_message'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    itemIdx: index('pipeline_runs_item_id_idx').on(table.itemId),
+    dateIdx: index('pipeline_runs_created_at_idx').on(table.createdAt.desc()),
+  }),
+);
