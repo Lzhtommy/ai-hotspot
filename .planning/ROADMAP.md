@@ -32,7 +32,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. RSSHub is reachable at its VPS URL with ACCESS_KEY auth and returns a valid RSS feed for at least one configured route
   5. Upstash Redis ping returns OK from a Vercel edge function
 **Plans:** 6 plans
-- [ ] 01-01-PLAN.md — Repo bootstrap: Next.js 15 + pnpm scaffold, husky + pre-commit UUID hook, .env.example canonical registry
+- [x] 01-01-PLAN.md — Repo bootstrap: Next.js 15 + pnpm scaffold, husky + pre-commit UUID hook, .env.example canonical registry
 - [ ] 01-02-PLAN.md — Drizzle + Neon + pgvector: 11-table schema, 0000 extension migration, [BLOCKING] drizzle-kit migrate to live Neon dev branch
 - [ ] 01-03-PLAN.md — Trigger.dev v4 + Upstash Redis: trigger.config.ts, health-probe task (dashboard manual-trigger checkpoint), Redis client singleton
 - [ ] 01-04-PLAN.md — RSSHub wrapper + /api/health: fetchRSSHub with warmup + 60s timeout, /api/health Node-runtime route aggregating 4 service checks
