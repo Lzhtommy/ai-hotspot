@@ -31,7 +31,13 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. A Trigger.dev task can be triggered manually and succeeds without timeout errors
   4. RSSHub is reachable at its VPS URL with ACCESS_KEY auth and returns a valid RSS feed for at least one configured route
   5. Upstash Redis ping returns OK from a Vercel edge function
-**Plans**: TBD
+**Plans:** 6 plans
+- [ ] 01-01-PLAN.md — Repo bootstrap: Next.js 15 + pnpm scaffold, husky + pre-commit UUID hook, .env.example canonical registry
+- [ ] 01-02-PLAN.md — Drizzle + Neon + pgvector: 11-table schema, 0000 extension migration, [BLOCKING] drizzle-kit migrate to live Neon dev branch
+- [ ] 01-03-PLAN.md — Trigger.dev v4 + Upstash Redis: trigger.config.ts, health-probe task (dashboard manual-trigger checkpoint), Redis client singleton
+- [ ] 01-04-PLAN.md — RSSHub wrapper + /api/health: fetchRSSHub with warmup + 60s timeout, /api/health Node-runtime route aggregating 4 service checks
+- [ ] 01-05-PLAN.md — CI pipeline: GitHub Actions (typecheck/lint/build/migrate with Neon branch-per-PR), Trigger.dev deploy job, PR preview verification checkpoint
+- [ ] 01-06-PLAN.md — Docs & runbooks: README + docs/rsshub.md (key rotation runbook), docs/health.md, docs/ci.md, docs/vercel.md, docs/database.md
 
 ### Phase 2: Ingestion Pipeline
 **Goal**: Hourly polling fetches all active sources via RSSHub, deduplicates by normalized URL fingerprint, and enqueues new items for LLM processing without data loss or cross-source interference
@@ -103,7 +109,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Infrastructure Foundation | 0/TBD | Not started | - |
+| 1. Infrastructure Foundation | 0/6 | Planned | - |
 | 2. Ingestion Pipeline | 0/TBD | Not started | - |
 | 3. LLM Pipeline + Clustering | 0/TBD | Not started | - |
 | 4. Feed UI | 0/TBD | Not started | - |
