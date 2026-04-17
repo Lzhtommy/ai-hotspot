@@ -34,7 +34,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans:** 6 plans
 - [x] 01-01-PLAN.md — Repo bootstrap: Next.js 15 + pnpm scaffold, husky + pre-commit UUID hook, .env.example canonical registry
 - [x] 01-02-PLAN.md — Drizzle + Neon + pgvector: 11-table schema, 0000 extension migration, [BLOCKING] drizzle-kit migrate to live Neon dev branch
-- [ ] 01-03-PLAN.md — Trigger.dev v4 + Upstash Redis: trigger.config.ts, health-probe task (dashboard manual-trigger checkpoint), Redis client singleton
+- [x] 01-03-PLAN.md — Trigger.dev v4 + Upstash Redis: trigger.config.ts, health-probe task (dashboard manual-trigger checkpoint), Redis client singleton
 - [ ] 01-04-PLAN.md — RSSHub wrapper + /api/health: fetchRSSHub with warmup + 60s timeout, /api/health Node-runtime route aggregating 4 service checks
 - [ ] 01-05-PLAN.md — CI pipeline: GitHub Actions (typecheck/lint/build/migrate with Neon branch-per-PR), Trigger.dev deploy job, PR preview verification checkpoint
 - [ ] 01-06-PLAN.md — Docs & runbooks: README + docs/rsshub.md (key rotation runbook), docs/health.md, docs/ci.md, docs/vercel.md, docs/database.md

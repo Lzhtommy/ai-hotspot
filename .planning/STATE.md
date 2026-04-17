@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 01-02-drizzle-schema-PLAN.md
-last_updated: "2026-04-17T07:45:34.802Z"
+stopped_at: Completed 01-03-trigger-redis-PLAN.md
+last_updated: "2026-04-17T07:54:34.409Z"
 last_activity: 2026-04-17
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 6
-  completed_plans: 2
-  percent: 33
+  completed_plans: 3
+  percent: 50
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 ## Current Position
 
 Phase: 1 of 6 (Infrastructure Foundation)
-Plan: 3 of 6 in current phase (next: 01-02-drizzle-schema)
+Plan: 4 of 6 in current phase (next: 01-02-drizzle-schema)
 Status: Ready to execute
 Last activity: 2026-04-17
 
@@ -57,6 +57,7 @@ Progress: [██░░░░░░░░] 17%
 |------------|----------|-------|-------|
 | Phase 01 P01 | 6min | 3 tasks | 18 files |
 | Phase 01 P02 | 15min | 3 tasks | 12 files |
+| Phase 01-infrastructure-foundation P03 | 5min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -74,6 +75,9 @@ Recent decisions affecting current work:
 - [Phase 01]: Plan 01-02: Auth.js tables deferred to later auth-integration plan — v1 schema has 11 domain tables only per D-09
 - [Phase 01]: Plan 01-02: Embedding dimension pinned to vector(1024) for Voyage voyage-3.5 per D-10 (overrides CLAUDE.md OpenAI recommendation)
 - [Phase 01]: Plan 01-02: Pre-commit UUID hook narrowed (not disabled) to exclude drizzle/meta/*.json — D-08 intent preserved
+- [Phase 01-infrastructure-foundation]: Plan 01-03: Trigger.dev SDK import path is `@trigger.dev/sdk` root (NOT `/build` — subpath absent in 4.4.4)
+- [Phase 01-infrastructure-foundation]: Plan 01-03: trigger.config.ts must include `maxDuration` (required in @trigger.dev/core@4.4.4); pinned to 3600s (1h) for Phase 2 hourly ingestion budget
+- [Phase 01-infrastructure-foundation]: Plan 01-03: Upstash Redis module-scope singleton pattern adopted (mirrors Drizzle client — safe for HTTP-only clients, not TCP)
 
 ### Pending Todos
 
@@ -93,6 +97,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-17T07:45:34.799Z
-Stopped at: Completed 01-02-drizzle-schema-PLAN.md
+Last session: 2026-04-17T07:54:22.458Z
+Stopped at: Completed 01-03-trigger-redis-PLAN.md
 Resume file: None
