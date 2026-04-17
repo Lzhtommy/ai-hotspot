@@ -162,93 +162,93 @@ Explicitly excluded. Documented to prevent scope creep.
 
 ## Traceability
 
-Which phases cover which requirements. Filled in during roadmap creation.
+Which phases cover which requirements.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | TBD | Pending |
-| INFRA-02 | TBD | Pending |
-| INFRA-03 | TBD | Pending |
-| INFRA-04 | TBD | Pending |
-| INFRA-05 | TBD | Pending |
-| INFRA-06 | TBD | Pending |
-| INFRA-07 | TBD | Pending |
-| INFRA-08 | TBD | Pending |
-| INGEST-01 | TBD | Pending |
-| INGEST-02 | TBD | Pending |
-| INGEST-03 | TBD | Pending |
-| INGEST-04 | TBD | Pending |
-| INGEST-05 | TBD | Pending |
-| INGEST-06 | TBD | Pending |
-| INGEST-07 | TBD | Pending |
-| INGEST-08 | TBD | Pending |
-| LLM-01 | TBD | Pending |
-| LLM-02 | TBD | Pending |
-| LLM-03 | TBD | Pending |
-| LLM-04 | TBD | Pending |
-| LLM-05 | TBD | Pending |
-| LLM-06 | TBD | Pending |
-| LLM-07 | TBD | Pending |
-| LLM-08 | TBD | Pending |
-| LLM-09 | TBD | Pending |
-| LLM-10 | TBD | Pending |
-| LLM-11 | TBD | Pending |
-| LLM-12 | TBD | Pending |
-| LLM-13 | TBD | Pending |
-| CLUST-01 | TBD | Pending |
-| CLUST-02 | TBD | Pending |
-| CLUST-03 | TBD | Pending |
-| CLUST-04 | TBD | Pending |
-| CLUST-05 | TBD | Pending |
-| CLUST-06 | TBD | Pending |
-| CLUST-07 | TBD | Pending |
-| FEED-01 | TBD | Pending |
-| FEED-02 | TBD | Pending |
-| FEED-03 | TBD | Pending |
-| FEED-04 | TBD | Pending |
-| FEED-05 | TBD | Pending |
-| FEED-06 | TBD | Pending |
-| FEED-07 | TBD | Pending |
-| FEED-08 | TBD | Pending |
-| FEED-09 | TBD | Pending |
-| FEED-10 | TBD | Pending |
-| FEED-11 | TBD | Pending |
-| FEED-12 | TBD | Pending |
-| AUTH-01 | TBD | Pending |
-| AUTH-02 | TBD | Pending |
-| AUTH-03 | TBD | Pending |
-| AUTH-04 | TBD | Pending |
-| AUTH-05 | TBD | Pending |
-| AUTH-06 | TBD | Pending |
-| AUTH-07 | TBD | Pending |
-| AUTH-08 | TBD | Pending |
-| FAV-01 | TBD | Pending |
-| FAV-02 | TBD | Pending |
-| FAV-03 | TBD | Pending |
-| VOTE-01 | TBD | Pending |
-| VOTE-02 | TBD | Pending |
-| VOTE-03 | TBD | Pending |
-| VOTE-04 | TBD | Pending |
-| ADMIN-01 | TBD | Pending |
-| ADMIN-02 | TBD | Pending |
-| ADMIN-03 | TBD | Pending |
-| ADMIN-04 | TBD | Pending |
-| ADMIN-05 | TBD | Pending |
-| ADMIN-06 | TBD | Pending |
-| ADMIN-07 | TBD | Pending |
-| ADMIN-08 | TBD | Pending |
-| ADMIN-09 | TBD | Pending |
-| OPS-01 | TBD | Pending |
-| OPS-02 | TBD | Pending |
-| OPS-03 | TBD | Pending |
-| OPS-04 | TBD | Pending |
-| OPS-05 | TBD | Pending |
+| INFRA-01 | Phase 1 | Pending |
+| INFRA-02 | Phase 1 | Pending |
+| INFRA-03 | Phase 1 | Pending |
+| INFRA-04 | Phase 1 | Pending |
+| INFRA-05 | Phase 1 | Pending |
+| INFRA-06 | Phase 1 | Pending |
+| INFRA-07 | Phase 1 | Pending |
+| INFRA-08 | Phase 1 | Pending |
+| INGEST-01 | Phase 2 | Pending |
+| INGEST-02 | Phase 2 | Pending |
+| INGEST-03 | Phase 2 | Pending |
+| INGEST-04 | Phase 2 | Pending |
+| INGEST-05 | Phase 2 | Pending |
+| INGEST-06 | Phase 2 | Pending |
+| INGEST-07 | Phase 2 | Pending |
+| INGEST-08 | Phase 2 | Pending |
+| LLM-01 | Phase 3 | Pending |
+| LLM-02 | Phase 3 | Pending |
+| LLM-03 | Phase 3 | Pending |
+| LLM-04 | Phase 3 | Pending |
+| LLM-05 | Phase 3 | Pending |
+| LLM-06 | Phase 3 | Pending |
+| LLM-07 | Phase 3 | Pending |
+| LLM-08 | Phase 3 | Pending |
+| LLM-09 | Phase 3 | Pending |
+| LLM-10 | Phase 3 | Pending |
+| LLM-11 | Phase 3 | Pending |
+| LLM-12 | Phase 3 | Pending |
+| LLM-13 | Phase 3 | Pending |
+| CLUST-01 | Phase 3 | Pending |
+| CLUST-02 | Phase 3 | Pending |
+| CLUST-03 | Phase 3 | Pending |
+| CLUST-04 | Phase 3 | Pending |
+| CLUST-05 | Phase 3 | Pending |
+| CLUST-06 | Phase 3 | Pending |
+| CLUST-07 | Phase 3 | Pending |
+| FEED-01 | Phase 4 | Pending |
+| FEED-02 | Phase 4 | Pending |
+| FEED-03 | Phase 4 | Pending |
+| FEED-04 | Phase 4 | Pending |
+| FEED-05 | Phase 4 | Pending |
+| FEED-06 | Phase 4 | Pending |
+| FEED-07 | Phase 4 | Pending |
+| FEED-08 | Phase 4 | Pending |
+| FEED-09 | Phase 4 | Pending |
+| FEED-10 | Phase 4 | Pending |
+| FEED-11 | Phase 4 | Pending |
+| FEED-12 | Phase 4 | Pending |
+| AUTH-01 | Phase 5 | Pending |
+| AUTH-02 | Phase 5 | Pending |
+| AUTH-03 | Phase 5 | Pending |
+| AUTH-04 | Phase 5 | Pending |
+| AUTH-05 | Phase 5 | Pending |
+| AUTH-06 | Phase 5 | Pending |
+| AUTH-07 | Phase 5 | Pending |
+| AUTH-08 | Phase 5 | Pending |
+| FAV-01 | Phase 5 | Pending |
+| FAV-02 | Phase 5 | Pending |
+| FAV-03 | Phase 5 | Pending |
+| VOTE-01 | Phase 5 | Pending |
+| VOTE-02 | Phase 5 | Pending |
+| VOTE-03 | Phase 5 | Pending |
+| VOTE-04 | Phase 5 | Pending |
+| ADMIN-01 | Phase 6 | Pending |
+| ADMIN-02 | Phase 6 | Pending |
+| ADMIN-03 | Phase 6 | Pending |
+| ADMIN-04 | Phase 6 | Pending |
+| ADMIN-05 | Phase 6 | Pending |
+| ADMIN-06 | Phase 6 | Pending |
+| ADMIN-07 | Phase 6 | Pending |
+| ADMIN-08 | Phase 6 | Pending |
+| ADMIN-09 | Phase 6 | Pending |
+| OPS-01 | Phase 6 | Pending |
+| OPS-02 | Phase 6 | Pending |
+| OPS-03 | Phase 6 | Pending |
+| OPS-04 | Phase 6 | Pending |
+| OPS-05 | Phase 6 | Pending |
 
 **Coverage:**
 - v1 requirements: 75 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 75 ⚠️ (will be filled by roadmapper)
+- Mapped to phases: 75
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-17*
-*Last updated: 2026-04-17 after initial definition*
+*Last updated: 2026-04-17 after roadmap creation — all 75 requirements mapped*
