@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 01-01-repo-bootstrap-PLAN.md
-last_updated: "2026-04-17T07:15:33.848Z"
-last_activity: 2026-04-17 — Plan 01-01 complete (Next.js 15 scaffold + Husky + .env.example)
+stopped_at: Completed 01-02-drizzle-schema-PLAN.md
+last_updated: "2026-04-17T07:45:34.802Z"
+last_activity: 2026-04-17
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 6
-  completed_plans: 1
-  percent: 17
+  completed_plans: 2
+  percent: 33
 ---
 
 # Project State
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 ## Current Position
 
 Phase: 1 of 6 (Infrastructure Foundation)
-Plan: 2 of 6 in current phase (next: 01-02-drizzle-schema)
-Status: Executing
-Last activity: 2026-04-17 — Plan 01-01 complete (Next.js 15 scaffold + Husky + .env.example)
+Plan: 3 of 6 in current phase (next: 01-02-drizzle-schema)
+Status: Ready to execute
+Last activity: 2026-04-17
 
 Progress: [██░░░░░░░░] 17%
 
@@ -56,6 +56,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase Plan | Duration | Tasks | Files |
 |------------|----------|-------|-------|
 | Phase 01 P01 | 6min | 3 tasks | 18 files |
+| Phase 01 P02 | 15min | 3 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -70,6 +71,9 @@ Recent decisions affecting current work:
 - Roadmap: Admin + OPS consolidated into Phase 6 (operational hardening after core loop validated)
 - [Phase 01]: Plan 01-01: Next.js pinned to 15.x (React 18) via manual post-scaffold pin; create-next-app default (16.x + React 19) overridden per CLAUDE.md
 - [Phase 01]: Plan 01-01: ESLint 9 flat config bridges Next 15's legacy preset via @eslint/eslintrc FlatCompat
+- [Phase 01]: Plan 01-02: Auth.js tables deferred to later auth-integration plan — v1 schema has 11 domain tables only per D-09
+- [Phase 01]: Plan 01-02: Embedding dimension pinned to vector(1024) for Voyage voyage-3.5 per D-10 (overrides CLAUDE.md OpenAI recommendation)
+- [Phase 01]: Plan 01-02: Pre-commit UUID hook narrowed (not disabled) to exclude drizzle/meta/*.json — D-08 intent preserved
 
 ### Pending Todos
 
@@ -89,6 +93,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-17T07:15:33.844Z
-Stopped at: Completed 01-01-repo-bootstrap-PLAN.md
+Last session: 2026-04-17T07:45:34.799Z
+Stopped at: Completed 01-02-drizzle-schema-PLAN.md
 Resume file: None

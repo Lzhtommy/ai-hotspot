@@ -10,8 +10,8 @@ Requirements for initial release. Each maps to a roadmap phase.
 ### Infrastructure
 
 - [x] **INFRA-01**: Next.js 15 App Router (TypeScript) project scaffolded and deploying to Vercel
-- [ ] **INFRA-02**: Neon Postgres provisioned with pgvector extension enabled
-- [ ] **INFRA-03**: Drizzle ORM schema migration defines `sources`, `items`, `clusters`, `item_clusters`, `tags`, `item_tags`, `users`, `favorites`, `votes`, `settings`, `pipeline_runs`
+- [x] **INFRA-02**: Neon Postgres provisioned with pgvector extension enabled
+- [x] **INFRA-03**: Drizzle ORM schema migration defines `sources`, `items`, `clusters`, `item_clusters`, `tags`, `item_tags`, `users`, `favorites`, `votes`, `settings`, `pipeline_runs`
 - [ ] **INFRA-04**: Upstash Redis provisioned and reachable from Vercel
 - [ ] **INFRA-05**: Trigger.dev v4 project linked to the repo with deploy pipeline working
 - [ ] **INFRA-06**: RSSHub deployed on a HK/SG VPS (Railway or Hetzner) with ACCESS_KEY auth
@@ -167,8 +167,8 @@ Which phases cover which requirements.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | INFRA-01 | Phase 1 | Complete |
-| INFRA-02 | Phase 1 | Pending |
-| INFRA-03 | Phase 1 | Pending |
+| INFRA-02 | Phase 1 | Complete |
+| INFRA-03 | Phase 1 | Complete |
 | INFRA-04 | Phase 1 | Pending |
 | INFRA-05 | Phase 1 | Pending |
 | INFRA-06 | Phase 1 | Pending |
