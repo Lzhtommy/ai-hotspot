@@ -115,12 +115,10 @@ async function main() {
       );
       run1Results.push({ ...r, name: s.name });
     }
-    const n1Row = (await db.execute(
-      sql`SELECT COUNT(*)::int AS n FROM items`,
-    )) as unknown as Array<{
-      n: number;
-    }>;
-    const N1 = n1Row[0].n;
+    const n1Row = (await db.execute(sql`SELECT COUNT(*)::int AS n FROM items`)) as unknown as {
+      rows: Array<{ n: number }>;
+    };
+    const N1 = n1Row.rows[0].n;
     console.log(`Items after Run 1: ${N1}`);
 
     // Snapshot BETWEEN runs — captures post-Run-1 state for SC#3 D-08 semantics.
@@ -142,12 +140,10 @@ async function main() {
       );
       run2Results.push({ ...r, name: s.name });
     }
-    const n2Row = (await db.execute(
-      sql`SELECT COUNT(*)::int AS n FROM items`,
-    )) as unknown as Array<{
-      n: number;
-    }>;
-    const N2 = n2Row[0].n;
+    const n2Row = (await db.execute(sql`SELECT COUNT(*)::int AS n FROM items`)) as unknown as {
+      rows: Array<{ n: number }>;
+    };
+    const N2 = n2Row.rows[0].n;
     console.log(`Items after Run 2: ${N2}`);
 
     const sourcesAfterRun2 = await snapshotSources(activeIds);
@@ -159,8 +155,8 @@ async function main() {
       SELECT COUNT(*)::int AS n FROM (
         SELECT url_fingerprint FROM items GROUP BY url_fingerprint HAVING COUNT(*) > 1
       ) q
-    `)) as unknown as Array<{ n: number }>;
-    const dupCount = dupRow[0].n;
+    `)) as unknown as { rows: Array<{ n: number }> };
+    const dupCount = dupRow.rows[0].n;
     record(
       'SC#1 idempotency',
       N2 === N1 && dupCount === 0,
@@ -335,12 +331,13 @@ async function main() {
     );
 
     // Criterion #4: UTC storage + source_tz preservation.
-    const tzRows = (await db.execute(sql`
+    const tzRes = (await db.execute(sql`
       SELECT published_at, published_at_source_tz
       FROM items
       WHERE published_at_source_tz IS NOT NULL
       LIMIT 5
-    `)) as unknown as Array<{ published_at: string; published_at_source_tz: string }>;
+    `)) as unknown as { rows: Array<{ published_at: string; published_at_source_tz: string }> };
+    const tzRows = tzRes.rows;
 
     let sc4Ok = true;
     const sc4Detail: string[] = [];
@@ -361,10 +358,11 @@ async function main() {
       if (sc4Ok) sc4Detail.push(`${tzRows.length} rows checked, all match within 1s`);
     }
     // Column existence sanity — always checked.
-    const colRow = (await db.execute(sql`
+    const colRes = (await db.execute(sql`
       SELECT data_type, is_nullable FROM information_schema.columns
       WHERE table_name = 'items' AND column_name = 'published_at_source_tz'
-    `)) as unknown as Array<{ data_type: string; is_nullable: string }>;
+    `)) as unknown as { rows: Array<{ data_type: string; is_nullable: string }> };
+    const colRow = colRes.rows;
     if (colRow.length !== 1 || colRow[0].data_type !== 'text' || colRow[0].is_nullable !== 'YES') {
       sc4Ok = false;
       sc4Detail.push(`column shape incorrect: ${JSON.stringify(colRow)}`);
