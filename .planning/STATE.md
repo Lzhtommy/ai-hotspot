@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-03-PLAN.md (Trigger.dev v4 ingestion tasks)
-last_updated: "2026-04-20T08:55:50.853Z"
+stopped_at: Completed 02-04-PLAN.md (canary sources seeded to Neon dev branch, idempotency verified)
+last_updated: "2026-04-20T09:03:02.998Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 11
-  completed_plans: 9
-  percent: 82
+  completed_plans: 10
+  percent: 91
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 ## Current Position
 
 Phase: 02 (ingestion-pipeline) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 Status: Ready to execute
 Last activity: 2026-04-20
 
@@ -63,6 +63,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 01-infrastructure-foundation P06 | 4min | 2 tasks | 6 files |
 | Phase 01-infrastructure-foundation P05 | 3min | 3 tasks | 3 files |
 | Phase 02-ingestion-pipeline P03 | 5min | 4 tasks | 7 files |
+| Phase 02-ingestion-pipeline P04 | 8min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -92,6 +93,8 @@ Recent decisions affecting current work:
 - [Phase 02-ingestion-pipeline]: Plan 02-03: batch.triggerAndWait v4 signature is Array<{id, payload}>-only; v3-style (taskId, items) removed — verified @trigger.dev/sdk@4.4.4 shared.d.ts:232
 - [Phase 02-ingestion-pipeline]: Plan 02-03: Core-logic / task-wrapper split pattern — Trigger.dev task files are thin adapters; business logic in pure src/lib/* modules with injected deps for unit testing
 - [Phase 02-ingestion-pipeline]: Plan 02-03: vitest.setup.ts bootstraps placeholder DATABASE_URL for unit tests that transitively import @/lib/db/client (eager neon() call); tests inject mocked db via deps
+- [Phase 02-ingestion-pipeline]: Plan 02-04: Seed scripts that import the shared db singleton must use tsx --env-file=.env.local — in-file dotenv.config() runs too late because ES-module imports are hoisted and the db client eagerly calls neon() at evaluation time
+- [Phase 02-ingestion-pipeline]: Plan 02-04: RSSHub routes stored as paths only (e.g. /anthropic/news) not full URLs — keeps ACCESS_KEY out of DB (D-20) and makes RSSHUB_BASE_URL rotatable from env without DB updates
 
 ### Pending Todos
 
@@ -111,6 +114,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-20T08:55:50.849Z
-Stopped at: Completed 02-03-PLAN.md (Trigger.dev v4 ingestion tasks)
+Last session: 2026-04-20T09:03:02.995Z
+Stopped at: Completed 02-04-PLAN.md (canary sources seeded to Neon dev branch, idempotency verified)
 Resume file: None

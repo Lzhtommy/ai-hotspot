@@ -52,7 +52,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] 02-01-PLAN.md — Schema migration: add items.published_at_source_tz TEXT NULL, generate 0002 migration, push to live Neon dev branch
 - [x] 02-02-PLAN.md — Ingest utilities: normalizeUrl (D-04), fingerprint (SHA-256), parseRSS (rss-parser wrapper); Vitest unit tests
 - [x] 02-03-PLAN.md — Trigger.dev v4 tasks: ingest-hourly (schedules.task cron) + fetch-source (task maxDuration=90) + runFetchSource core orchestrator with D-08 counter semantics
-- [ ] 02-04-PLAN.md — Canary source seed: drizzle/seed-sources.ts with 3 RSSHub routes, idempotent ON CONFLICT, pnpm db:seed alias
+- [x] 02-04-PLAN.md — Canary source seed: drizzle/seed-sources.ts with 3 RSSHub routes, idempotent ON CONFLICT, pnpm db:seed alias
 - [ ] 02-05-PLAN.md — Verification harness: scripts/verify-ingest.ts asserts all 4 Phase 2 success criteria programmatically; UAT checkpoint
 
 ### Phase 3: LLM Pipeline + Clustering
