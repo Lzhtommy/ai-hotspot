@@ -12,6 +12,8 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml,css}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml,css}\"",
     "db:generate": "drizzle-kit generate",
@@ -30,7 +32,8 @@
     "drizzle-orm": "^0.45.2",
     "next": "^15",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "rss-parser": "^3.13.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",
@@ -49,7 +52,8 @@
     "tailwindcss": "^4",
     "trigger.dev": "^4.4.4",
     "tsx": "^4.21.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^2.1.9"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx}": [
