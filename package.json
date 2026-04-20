@@ -21,7 +21,7 @@
     "db:push": "drizzle-kit push",
     "db:check": "drizzle-kit check",
     "db:studio": "drizzle-kit studio",
-    "db:seed": "tsx drizzle/seed-sources.ts",
+    "db:seed": "tsx --env-file=.env.local drizzle/seed-sources.ts",
     "trigger:dev": "pnpm dlx trigger.dev@latest dev",
     "trigger:deploy": "pnpm dlx trigger.dev@latest deploy",
     "prepare": "husky"
