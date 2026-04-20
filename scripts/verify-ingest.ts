@@ -79,7 +79,7 @@ async function snapshotSources(activeIds: number[]) {
     .where(inArray(sources.id, activeIds));
 }
 
-async function main() {
+async function main(): Promise<boolean> {
   if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL not set');
 
   console.log('== Pre-flight ==');
@@ -369,15 +369,20 @@ async function main() {
     }
     record('SC#4 utc storage + source_tz', sc4Ok, sc4Detail.join('; '));
 
-    // Final summary
+    // Final summary — print PASS/FAIL per criterion, but DO NOT process.exit() here.
+    // We must fall through to the `finally` block to clean up the sentinel source.
+    // Calling process.exit() inside a try block bypasses the finally in Node's async
+    // runtime, leaking the sentinel row. Instead, return a boolean; main's caller
+    // computes the exit code after cleanup.
     console.log('\n== Summary ==');
     const failed = results.filter((r) => !r.pass);
     for (const r of results) console.log(`  [${r.pass ? 'PASS' : 'FAIL'}] ${r.name}`);
     if (failed.length > 0) {
       console.error(`\n${failed.length}/${results.length} criteria FAILED.`);
-      process.exit(1);
+    } else {
+      console.log(`\nAll ${results.length} criteria PASSED.`);
     }
-    console.log(`\nAll ${results.length} criteria PASSED.`);
+    return failed.length === 0;
   } finally {
     console.log('\n== Cleanup ==');
     await cleanup(brokenId);
@@ -385,7 +390,11 @@ async function main() {
   }
 }
 
-main().catch((e) => {
-  console.error('VERIFY FAILED:', e);
-  process.exit(1);
-});
+main()
+  .then((passed) => {
+    process.exit(passed ? 0 : 1);
+  })
+  .catch((e) => {
+    console.error('VERIFY FAILED:', e);
+    process.exit(1);
+  });
