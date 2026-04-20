@@ -19,8 +19,8 @@
     "db:push": "drizzle-kit push",
     "db:check": "drizzle-kit check",
     "db:studio": "drizzle-kit studio",
-    "trigger:dev": "trigger.dev dev",
-    "trigger:deploy": "trigger.dev deploy",
+    "trigger:dev": "pnpm dlx trigger.dev@latest dev",
+    "trigger:deploy": "pnpm dlx trigger.dev@latest deploy",
     "prepare": "husky"
   },
   "dependencies": {
