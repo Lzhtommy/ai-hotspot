@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 2 context gathered
-last_updated: "2026-04-20T08:38:38.044Z"
-last_activity: 2026-04-20 -- Phase 02 execution started
+stopped_at: Completed 02-03-PLAN.md (Trigger.dev v4 ingestion tasks)
+last_updated: "2026-04-20T08:55:50.853Z"
+last_activity: 2026-04-20
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 11
-  completed_plans: 6
-  percent: 55
+  completed_plans: 9
+  percent: 82
 ---
 
 # Project State
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 ## Current Position
 
 Phase: 02 (ingestion-pipeline) — EXECUTING
-Plan: 1 of 5
-Status: Executing Phase 02
-Last activity: 2026-04-20 -- Phase 02 execution started
+Plan: 2 of 5
+Status: Ready to execute
+Last activity: 2026-04-20
 
 Progress: [██░░░░░░░░] 17%
 
@@ -62,6 +62,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 01-infrastructure-foundation P04 | 10min | 3 tasks | 3 files |
 | Phase 01-infrastructure-foundation P06 | 4min | 2 tasks | 6 files |
 | Phase 01-infrastructure-foundation P05 | 3min | 3 tasks | 3 files |
+| Phase 02-ingestion-pipeline P03 | 5min | 4 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -88,6 +89,9 @@ Recent decisions affecting current work:
 - [Phase 01-infrastructure-foundation]: Plan 01-06: Runbook layout is one file per operational surface (rsshub, health, ci, vercel, database); README.md 'Further Reading' links to all five
 - [Phase 01-infrastructure-foundation]: Plan 01-05: CI pins pnpm to 10.32.1 (matches packageManager), supports both main+master push triggers; vercel.json installCommand+buildCommand but no db:migrate (D-18)
 - [Phase 01-infrastructure-foundation]: Plan 01-05: Task 4 live PR/preview verification deferred to phase-level HUMAN-UAT per execute-phase user_setup_status (user not yet linked GitHub remote/Vercel app/secrets); artifacts ready for /gsd-verify-work
+- [Phase 02-ingestion-pipeline]: Plan 02-03: batch.triggerAndWait v4 signature is Array<{id, payload}>-only; v3-style (taskId, items) removed — verified @trigger.dev/sdk@4.4.4 shared.d.ts:232
+- [Phase 02-ingestion-pipeline]: Plan 02-03: Core-logic / task-wrapper split pattern — Trigger.dev task files are thin adapters; business logic in pure src/lib/* modules with injected deps for unit testing
+- [Phase 02-ingestion-pipeline]: Plan 02-03: vitest.setup.ts bootstraps placeholder DATABASE_URL for unit tests that transitively import @/lib/db/client (eager neon() call); tests inject mocked db via deps
 
 ### Pending Todos
 
@@ -107,6 +111,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-20T08:00:57.279Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-ingestion-pipeline/02-CONTEXT.md
+Last session: 2026-04-20T08:55:50.849Z
+Stopped at: Completed 02-03-PLAN.md (Trigger.dev v4 ingestion tasks)
+Resume file: None

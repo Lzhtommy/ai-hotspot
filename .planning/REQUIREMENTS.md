@@ -20,14 +20,14 @@ Requirements for initial release. Each maps to a roadmap phase.
 
 ### Ingestion
 
-- [ ] **INGEST-01**: Trigger.dev cron task polls all active sources via RSSHub once per hour
+- [x] **INGEST-01**: Trigger.dev cron task polls all active sources via RSSHub once per hour
 - [ ] **INGEST-02**: Source URLs are normalized (strip UTM params, resolve shortlinks, canonical protocol) before fingerprinting
 - [ ] **INGEST-03**: Items are deduplicated by SHA-256 `url_fingerprint` with a UNIQUE DB index
-- [ ] **INGEST-04**: Each new item is written in `pending` status and enqueued for LLM processing
+- [x] **INGEST-04**: Each new item is written in `pending` status and enqueued for LLM processing
 - [ ] **INGEST-05**: Timestamps are stored as UTC; source-local time is preserved separately for display
-- [ ] **INGEST-06**: Source health is tracked: `last_fetched_at`, `consecutive_empty_count`, `consecutive_error_count`
-- [ ] **INGEST-07**: Source failures are logged and isolated — one bad source does not stop the others
-- [ ] **INGEST-08**: Ingestion task is idempotent — re-running an hour's poll does not create duplicates
+- [x] **INGEST-06**: Source health is tracked: `last_fetched_at`, `consecutive_empty_count`, `consecutive_error_count`
+- [x] **INGEST-07**: Source failures are logged and isolated — one bad source does not stop the others
+- [x] **INGEST-08**: Ingestion task is idempotent — re-running an hour's poll does not create duplicates
 
 ### LLM Pipeline
 
@@ -174,14 +174,14 @@ Which phases cover which requirements.
 | INFRA-06 | Phase 1 | Complete |
 | INFRA-07 | Phase 1 | Complete |
 | INFRA-08 | Phase 1 | Complete |
-| INGEST-01 | Phase 2 | Pending |
+| INGEST-01 | Phase 2 | Complete |
 | INGEST-02 | Phase 2 | Pending |
 | INGEST-03 | Phase 2 | Pending |
-| INGEST-04 | Phase 2 | Pending |
+| INGEST-04 | Phase 2 | Complete |
 | INGEST-05 | Phase 2 | Pending |
-| INGEST-06 | Phase 2 | Pending |
-| INGEST-07 | Phase 2 | Pending |
-| INGEST-08 | Phase 2 | Pending |
+| INGEST-06 | Phase 2 | Complete |
+| INGEST-07 | Phase 2 | Complete |
+| INGEST-08 | Phase 2 | Complete |
 | LLM-01 | Phase 3 | Pending |
 | LLM-02 | Phase 3 | Pending |
 | LLM-03 | Phase 3 | Pending |
