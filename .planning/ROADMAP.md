@@ -53,7 +53,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] 02-02-PLAN.md — Ingest utilities: normalizeUrl (D-04), fingerprint (SHA-256), parseRSS (rss-parser wrapper); Vitest unit tests
 - [x] 02-03-PLAN.md — Trigger.dev v4 tasks: ingest-hourly (schedules.task cron) + fetch-source (task maxDuration=90) + runFetchSource core orchestrator with D-08 counter semantics
 - [x] 02-04-PLAN.md — Canary source seed: drizzle/seed-sources.ts with 3 RSSHub routes, idempotent ON CONFLICT, pnpm db:seed alias
-- [ ] 02-05-PLAN.md — Verification harness: scripts/verify-ingest.ts asserts all 4 Phase 2 success criteria programmatically; UAT checkpoint
+- [x] 02-05-PLAN.md — Verification harness: scripts/verify-ingest.ts asserts all 4 Phase 2 success criteria programmatically; UAT checkpoint
 
 ### Phase 3: LLM Pipeline + Clustering
 **Goal**: Every published item has a Chinese summary, 0-100 hotness score, 推荐理由, auto-tags, and a cluster assignment; prompt caching is active; all failures land in dead-letter state rather than being dropped

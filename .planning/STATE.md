@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-04-PLAN.md (canary sources seeded to Neon dev branch, idempotency verified)
-last_updated: "2026-04-20T09:03:02.998Z"
+stopped_at: "Completed 02-05-PLAN.md — verify:ingest harness created, 3/4 Phase 2 SC PASS, SC#2 DEFERRED on RSSHub 503"
+last_updated: "2026-04-20T09:16:13.352Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 6
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 11
-  completed_plans: 10
-  percent: 91
+  completed_plans: 11
+  percent: 100
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 ## Current Position
 
 Phase: 02 (ingestion-pipeline) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 Status: Ready to execute
 Last activity: 2026-04-20
 
@@ -64,6 +64,7 @@ Progress: [██░░░░░░░░] 17%
 | Phase 01-infrastructure-foundation P05 | 3min | 3 tasks | 3 files |
 | Phase 02-ingestion-pipeline P03 | 5min | 4 tasks | 7 files |
 | Phase 02-ingestion-pipeline P04 | 8min | 2 tasks | 2 files |
+| Phase 02-ingestion-pipeline P05 | 9min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -95,6 +96,9 @@ Recent decisions affecting current work:
 - [Phase 02-ingestion-pipeline]: Plan 02-03: vitest.setup.ts bootstraps placeholder DATABASE_URL for unit tests that transitively import @/lib/db/client (eager neon() call); tests inject mocked db via deps
 - [Phase 02-ingestion-pipeline]: Plan 02-04: Seed scripts that import the shared db singleton must use tsx --env-file=.env.local — in-file dotenv.config() runs too late because ES-module imports are hoisted and the db client eagerly calls neon() at evaluation time
 - [Phase 02-ingestion-pipeline]: Plan 02-04: RSSHub routes stored as paths only (e.g. /anthropic/news) not full URLs — keeps ACCESS_KEY out of DB (D-20) and makes RSSHUB_BASE_URL rotatable from env without DB updates
+- [Phase 02-ingestion-pipeline]: Plan 02-05: db.execute result shape is { rows: Array<T>, rowCount, fields, ... } in drizzle-orm/neon-http — NOT a bare array. Cast to { rows: Array<T> } and index .rows[0].
+- [Phase 02-ingestion-pipeline]: Plan 02-05: CLI harness cleanup pattern — main() returns Promise<boolean>; top-level .then() calls process.exit AFTER finally runs. process.exit inside try bypasses finally in Node async runtime.
+- [Phase 02-ingestion-pipeline]: Plan 02-05: SC#2 (source isolation) DEFERRED to post-RSSHub-deployment run. Live RSSHub (HF Space) returns 503 to all routes — SC#2 requires at least one non-broken source to succeed in the same run, unobservable while all routes 503. Documented in 02-UAT.md with re-verification checklist.
 
 ### Pending Todos
 
@@ -105,6 +109,7 @@ None yet.
 - Phase 2 research flag: Verify Trigger.dev v4 batch.triggerByTaskAndWait API patterns before planning
 - Phase 2 research flag: Evaluate full-text extraction library (@mozilla/readability vs. unfluff vs. Jina.ai) before LLM pipeline planning
 - Phase 2 note: X/Twitter RSSHub routes are highest-volatility — treat as best-effort in v1
+- Phase 2 SC#2 blocked on RSSHub deployment — lurnings-rsshub.hf.space returns 503 on all canary routes. Re-verify via pnpm verify:ingest once healthy. Phase 3 prerequisite.
 
 ## Deferred Items
 
@@ -114,6 +119,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-20T09:03:02.995Z
-Stopped at: Completed 02-04-PLAN.md (canary sources seeded to Neon dev branch, idempotency verified)
+Last session: 2026-04-20T09:15:45.749Z
+Stopped at: Completed 02-05-PLAN.md — verify:ingest harness created, 3/4 Phase 2 SC PASS, SC#2 DEFERRED on RSSHub 503
 Resume file: None
