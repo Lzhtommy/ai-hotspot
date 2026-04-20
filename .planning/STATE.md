@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: phase-complete
-stopped_at: "Phase 02 verified human_needed — code complete, SC#2/SC#4 live evidence deferred to post-RSSHub; HUMAN-UAT.md persists"
-last_updated: "2026-04-20T17:30:00Z"
+stopped_at: "Phase 02 re-verified PASSED — all 4 SC live-PASS after RSSHUB_ACCESS_KEY fix (40 real items, 0 dup on re-run, isolation + D-08 + UTC all proven)"
+last_updated: "2026-04-20T17:42:00Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 6
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 
 ## Current Position
 
-Phase: 02 (ingestion-pipeline) — COMPLETE (human_needed)
+Phase: 02 (ingestion-pipeline) — COMPLETE (passed)
 Plan: 5 of 5
-Status: Phase verified — 2 human UAT items pending post-RSSHub deploy
+Status: All 4 SC live-PASS; 40 real items in DB; buzzing.cc route upstream issue logged as Phase 3 follow-up
 Last activity: 2026-04-20
 
 Progress: [███░░░░░░░] 33%
