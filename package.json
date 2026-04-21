@@ -23,6 +23,8 @@
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx --env-file=.env.local drizzle/seed-sources.ts",
     "verify:ingest": "tsx --env-file=.env.local scripts/verify-ingest.ts",
+    "check:hnsw": "tsx --env-file=.env.local scripts/check-hnsw.ts",
+    "verify:hnsw": "tsx --env-file=.env.local scripts/check-hnsw.ts",
     "trigger:dev": "pnpm dlx trigger.dev@latest dev",
     "trigger:deploy": "pnpm dlx trigger.dev@latest deploy",
     "prepare": "husky"

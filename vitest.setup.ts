@@ -8,3 +8,8 @@
  * call in src/lib/db/client.ts at module-load time.
  */
 process.env.DATABASE_URL ??= 'postgresql://test:test@localhost:5432/test?sslmode=require';
+process.env.ANTHROPIC_API_KEY ??= 'sk-ant-test-dummy';
+process.env.VOYAGE_API_KEY ??= 'pa-test-dummy';
+process.env.LANGFUSE_PUBLIC_KEY ??= 'pk-lf-test-dummy';
+process.env.LANGFUSE_SECRET_KEY ??= 'sk-lf-test-dummy';
+process.env.LANGFUSE_BASE_URL ??= 'https://cloud.langfuse.com';
