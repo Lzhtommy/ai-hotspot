@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Completed 02-05-PLAN.md — verify:ingest harness created, 3/4 Phase 2 SC PASS, SC#2 DEFERRED on RSSHub 503"
-last_updated: "2026-04-21T07:47:01.990Z"
-last_activity: 2026-04-21 -- Phase 03 execution started
+stopped_at: "03-01 checkpoint:human-action — Tasks 1+2 committed; awaiting pnpm drizzle-kit push + pnpm check:hnsw on live Neon dev branch"
+last_updated: "2026-04-21T07:50:55Z"
+last_activity: 2026-04-21 -- Phase 03 Plan 01 Tasks 1+2 complete; paused at Task 3 human gate
 progress:
   total_phases: 6
   completed_phases: 2
@@ -99,6 +99,9 @@ Recent decisions affecting current work:
 - [Phase 02-ingestion-pipeline]: Plan 02-05: db.execute result shape is { rows: Array<T>, rowCount, fields, ... } in drizzle-orm/neon-http — NOT a bare array. Cast to { rows: Array<T> } and index .rows[0].
 - [Phase 02-ingestion-pipeline]: Plan 02-05: CLI harness cleanup pattern — main() returns Promise<boolean>; top-level .then() calls process.exit AFTER finally runs. process.exit inside try bypasses finally in Node async runtime.
 - [Phase 02-ingestion-pipeline]: Plan 02-05: SC#2 (source isolation) DEFERRED to post-RSSHub-deployment run. Live RSSHub (HF Space) returns 503 to all routes — SC#2 requires at least one non-broken source to succeed in the same run, unobservable while all routes 503. Documented in 02-UAT.md with re-verification checklist.
+- [Phase 03-llm-pipeline-clustering]: Plan 03-01: 0003_snapshot.json is byte-identical copy-forward of 0002 — HNSW index not representable in Drizzle's current index builder; DSL unchanged
+- [Phase 03-llm-pipeline-clustering]: Plan 03-01: .env.example already contained all 5 Phase 3 vars from prior work; no append needed
+- [Phase 03-llm-pipeline-clustering]: Plan 03-01: vitest.setup.ts dummies: sk-ant-test-dummy / pa-test-dummy / pk-lf-test-dummy / sk-lf-test-dummy (clearly non-resolvable per T-03-09)
 
 ### Pending Todos
 
@@ -119,6 +122,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-20T09:15:45.749Z
-Stopped at: Completed 02-05-PLAN.md — verify:ingest harness created, 3/4 Phase 2 SC PASS, SC#2 DEFERRED on RSSHub 503
+Last session: 2026-04-21T07:50:55Z
+Stopped at: 03-01 checkpoint:human-action — Tasks 1+2 committed (1e1b7b2, 9abaefd); awaiting `pnpm drizzle-kit push` + `pnpm check:hnsw` on live Neon dev branch
 Resume file: None
