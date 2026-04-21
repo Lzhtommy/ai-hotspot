@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: Infrastructure Foundation** - All services provisioned and wired; project deploys to Vercel
 - [ ] **Phase 2: Ingestion Pipeline** - Hourly RSSHub polling deduplicates and enqueues items reliably
-- [ ] **Phase 3: LLM Pipeline + Clustering** - Every item receives translation, summary, score, tags, 推荐理由, and cluster assignment
+- [x] **Phase 3: LLM Pipeline + Clustering** - Every item receives translation, summary, score, tags, 推荐理由, and cluster assignment (completed 2026-04-21)
 - [ ] **Phase 4: Feed UI** - Public timeline (精选 + 全部 AI 动态) renders enriched items with dark-theme design
 - [ ] **Phase 5: Auth + User Interactions** - Users can log in and save or vote on items
 - [ ] **Phase 6: Admin + Operational Hardening** - Admin manages sources and users; errors, costs, and dead-letters are visible
@@ -65,12 +65,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. An item whose LLM response is malformed (missing score or required fields) transitions to dead-letter state and is never written to the published feed
   4. Two items from different sources covering the same event are assigned to the same cluster, and the cluster's member_count increments correctly
   5. Langfuse shows a trace per item with cost breakdown visible in the dashboard
-**Plans:** 5 plans
+**Plans:** 5/5 plans complete
 - [x] 03-01-PLAN.md — HNSW index migration + settings threshold seed + env registry + check:hnsw assertion script (hard gate; [BLOCKING] schema push)
 - [x] 03-02-PLAN.md — LLM core library: client, schema, prompt (cached ≥4096 tokens + untrusted_content), extract (SSRF-guarded Readability), enrich (Haiku 4.5 structured output), embed (Voyage 1024-dim), pricing, process-item-core orchestrator
 - [x] 03-03-PLAN.md — Cluster library: threshold (settings-backed + 0.82 default), join-or-create (pgvector <=> + ±24h + transactional), refresh (member_count + primary + earliest/latest + centroid + buildDebounceOpts)
 - [x] 03-04-PLAN.md — Trigger.dev v4 tasks: process-pending (cron */5 + FOR UPDATE SKIP LOCKED + fan-out), process-item (OTel flush), refresh-clusters (debounce-invoked); Langfuse OTel bootstrap
-- [ ] 03-05-PLAN.md — Live verification harness scripts/verify-llm.ts + 03-UAT.md human checklist (asserts all 5 ROADMAP SCs)
+- [x] 03-05-PLAN.md — Live verification harness scripts/verify-llm.ts + 03-UAT.md human checklist (asserts all 5 ROADMAP SCs)
 **UI hint**: no
 
 ### Phase 4: Feed UI
@@ -121,7 +121,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 |-------|----------------|--------|-----------|
 | 1. Infrastructure Foundation | 0/6 | Planned | - |
 | 2. Ingestion Pipeline | 0/TBD | Not started | - |
-| 3. LLM Pipeline + Clustering | 0/5 | Planned | - |
+| 3. LLM Pipeline + Clustering | 5/5 | Complete   | 2026-04-21 |
 | 4. Feed UI | 0/TBD | Not started | - |
 | 5. Auth + User Interactions | 0/TBD | Not started | - |
 | 6. Admin + Operational Hardening | 0/TBD | Not started | - |

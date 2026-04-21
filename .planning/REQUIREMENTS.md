@@ -32,28 +32,28 @@ Requirements for initial release. Each maps to a roadmap phase.
 ### LLM Pipeline
 
 - [x] **LLM-01**: Per-item pipeline runs on Trigger.dev workers (never inside Next.js API routes)
-- [ ] **LLM-02**: Full-text extraction step (Readability-style) fetches article body when RSS excerpt is short; falls back to excerpt with a flag on failure
-- [ ] **LLM-03**: English-source items are translated to Chinese by Claude Haiku 4.5 before summarization
-- [ ] **LLM-04**: Claude Haiku 4.5 produces a Chinese summary (~2–4 sentences) per item
-- [ ] **LLM-05**: Claude Haiku 4.5 produces a 0–100 hotness score per item; score is immutable after publish
-- [ ] **LLM-06**: Claude Haiku 4.5 produces a one-line 推荐理由 per item
-- [ ] **LLM-07**: Claude Haiku 4.5 produces up to N auto-tags per item (e.g., Agent, 模型发布, 编码, Anthropic)
-- [ ] **LLM-08**: Prompt caching (`cache_control: ephemeral`) is enabled on all system prompts from the first call; `cache_read_input_tokens` verified > 0
-- [ ] **LLM-09**: All ingested article text is wrapped in `<untrusted_content>` delimiters to mitigate prompt injection
-- [ ] **LLM-10**: LLM outputs are validated (score in 0–100, required fields present) before DB write; invalid responses go to dead-letter state
+- [x] **LLM-02**: Full-text extraction step (Readability-style) fetches article body when RSS excerpt is short; falls back to excerpt with a flag on failure
+- [x] **LLM-03**: English-source items are translated to Chinese by Claude Haiku 4.5 before summarization
+- [x] **LLM-04**: Claude Haiku 4.5 produces a Chinese summary (~2–4 sentences) per item
+- [x] **LLM-05**: Claude Haiku 4.5 produces a 0–100 hotness score per item; score is immutable after publish
+- [x] **LLM-06**: Claude Haiku 4.5 produces a one-line 推荐理由 per item
+- [x] **LLM-07**: Claude Haiku 4.5 produces up to N auto-tags per item (e.g., Agent, 模型发布, 编码, Anthropic)
+- [x] **LLM-08**: Prompt caching (`cache_control: ephemeral`) is enabled on all system prompts from the first call; `cache_read_input_tokens` verified > 0
+- [x] **LLM-09**: All ingested article text is wrapped in `<untrusted_content>` delimiters to mitigate prompt injection
+- [x] **LLM-10**: LLM outputs are validated (score in 0–100, required fields present) before DB write; invalid responses go to dead-letter state
 - [x] **LLM-11**: Failed items transition to `failed` with error detail; max retries exceeded items land in dead-letter, never silently dropped
-- [ ] **LLM-12**: Token usage per item (input / cache-read / cache-write / output) is logged to `pipeline_runs`
+- [x] **LLM-12**: Token usage per item (input / cache-read / cache-write / output) is logged to `pipeline_runs`
 - [x] **LLM-13**: LLM pipeline calls are instrumented with Langfuse traces
 
 ### Event Clustering
 
-- [ ] **CLUST-01**: Voyage AI `voyage-3.5` generates a 1024-dim embedding for every published item
+- [x] **CLUST-01**: Voyage AI `voyage-3.5` generates a 1024-dim embedding for every published item
 - [x] **CLUST-02**: Embeddings are stored in pgvector column with HNSW index for ANN search
-- [ ] **CLUST-03**: Cluster refresh task assigns each new item to nearest existing cluster if cosine similarity ≥ configurable threshold (default 0.82) within ±24h window; otherwise creates a new cluster
+- [x] **CLUST-03**: Cluster refresh task assigns each new item to nearest existing cluster if cosine similarity ≥ configurable threshold (default 0.82) within ±24h window; otherwise creates a new cluster
 - [x] **CLUST-04**: Clustering threshold is stored in the `settings` table and adjustable without redeploy
-- [ ] **CLUST-05**: Each cluster tracks `member_count`, `primary_item_id`, `earliest_seen_at`, `latest_seen_at`
+- [x] **CLUST-05**: Each cluster tracks `member_count`, `primary_item_id`, `earliest_seen_at`, `latest_seen_at`
 - [x] **CLUST-06**: Cluster refresh task is debounced to run once per ingestion wave (coalesces bursts)
-- [ ] **CLUST-07**: Primary item is selected by earliest timestamp within the cluster (stable)
+- [x] **CLUST-07**: Primary item is selected by earliest timestamp within the cluster (stable)
 
 ### Feed UI
 
@@ -183,25 +183,25 @@ Which phases cover which requirements.
 | INGEST-07 | Phase 2 | Complete |
 | INGEST-08 | Phase 2 | Complete |
 | LLM-01 | Phase 3 | Complete |
-| LLM-02 | Phase 3 | Pending |
-| LLM-03 | Phase 3 | Pending |
-| LLM-04 | Phase 3 | Pending |
-| LLM-05 | Phase 3 | Pending |
-| LLM-06 | Phase 3 | Pending |
-| LLM-07 | Phase 3 | Pending |
-| LLM-08 | Phase 3 | Pending |
-| LLM-09 | Phase 3 | Pending |
-| LLM-10 | Phase 3 | Pending |
+| LLM-02 | Phase 3 | Complete |
+| LLM-03 | Phase 3 | Complete |
+| LLM-04 | Phase 3 | Complete |
+| LLM-05 | Phase 3 | Complete |
+| LLM-06 | Phase 3 | Complete |
+| LLM-07 | Phase 3 | Complete |
+| LLM-08 | Phase 3 | Complete |
+| LLM-09 | Phase 3 | Complete |
+| LLM-10 | Phase 3 | Complete |
 | LLM-11 | Phase 3 | Complete |
-| LLM-12 | Phase 3 | Pending |
+| LLM-12 | Phase 3 | Complete |
 | LLM-13 | Phase 3 | Complete |
-| CLUST-01 | Phase 3 | Pending |
+| CLUST-01 | Phase 3 | Complete |
 | CLUST-02 | Phase 3 | Complete |
-| CLUST-03 | Phase 3 | Pending |
+| CLUST-03 | Phase 3 | Complete |
 | CLUST-04 | Phase 3 | Complete |
-| CLUST-05 | Phase 3 | Pending |
+| CLUST-05 | Phase 3 | Complete |
 | CLUST-06 | Phase 3 | Complete |
-| CLUST-07 | Phase 3 | Pending |
+| CLUST-07 | Phase 3 | Complete |
 | FEED-01 | Phase 4 | Pending |
 | FEED-02 | Phase 4 | Pending |
 | FEED-03 | Phase 4 | Pending |
