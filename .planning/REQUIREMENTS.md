@@ -48,9 +48,9 @@ Requirements for initial release. Each maps to a roadmap phase.
 ### Event Clustering
 
 - [ ] **CLUST-01**: Voyage AI `voyage-3.5` generates a 1024-dim embedding for every published item
-- [ ] **CLUST-02**: Embeddings are stored in pgvector column with HNSW index for ANN search
+- [x] **CLUST-02**: Embeddings are stored in pgvector column with HNSW index for ANN search
 - [ ] **CLUST-03**: Cluster refresh task assigns each new item to nearest existing cluster if cosine similarity ≥ configurable threshold (default 0.82) within ±24h window; otherwise creates a new cluster
-- [ ] **CLUST-04**: Clustering threshold is stored in the `settings` table and adjustable without redeploy
+- [x] **CLUST-04**: Clustering threshold is stored in the `settings` table and adjustable without redeploy
 - [ ] **CLUST-05**: Each cluster tracks `member_count`, `primary_item_id`, `earliest_seen_at`, `latest_seen_at`
 - [ ] **CLUST-06**: Cluster refresh task is debounced to run once per ingestion wave (coalesces bursts)
 - [ ] **CLUST-07**: Primary item is selected by earliest timestamp within the cluster (stable)
@@ -196,9 +196,9 @@ Which phases cover which requirements.
 | LLM-12 | Phase 3 | Pending |
 | LLM-13 | Phase 3 | Pending |
 | CLUST-01 | Phase 3 | Pending |
-| CLUST-02 | Phase 3 | Pending |
+| CLUST-02 | Phase 3 | Complete |
 | CLUST-03 | Phase 3 | Pending |
-| CLUST-04 | Phase 3 | Pending |
+| CLUST-04 | Phase 3 | Complete |
 | CLUST-05 | Phase 3 | Pending |
 | CLUST-06 | Phase 3 | Pending |
 | CLUST-07 | Phase 3 | Pending |

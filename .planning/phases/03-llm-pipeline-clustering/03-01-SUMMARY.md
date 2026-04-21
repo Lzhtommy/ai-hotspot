@@ -2,7 +2,7 @@
 phase: 03-llm-pipeline-clustering
 plan: "01"
 subsystem: schema-migration
-status: awaiting-human-gate
+status: complete
 tags: [migration, pgvector, hnsw, settings, env, vitest]
 dependency_graph:
   requires: []
@@ -25,9 +25,9 @@ decisions:
   - ".env.example already contained all 5 Phase 3 vars from prior work — no append needed"
   - "vitest.setup.ts dummy prefixes: sk-ant-test-dummy, pa-test-dummy, pk-lf-test-dummy, sk-lf-test-dummy (clearly non-resolvable per T-03-09)"
 metrics:
-  duration: ~5min
-  completed_date: "2026-04-21T07:50:55Z"
-  tasks_completed: 2/3
+  duration: ~10min
+  completed_date: "2026-04-21T09:00:00Z"
+  tasks_completed: 3/3
   files_changed: 6
 ---
 
@@ -35,9 +35,9 @@ metrics:
 
 **One-liner:** Hand-authored HNSW index migration (m=16/ef=64) + cluster_threshold seed (0.82) + check:hnsw assertion script + vitest dummy env vars for Phase 3 LLM module imports.
 
-## Status: AWAITING HUMAN GATE (Task 3)
+## Status: COMPLETE
 
-Tasks 1 and 2 are committed. Task 3 requires the developer to push migration 0003 to the live Neon dev branch and verify with `pnpm check:hnsw`.
+All 3 tasks are complete. The live Neon dev branch has the HNSW index applied and `pnpm check:hnsw` exits 0. Wave 2 (Plans 02 + 03) is unblocked.
 
 ## Tasks Completed
 
@@ -45,6 +45,7 @@ Tasks 1 and 2 are committed. Task 3 requires the developer to push migration 000
 |------|-------------|--------|-------|
 | 1 | Hand-SQL migration + journal entry + snapshot copy-forward | 1e1b7b2 | drizzle/0003_hnsw_index_and_settings_seed.sql, drizzle/meta/_journal.json, drizzle/meta/0003_snapshot.json |
 | 2 | check-hnsw script + package.json scripts + vitest.setup.ts dummies | 9abaefd | scripts/check-hnsw.ts, package.json, vitest.setup.ts |
+| 3 | [Human gate] Apply migration 0003 to live Neon dev branch + verify | (live DB op — no code commit) | drizzle/0003_hnsw_index_and_settings_seed.sql applied via psql |
 
 ## Migration File Details
 
@@ -60,10 +61,20 @@ Key SQL operations:
 
 ## Journal + Snapshot State
 
-`drizzle/meta/_journal.json` now has 4 entries (idx 0–3):
+`drizzle/meta/_journal.json` now has 4 entries (idx 0-3):
 - idx 3: tag=`0003_hnsw_index_and_settings_seed`, version="7", breakpoints=true, when=1776757755000
 
 `drizzle/meta/0003_snapshot.json` is a byte-identical copy of `0002_snapshot.json`. The Drizzle DSL schema (`src/lib/db/schema.ts`) is unchanged by this migration — HNSW index definition lives outside Drizzle's current index builder capability. This preserves drizzle-kit's chain integrity per PATTERNS.md §Shared Pattern 8.
+
+## Task 3 Human Gate Outcome
+
+The developer applied `drizzle/0003_hnsw_index_and_settings_seed.sql` to the live Neon dev branch via `psql $DATABASE_URL -f drizzle/0003_hnsw_index_and_settings_seed.sql` (non-TTY psql fallback per plan Task 3 how-to-verify block).
+
+Post-push verification confirmed:
+- `pnpm check:hnsw` exit 0
+- stdout: `[PASS] items_embedding_hnsw_idx (HNSW) + settings.cluster_threshold=0.82`
+
+CLUST-02 and CLUST-04 satisfied on the live dev branch.
 
 ## Vitest Dummy Env Var Choices
 
@@ -97,6 +108,12 @@ None.
 - **Fix:** No change made — existing entries satisfy acceptance criteria.
 - **Files modified:** None (deviation was non-action)
 
+**2. [Observation] psql fallback used for Task 3 (non-TTY)**
+- **Found during:** Task 3
+- **Issue:** `pnpm drizzle-kit push` would have required interactive TTY confirmation; developer used the plan-documented psql fallback.
+- **Fix:** `psql $DATABASE_URL -f drizzle/0003_hnsw_index_and_settings_seed.sql` — expected per plan how-to-verify block.
+- **Files modified:** None (live DB operation)
+
 ## Threat Surface Scan
 
 No new security-relevant surfaces introduced:
@@ -104,16 +121,6 @@ No new security-relevant surfaces introduced:
 - `.env.example` contains only var names, no values (T-03-06 accepted)
 - `check-hnsw.ts` outputs only index metadata and settings.value — no credentials or row data from `items` (T-03-07 mitigated)
 - Vitest dummies use clearly non-resolvable prefixes (T-03-09 mitigated)
-
-## Pending: Task 3 Human Gate
-
-Task 3 requires the developer to:
-1. Confirm `.env.local` points at the Neon DEV branch
-2. Run `pnpm drizzle-kit push` (or `pnpm db:push`)
-3. Run `pnpm check:hnsw` — expect `[PASS] items_embedding_hnsw_idx (HNSW) + settings.cluster_threshold=0.82` and exit 0
-4. Cross-check: `psql "$DATABASE_URL" -c "SELECT indexdef FROM pg_indexes WHERE indexname='items_embedding_hnsw_idx';"`
-
-Type "approved" to unblock Wave 2 (Plans 02 + 03).
 
 ## Self-Check
 
@@ -125,5 +132,8 @@ Type "approved" to unblock Wave 2 (Plans 02 + 03).
 **Commits exist:**
 - 1e1b7b2: FOUND (chore(03-01): author HNSW migration)
 - 9abaefd: FOUND (feat(03-01): add check-hnsw script)
+
+**Live gate:**
+- pnpm check:hnsw: EXIT 0, [PASS] items_embedding_hnsw_idx (HNSW) + settings.cluster_threshold=0.82
 
 ## Self-Check: PASSED
