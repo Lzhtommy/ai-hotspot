@@ -1,9 +1,9 @@
 ---
 phase: 3
 slug: llm-pipeline-clustering
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-04-21
 ---
 
@@ -49,10 +49,10 @@ Live harness (out-of-band): `pnpm verify:llm` — calls real Haiku/Voyage agains
 | 03-03-01 | 03 | 3 | CLUST-03, CLUST-04, CLUST-05, CLUST-07 | — | `joinOrCreateCluster()`: finds nearest cluster within ±24h window where cosine ≥ threshold; else creates; updates member_count, primary_item_id (earliest published_at), earliest/latest_seen_at | unit | `pnpm test --run src/lib/cluster/join-or-create` | ❌ W0 | ⬜ pending |
 | 03-03-02 | 03 | 3 | CLUST-04 | — | `getClusterThreshold()` reads `settings` table; falls back to 0.82; cached with TTL | unit | `pnpm test --run src/lib/cluster/threshold` | ❌ W0 | ⬜ pending |
 | 03-03-03 | 03 | 3 | CLUST-06 | — | `refreshClustersDebounced()` Trigger.dev debounce key coalesces bursts (unit tests the `buildDebounceKey()` helper; live integration gated to verify:llm) | unit | `pnpm test --run src/lib/cluster/refresh` | ❌ W0 | ⬜ pending |
-| 03-04-01 | 04 | 4 | LLM-01 | — | `src/trigger/process-pending.ts` scheduled task claims pending items with `FOR UPDATE SKIP LOCKED`, fans out via `batch.triggerAndWait` | unit | `pnpm test --run src/trigger/process-pending-core` (pure core with injected deps) | ❌ W0 | ⬜ pending |
-| 03-04-02 | 04 | 4 | LLM-11 | — | `src/trigger/process-item.ts`: on transient error (API 5xx, timeout) → Trigger.dev retry up to 3; on schema-validation error → immediate dead-letter; retries exhausted → dead-letter with `failure_reason` | unit | `pnpm test --run src/trigger/process-item-core` | ❌ W0 | ⬜ pending |
-| 03-04-03 | 04 | 4 | LLM-13 | — | Langfuse OTel bootstrap wraps Anthropic SDK; `sdk.shutdown()` called in task `finally{}` to flush traces before worker recycle | unit + UAT | `pnpm test --run src/trigger/otel-bootstrap` (unit shape) + UAT dashboard trace visible | ❌ W0 | ⬜ pending |
-| 03-04-04 | 04 | 4 | CLUST-06 | — | `src/trigger/refresh-clusters.ts` uses Trigger.dev v4 native `debounce: {key, delay:'60s'}` queue option | integration | `pnpm test --run src/trigger/refresh-clusters` (config shape) | ❌ W0 | ⬜ pending |
+| 03-04-01 | 04 | 4 | LLM-01 | — | `src/trigger/process-pending.ts` scheduled task claims pending items with `FOR UPDATE SKIP LOCKED`, fans out via `batch.triggerAndWait` | unit (shape) | `pnpm test --run src/trigger/process-pending.test` (task id + registration + pure `claimPendingItems(deps)` helper) | ❌ W0 | ⬜ pending |
+| 03-04-02 | 04 | 4 | LLM-11 | — | `src/trigger/process-item.ts`: on transient error (API 5xx, timeout) → Trigger.dev retry up to 3; on schema-validation error → immediate dead-letter; retries exhausted → dead-letter with `failure_reason` | unit | `pnpm test --run src/lib/llm/process-item-core.test` (Plan 02 Task 3 covers retry/dead-letter branches via DI) | ❌ W0 | ⬜ pending |
+| 03-04-03 | 04 | 4 | LLM-13 | — | Langfuse OTel bootstrap wraps Anthropic SDK; `sdk.shutdown()` called in task `finally{}` to flush traces before worker recycle | unit + UAT | `pnpm test --run src/lib/llm/otel.test` (idempotent start + shutdown flush via injected sdk mock) + UAT dashboard trace visible | ❌ W0 | ⬜ pending |
+| 03-04-04 | 04 | 4 | CLUST-06 | — | `src/trigger/refresh-clusters.ts` uses Trigger.dev v4 native `debounce: {key, delay:'60s'}` queue option | integration (shape) | `pnpm test --run src/trigger/refresh-clusters.test` (task id + maxDuration + debounce opts wiring via `buildDebounceOpts` from `src/lib/cluster/refresh`) | ❌ W0 | ⬜ pending |
 | 03-05-01 | 05 | 5 | SC#1–#5 | — | `scripts/verify-llm.ts` asserts: SC1 fields populated, SC2 cache_read>0 on item≥2, SC3 malformed→dead_letter, SC4 two items→same cluster + count increments, SC5 Langfuse trace URL returned | live | `pnpm verify:llm` (human UAT gate) | ❌ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
@@ -68,8 +68,13 @@ Live harness (out-of-band): `pnpm verify:llm` — calls real Haiku/Voyage agains
 - [ ] `src/lib/cluster/join-or-create.test.ts` — stubs for CLUST-03..07
 - [ ] `src/lib/cluster/threshold.test.ts` — stubs for CLUST-04
 - [ ] `src/lib/cluster/refresh.test.ts` — stubs for CLUST-06
-- [ ] `src/trigger/process-pending-core.test.ts` — stubs for LLM-01 (pickup + fan-out logic)
-- [ ] `src/trigger/process-item-core.test.ts` — stubs for LLM-11 (retry/dead-letter branching)
+- [ ] `src/trigger/process-pending.test.ts` — Plan 04 Task 3 produces: asserts `processPending.id === 'process-pending'`, registration in `src/trigger/index.ts`, and unit-tests the pure `claimPendingItems(deps)` helper split out of the task body
+- [ ] `src/trigger/refresh-clusters.test.ts` — Plan 04 Task 2 produces: asserts `refreshClusters.id === 'refresh-clusters'`, `maxDuration === 180`, and that the debounce-option shape (or `buildDebounceOpts()` helper result) is wired
+- [ ] `src/lib/llm/otel.test.ts` — Plan 04 Task 1 produces: asserts `startOtel()` calls `sdk.start()` at most once across N invocations (idempotence) and that `flushOtel()` awaits the injected `sdk.shutdown()` mock
+- [ ] `src/lib/llm/prompts/rubric.md` — Plan 02 Task 1 produces: 0–100 hotness rubric with anchor examples (≥ 1500 tokens)
+- [ ] `src/lib/llm/prompts/tag-taxonomy.md` — Plan 02 Task 1 produces: 30-tag closed taxonomy (~1500 tokens)
+- [ ] `src/lib/llm/prompts/few-shot.md` — Plan 02 Task 1 produces: 2–3 worked examples (English input → Chinese enrichment JSON) anchoring Claude's behavior (~1000-1500 tokens)
+- [ ] Plan 02 Task 2 `enrich.test.ts` — asserts `args.system` is an array with `args.system[0].cache_control?.type === 'ephemeral'` AND `args.system[0].type === 'text'`, asserts `args.model === 'claude-haiku-4-5-20251001'`, asserts `args.output_config` uses `zodOutputFormat(EnrichmentSchema)` result shape
 - [ ] `scripts/verify-llm.ts` + `scripts/check-hnsw.ts` — SC harnesses
 - [ ] `scripts/verify-hnsw.ts` (or integrated into check-hnsw) — asserts HNSW index exists on `items.embedding`
 
@@ -97,4 +102,4 @@ Live harness (out-of-band): `pnpm verify:llm` — calls real Haiku/Voyage agains
 - [ ] Feedback latency < 20s
 - [ ] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-04-21

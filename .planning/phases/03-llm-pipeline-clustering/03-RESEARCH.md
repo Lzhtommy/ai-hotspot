@@ -597,28 +597,50 @@ ON CONFLICT (key) DO NOTHING;
 | A9 | Haiku 4.5 translation quality is "good enough" for Chinese summarization of English AI news | Standard Stack | CLAUDE.md and STATE.md already accepted this decision. No new risk added by this phase. |
 | A10 | Full-text extraction is triggered only when `body_raw.length < 500`; threshold picked by intuition | Pattern 1 / Step B | Threshold is tunable; if too low, we skip extraction when we shouldn't (truncated summaries). Plan may set it higher (e.g., 1500) after first live run. MEDIUM risk — easy to tune. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
+> All Q1–Q5 below are locked at plan-revision time (2026-04-21). Original discussion preserved for context; each now carries a **RESOLVED:** directive that plans MUST honor.
+
+### Q1: `@anthropic-ai/sdk/helpers/zod` export shape in 0.90
+**RESOLVED:** Use `zodOutputFormat(EnrichmentSchema)` from `@anthropic-ai/sdk/helpers/zod` (confirmed available in 0.90+ release notes). Implemented in **Plan 02 Task 2** (`src/lib/llm/enrich.ts`). Fallback: if the installed `node_modules/@anthropic-ai/sdk/helpers/zod.d.ts` export shape differs from the docs at execution time, the executor switches to a `messages.create` + `output_config.format.json_schema` path with manual `EnrichmentSchema.parse(res.content[0].text)` — kept as an alternate branch (`enrichWithClaudeFallback`) documented in Plan 02 Task 2 action.
+
+Original question and discussion (preserved):
 1. **Does `@anthropic-ai/sdk` 0.90 export `zodOutputFormat` at `@anthropic-ai/sdk/helpers/zod` with the shape the docs show?**
    - What we know: docs show the import and the usage; 0.90 is post-structured-outputs GA.
    - What's unclear: the `parsed_output` field on the response, and whether zod 3 vs 4 is required.
    - Recommendation: Plan Task 0 does `tsc`-level verification: import the helper in a throwaway file, assert types. If the helper is not yet published in 0.90, fall back to `messages.create` with `output_config.format.json_schema` and manual zod parse of `res.content[0].text`.
 
+### Q2: Source for `pipeline_runs.cache_read_tokens`
+**RESOLVED:** Read `res.usage.cache_read_input_tokens` directly from the Anthropic response object in `enrichWithClaude` and pass through to the `pipeline_runs` insert in `process-item-core.ts`. OTel auto-instrumentation (Plan 04 via `AnthropicInstrumentation`) is Langfuse-only; `pipeline_runs` persistence is fed by our own code path. Implemented in **Plan 02 Task 2** (`enrich.ts` returns `usage` object) and **Plan 02 Task 3** (`process-item-core.ts` writes `cacheReadTokens: enrichRes.usage.cache_read_input_tokens` into the pipelineRuns insert).
+
+Original question and discussion (preserved):
 2. **Is there a cleaner way to get usage.cache_read_input_tokens onto `pipeline_runs` than reading `res.usage` manually?**
    - What we know: OTel auto-captures usage; `res.usage` fields exist on the Anthropic response object.
    - What's unclear: whether the Arize instrumentor's OpenTelemetry spans expose them in a way we can also read for DB persistence.
    - Recommendation: Read `res.usage` directly. Simple + deterministic. The OTel path is for Langfuse only; `pipeline_runs` is fed by our own code.
 
+### Q3: Cluster `centroid` column population
+**RESOLVED:** `runRefreshClusters` populates `clusters.centroid` via `AVG(items.embedding)::vector` over member rows (filtered to `embedding IS NOT NULL`). Advisory in v1 (nearest-neighbor query in `join-or-create.ts` hits `items.embedding`, not `clusters.centroid`), but populated for forward-compat with v2 centroid-first clustering. Implemented in **Plan 03 Task 3** (`src/lib/cluster/refresh.ts`).
+
+Original question and discussion (preserved):
 3. **Should `refresh-clusters` also update the `centroid` column, or is centroid only advisory?**
    - What we know: Schema has `clusters.centroid vector(1024)` but the nearest-neighbor query in §Pattern 2 goes against `items.embedding`, not `clusters.centroid`.
    - What's unclear: if centroid matters for any v1 query.
    - Recommendation: Keep `centroid` populated by `refresh-clusters` as the mean of member embeddings. Cheap insurance; v2 may move the clustering join against `clusters.centroid` to avoid fan-out lookups.
 
+### Q4: Tag taxonomy size and membership
+**RESOLVED:** 30-tag closed taxonomy, locked at plan-revision time. Ceiling on output = 5 tags per item (enforced by `EnrichmentSchema.tags.max(5)`). Full taxonomy authored into `src/lib/llm/prompts/tag-taxonomy.md` — see **Plan 02 Task 1** action block for the verbatim 30-tag list (模型发布, Agent, 编码, RAG, 多模态, 安全, 评测, Anthropic, OpenAI, DeepMind, Meta, Google, 微软, 国产模型, 中国AI, 研究论文, 产品发布, 融资, 收购, 政策, 伦理, 基础设施, 推理, 训练, 开源, 闭源, 微调, 工具链, 开发者, 应用案例).
+
+Original question and discussion (preserved):
 4. **What's the right tag taxonomy size?**
    - What we know: CLAUDE.md mentions tags "Agent, 模型发布, 编码, Anthropic"; LLM-07 says "up to N auto-tags".
    - What's unclear: final N + full list.
    - Recommendation: Planner drafts a ~30-tag taxonomy (brands: Anthropic/OpenAI/DeepMind/Meta; categories: 模型发布/Agent/编码/多模态/评测/开源/论文/产品/融资/安全/政策; languages: —). Plan step authors it in `src/lib/llm/prompt.ts`. Ceiling on output = 5 tags per item.
 
+### Q5: `process-pending` claim batch size
+**RESOLVED:** `BATCH_SIZE = 20` per tick (5-min cron → 240 items/hr ceiling at nominal 50–200/hr ingestion). Implemented in **Plan 04 Task 3** (`src/trigger/process-pending.ts` module-level constant). Voyage batch size for embedding calls is also 20 (one embed per item; batching not used at v1 since each item is independent).
+
+Original question and discussion (preserved):
 5. **How many items should `process-pending` claim per tick?**
    - What we know: 5-min cron; ≤ 200 items per hour nominal; concurrency 4.
    - What's unclear: whether to claim all pending in one tick or rate-limit.
