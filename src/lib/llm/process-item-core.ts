@@ -36,6 +36,7 @@ import { extractFullText as realExtract } from './extract';
 import { enrichWithClaude as realEnrich, EnrichError } from './enrich';
 import { embedDocument as realEmbed, EmbedError } from './embed';
 import { computeHaikuCostUsd, computeVoyageCostUsd } from './pricing';
+import { joinOrCreateCluster as realJoinOrCreateCluster } from '@/lib/cluster/join-or-create';
 
 const HAIKU_MODEL = 'claude-haiku-4-5-20251001';
 const VOYAGE_MODEL = 'voyage-3.5';
@@ -70,7 +71,7 @@ export async function runProcessItem(params: {
   const extractFn = params.deps?.extractFullText ?? realExtract;
   const enrichFn = params.deps?.enrichWithClaude ?? realEnrich;
   const embedFn = params.deps?.embedDocument ?? realEmbed;
-  const joinFn = params.deps?.joinOrCreateCluster; // Plan 03 provides at prod; tests MUST inject.
+  const joinFn = params.deps?.joinOrCreateCluster ?? ((p) => realJoinOrCreateCluster(p));
   const now = params.deps?.now ?? (() => new Date());
   const itemId = typeof params.itemId === 'string' ? BigInt(params.itemId) : params.itemId;
 
@@ -116,10 +117,6 @@ export async function runProcessItem(params: {
     const embedLatencyMs = Date.now() - embedStart;
 
     // STEP F — cluster assignment
-    if (!joinFn) {
-      // Unit tests MUST inject; prod imports from Plan 03 and re-wires this default.
-      throw new Error('joinOrCreateCluster dep not provided');
-    }
     const { clusterId, joined } = await joinFn({
       itemId,
       embedding,

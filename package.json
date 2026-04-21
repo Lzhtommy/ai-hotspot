@@ -31,8 +31,11 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.90.0",
+    "@arizeai/openinference-instrumentation-anthropic": "^0.1.9",
+    "@langfuse/otel": "^5.1.0",
     "@mozilla/readability": "^0.6.0",
     "@neondatabase/serverless": "^1.0.2",
+    "@opentelemetry/sdk-node": "^0.215.0",
     "@trigger.dev/sdk": "^4.4.4",
     "@upstash/redis": "^1.37.0",
     "drizzle-orm": "^0.45.2",
