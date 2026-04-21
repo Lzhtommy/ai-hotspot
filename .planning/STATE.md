@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-01-PLAN.md (HNSW migration + env preconditions)
-last_updated: "2026-04-21T12:46:21.406Z"
+stopped_at: Completed 03-04-PLAN.md (Trigger.dev workers + OTel bootstrap)
+last_updated: "2026-04-21T13:24:49.802Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 16
-  completed_plans: 12
-  percent: 75
+  completed_plans: 15
+  percent: 94
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 ## Current Position
 
 Phase: 03 (llm-pipeline-clustering) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 Status: Ready to execute
 Last activity: 2026-04-21
 
@@ -67,6 +67,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 02-ingestion-pipeline P05 | 9min | 3 tasks | 4 files |
 | Phase 03-llm-pipeline-clustering P03-01 | 526295min | 3 tasks | 6 files |
 | Phase 03-llm-pipeline-clustering P03-01 | 10min | 3 tasks | 6 files |
+| Phase 03-llm-pipeline-clustering P04 | 7 | 3 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -105,6 +106,9 @@ Recent decisions affecting current work:
 - [Phase 03-llm-pipeline-clustering]: Plan 03-01: .env.example already contained all 5 Phase 3 vars from prior work; no append needed
 - [Phase 03-llm-pipeline-clustering]: Plan 03-01: vitest.setup.ts dummies: sk-ant-test-dummy / pa-test-dummy / pk-lf-test-dummy / sk-lf-test-dummy (clearly non-resolvable per T-03-09)
 - [Phase 03-llm-pipeline-clustering]: Plan 03-01: psql fallback used for Task 3 migration push (non-TTY drizzle-kit push would require interactive TTY confirmation); pnpm check:hnsw verified exit 0 on live Neon dev branch
+- [Phase 03-llm-pipeline-clustering]: A8 debounce verified: TriggerOptions.debounce exists in @trigger.dev/core@4.4.4 — Path A taken; refreshClusters.trigger(undefined, { debounce: buildDebounceOpts() })
+- [Phase 03-llm-pipeline-clustering]: W4 queue inline on task(): queue: { name: 'llm-pipeline', concurrencyLimit: 4 } confirmed in CommonTaskOptions types; trigger.config.ts unchanged
+- [Phase 03-llm-pipeline-clustering]: OTel stack: @langfuse/otel@5.1.0 + @arizeai/openinference-instrumentation-anthropic@0.1.9 + @opentelemetry/sdk-node@0.215.0; AnthropicInstrumentation.manuallyInstrument at module load precedes client.ts instantiation
 
 ### Pending Todos
 
@@ -125,6 +129,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-21T12:46:21.402Z
-Stopped at: Completed 03-01-PLAN.md (HNSW migration + env preconditions)
+Last session: 2026-04-21T13:24:49.798Z
+Stopped at: Completed 03-04-PLAN.md (Trigger.dev workers + OTel bootstrap)
 Resume file: None

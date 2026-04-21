@@ -69,7 +69,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] 03-01-PLAN.md — HNSW index migration + settings threshold seed + env registry + check:hnsw assertion script (hard gate; [BLOCKING] schema push)
 - [x] 03-02-PLAN.md — LLM core library: client, schema, prompt (cached ≥4096 tokens + untrusted_content), extract (SSRF-guarded Readability), enrich (Haiku 4.5 structured output), embed (Voyage 1024-dim), pricing, process-item-core orchestrator
 - [x] 03-03-PLAN.md — Cluster library: threshold (settings-backed + 0.82 default), join-or-create (pgvector <=> + ±24h + transactional), refresh (member_count + primary + earliest/latest + centroid + buildDebounceOpts)
-- [ ] 03-04-PLAN.md — Trigger.dev v4 tasks: process-pending (cron */5 + FOR UPDATE SKIP LOCKED + fan-out), process-item (OTel flush), refresh-clusters (debounce-invoked); Langfuse OTel bootstrap
+- [x] 03-04-PLAN.md — Trigger.dev v4 tasks: process-pending (cron */5 + FOR UPDATE SKIP LOCKED + fan-out), process-item (OTel flush), refresh-clusters (debounce-invoked); Langfuse OTel bootstrap
 - [ ] 03-05-PLAN.md — Live verification harness scripts/verify-llm.ts + 03-UAT.md human checklist (asserts all 5 ROADMAP SCs)
 **UI hint**: no
 

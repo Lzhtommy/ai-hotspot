@@ -31,7 +31,7 @@ Requirements for initial release. Each maps to a roadmap phase.
 
 ### LLM Pipeline
 
-- [ ] **LLM-01**: Per-item pipeline runs on Trigger.dev workers (never inside Next.js API routes)
+- [x] **LLM-01**: Per-item pipeline runs on Trigger.dev workers (never inside Next.js API routes)
 - [ ] **LLM-02**: Full-text extraction step (Readability-style) fetches article body when RSS excerpt is short; falls back to excerpt with a flag on failure
 - [ ] **LLM-03**: English-source items are translated to Chinese by Claude Haiku 4.5 before summarization
 - [ ] **LLM-04**: Claude Haiku 4.5 produces a Chinese summary (~2–4 sentences) per item
@@ -41,9 +41,9 @@ Requirements for initial release. Each maps to a roadmap phase.
 - [ ] **LLM-08**: Prompt caching (`cache_control: ephemeral`) is enabled on all system prompts from the first call; `cache_read_input_tokens` verified > 0
 - [ ] **LLM-09**: All ingested article text is wrapped in `<untrusted_content>` delimiters to mitigate prompt injection
 - [ ] **LLM-10**: LLM outputs are validated (score in 0–100, required fields present) before DB write; invalid responses go to dead-letter state
-- [ ] **LLM-11**: Failed items transition to `failed` with error detail; max retries exceeded items land in dead-letter, never silently dropped
+- [x] **LLM-11**: Failed items transition to `failed` with error detail; max retries exceeded items land in dead-letter, never silently dropped
 - [ ] **LLM-12**: Token usage per item (input / cache-read / cache-write / output) is logged to `pipeline_runs`
-- [ ] **LLM-13**: LLM pipeline calls are instrumented with Langfuse traces
+- [x] **LLM-13**: LLM pipeline calls are instrumented with Langfuse traces
 
 ### Event Clustering
 
@@ -52,7 +52,7 @@ Requirements for initial release. Each maps to a roadmap phase.
 - [ ] **CLUST-03**: Cluster refresh task assigns each new item to nearest existing cluster if cosine similarity ≥ configurable threshold (default 0.82) within ±24h window; otherwise creates a new cluster
 - [x] **CLUST-04**: Clustering threshold is stored in the `settings` table and adjustable without redeploy
 - [ ] **CLUST-05**: Each cluster tracks `member_count`, `primary_item_id`, `earliest_seen_at`, `latest_seen_at`
-- [ ] **CLUST-06**: Cluster refresh task is debounced to run once per ingestion wave (coalesces bursts)
+- [x] **CLUST-06**: Cluster refresh task is debounced to run once per ingestion wave (coalesces bursts)
 - [ ] **CLUST-07**: Primary item is selected by earliest timestamp within the cluster (stable)
 
 ### Feed UI
@@ -182,7 +182,7 @@ Which phases cover which requirements.
 | INGEST-06 | Phase 2 | Complete |
 | INGEST-07 | Phase 2 | Complete |
 | INGEST-08 | Phase 2 | Complete |
-| LLM-01 | Phase 3 | Pending |
+| LLM-01 | Phase 3 | Complete |
 | LLM-02 | Phase 3 | Pending |
 | LLM-03 | Phase 3 | Pending |
 | LLM-04 | Phase 3 | Pending |
@@ -192,15 +192,15 @@ Which phases cover which requirements.
 | LLM-08 | Phase 3 | Pending |
 | LLM-09 | Phase 3 | Pending |
 | LLM-10 | Phase 3 | Pending |
-| LLM-11 | Phase 3 | Pending |
+| LLM-11 | Phase 3 | Complete |
 | LLM-12 | Phase 3 | Pending |
-| LLM-13 | Phase 3 | Pending |
+| LLM-13 | Phase 3 | Complete |
 | CLUST-01 | Phase 3 | Pending |
 | CLUST-02 | Phase 3 | Complete |
 | CLUST-03 | Phase 3 | Pending |
 | CLUST-04 | Phase 3 | Complete |
 | CLUST-05 | Phase 3 | Pending |
-| CLUST-06 | Phase 3 | Pending |
+| CLUST-06 | Phase 3 | Complete |
 | CLUST-07 | Phase 3 | Pending |
 | FEED-01 | Phase 4 | Pending |
 | FEED-02 | Phase 4 | Pending |
