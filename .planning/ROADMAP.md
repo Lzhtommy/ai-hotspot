@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 1: Infrastructure Foundation** - All services provisioned and wired; project deploys to Vercel
 - [ ] **Phase 2: Ingestion Pipeline** - Hourly RSSHub polling deduplicates and enqueues items reliably
 - [x] **Phase 3: LLM Pipeline + Clustering** - Every item receives translation, summary, score, tags, 推荐理由, and cluster assignment (completed 2026-04-21)
-- [ ] **Phase 4: Feed UI** - Public timeline (精选 + 全部 AI 动态) renders enriched items with dark-theme design
+- [x] **Phase 4: Feed UI** - Public timeline (精选 + 全部 AI 动态) renders enriched items with dark-theme design (completed 2026-04-22)
 - [ ] **Phase 5: Auth + User Interactions** - Users can log in and save or vote on items
 - [ ] **Phase 6: Admin + Operational Hardening** - Admin manages sources and users; errors, costs, and dead-letters are visible
 
@@ -83,13 +83,13 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. An item detail page at /items/[id] shows the full summary, all cluster member sources with links, and the original article link; pasting the URL into WeChat renders a share card with og:title and og:description
   4. The layout renders correctly on a 375px-wide mobile viewport and on desktop, using the paper+amber light theme per CONTEXT.md D-02 (supersedes original dark/green anchor)
   5. CJK text is displayed using self-hosted Noto Sans SC fonts without any request to fonts.googleapis.com
-**Plans:** 5/6 plans executed
+**Plans:** 6/6 plans complete
 - [x] 04-01-PLAN.md — Foundation: self-hosted fonts (Geist+Noto SC+JetBrains Mono), Tailwind v4 @theme tokens port, layout primitives, pure utils (source-palette/tag-tones/group-by-hour), env vars
 - [x] 04-02-PLAN.md — Layout shell: Sidebar+mobile drawer+NavRow+PipelineStatusCard+UserChip+FeedTopBar+FeedTabs+EmptyState
 - [x] 04-03-PLAN.md — Data access: get-feed Redis cache + get-item + cache-invalidate + /api/revalidate (shared-secret gated) + Trigger.dev refresh-clusters hook
 - [x] 04-04-PLAN.md — Feed card: 8-step FeedCard + ScoreBadge/HotnessBar/ClusterTrigger/ClusterSiblings/FeedCardActions/LoginPromptModal/SkeletonCard/Timeline/FilterPopover
 - [x] 04-05-PLAN.md — Routes: (reader)/layout + / (精选 ISR 300) + /all (nuqs + pagination ISR 300) + /items/[id] (ISR 3600 + generateMetadata) + opengraph-image.tsx (Edge + CJK font) + /favorites + /loading
-- [ ] 04-06-PLAN.md — Validation: Playwright E2E (no-fonts-CDN, og-meta, responsive, filters, a11y) + scripts/verify-feed.ts + 04-UAT.md
+- [x] 04-06-PLAN.md — Validation: Playwright E2E (no-fonts-CDN, og-meta, responsive, filters, a11y) + scripts/verify-feed.ts + 04-UAT.md
 **UI hint**: yes
 
 ### Phase 5: Auth + User Interactions
@@ -128,6 +128,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 1. Infrastructure Foundation | 0/6 | Planned | - |
 | 2. Ingestion Pipeline | 0/TBD | Not started | - |
 | 3. LLM Pipeline + Clustering | 5/5 | Complete   | 2026-04-21 |
-| 4. Feed UI | 5/6 | In Progress|  |
+| 4. Feed UI | 6/6 | Complete   | 2026-04-22 |
 | 5. Auth + User Interactions | 0/TBD | Not started | - |
 | 6. Admin + Operational Hardening | 0/TBD | Not started | - |

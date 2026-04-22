@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 04-feed-ui-05-PLAN.md
-last_updated: "2026-04-22T07:01:44.691Z"
+stopped_at: Completed 04-feed-ui-06-PLAN.md
+last_updated: "2026-04-22T07:27:19.012Z"
 last_activity: 2026-04-22
 progress:
   total_phases: 6
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 22
-  completed_plans: 21
-  percent: 95
+  completed_plans: 22
+  percent: 100
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 ## Current Position
 
 Phase: 04 (feed-ui) — EXECUTING
-Plan: 3 of 6
+Plan: 4 of 6
 Status: Ready to execute
 Last activity: 2026-04-22
 
@@ -73,6 +73,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 03-llm-pipeline-clustering P03-05 | 717min | 3 tasks | 4 files |
 | Phase 04-feed-ui P04 | 27 | 3 tasks | 16 files |
 | Phase 04-feed-ui P05 | 10 | 2 tasks | 10 files |
+| Phase 04-feed-ui P06 | 21 | 3 tasks | 21 files |
 
 ## Accumulated Context
 
@@ -124,6 +125,9 @@ Recent decisions affecting current work:
 - [Phase 04-feed-ui]: deleted src/app/page.tsx — Next.js resolves / through (reader)/page.tsx route group
 - [Phase 04-feed-ui]: generateMetadata does NOT set og:image manually — Next.js auto-wires opengraph-image.tsx
 - [Phase 04-feed-ui]: ISR pages show as ƒ in Next.js 15 build when DB unavailable at build time — revalidate still operative at runtime
+- [Phase 04-feed-ui]: E2E fixture uses HTTP GET to /api/e2e-fixture/sample-item rather than direct DB import — Playwright workers run outside Next.js process
+- [Phase 04-feed-ui]: SidebarMobileDrawer split into context provider + SidebarDrawerPanel — context must wrap entire shell so HamburgerButton in main can reach useSidebarDrawer
+- [Phase 04-feed-ui]: NuqsAdapter added to root layout.tsx — required for App Router nuqs useQueryState to work (FilterPopover was crashing /all without it)
 
 ### Pending Todos
 
@@ -144,6 +148,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-22T07:01:44.687Z
-Stopped at: Completed 04-feed-ui-05-PLAN.md
+Last session: 2026-04-22T07:27:19.008Z
+Stopped at: Completed 04-feed-ui-06-PLAN.md
 Resume file: None

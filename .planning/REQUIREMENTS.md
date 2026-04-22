@@ -62,9 +62,9 @@ Requirements for initial release. Each maps to a roadmap phase.
 - [x] **FEED-03**: Item card shows: source name + badge, title, Chinese summary, hotness score, 推荐理由, tags, cluster count (`另有 N 个源也报道了此事件` when count > 0)
 - [x] **FEED-04**: Item detail page `/items/[id]` shows full summary, cluster member list with source+link, original article link
 - [x] **FEED-05**: Timeline groups items by HH:MM within a day; day headers for scrolling context
-- [ ] **FEED-06**: Dark-theme design matches reference screenshot (green accent, card spacing, left sidebar)
+- [x] **FEED-06**: Dark-theme design matches reference screenshot (green accent, card spacing, left sidebar)
 - [x] **FEED-07**: Responsive layout works on mobile (≥375px) and desktop
-- [ ] **FEED-08**: CJK fonts self-hosted (Noto Sans SC subset); never loaded from Google Fonts
+- [x] **FEED-08**: CJK fonts self-hosted (Noto Sans SC subset); never loaded from Google Fonts
 - [x] **FEED-09**: OG tags (`og:title`, `og:description`, `og:image`) present on item detail pages for WeChat share cards
 - [ ] **FEED-10**: Redis feed cache (5-min TTL) invalidated when a new cluster refresh completes
 - [x] **FEED-11**: Chinese-only UI; English source items show Chinese-translated title and summary
@@ -207,9 +207,9 @@ Which phases cover which requirements.
 | FEED-03 | Phase 4 | Complete |
 | FEED-04 | Phase 4 | Complete |
 | FEED-05 | Phase 4 | Complete |
-| FEED-06 | Phase 4 | Pending |
+| FEED-06 | Phase 4 | Complete |
 | FEED-07 | Phase 4 | Complete |
-| FEED-08 | Phase 4 | Pending |
+| FEED-08 | Phase 4 | Complete |
 | FEED-09 | Phase 4 | Complete |
 | FEED-10 | Phase 4 | Pending |
 | FEED-11 | Phase 4 | Complete |
