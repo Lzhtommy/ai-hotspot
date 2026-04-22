@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 04-feed-ui-04-04-PLAN.md
-last_updated: "2026-04-22T06:52:42.201Z"
+stopped_at: Completed 04-feed-ui-05-PLAN.md
+last_updated: "2026-04-22T07:01:44.691Z"
 last_activity: 2026-04-22
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 22
-  completed_plans: 20
-  percent: 91
+  completed_plans: 21
+  percent: 95
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 ## Current Position
 
 Phase: 04 (feed-ui) — EXECUTING
-Plan: 2 of 6
+Plan: 3 of 6
 Status: Ready to execute
 Last activity: 2026-04-22
 
@@ -72,6 +72,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 03-llm-pipeline-clustering P03-05 | 4min | 2 tasks | 3 files |
 | Phase 03-llm-pipeline-clustering P03-05 | 717min | 3 tasks | 4 files |
 | Phase 04-feed-ui P04 | 27 | 3 tasks | 16 files |
+| Phase 04-feed-ui P05 | 10 | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -120,6 +121,9 @@ Recent decisions affecting current work:
 - [Phase 04-feed-ui]: Native <dialog> for LoginPromptModal — showModal() provides focus trap + backdrop + Escape for free (no Radix)
 - [Phase 04-feed-ui]: nuqs shallow:false on FilterPopover — forces RSC re-render when URL params change (FEED-12)
 - [Phase 04-feed-ui]: vitest JSX via esbuild jsx:automatic — avoids ESM-only @vitejs/plugin-react in CJS vitest.config.ts
+- [Phase 04-feed-ui]: deleted src/app/page.tsx — Next.js resolves / through (reader)/page.tsx route group
+- [Phase 04-feed-ui]: generateMetadata does NOT set og:image manually — Next.js auto-wires opengraph-image.tsx
+- [Phase 04-feed-ui]: ISR pages show as ƒ in Next.js 15 build when DB unavailable at build time — revalidate still operative at runtime
 
 ### Pending Todos
 
@@ -140,6 +144,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-22T06:52:42.198Z
-Stopped at: Completed 04-feed-ui-04-04-PLAN.md
+Last session: 2026-04-22T07:01:44.687Z
+Stopped at: Completed 04-feed-ui-05-PLAN.md
 Resume file: None
