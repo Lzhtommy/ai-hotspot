@@ -56,6 +56,7 @@ export const items = pgTable(
     isClusterPrimary: boolean('is_cluster_primary').notNull().default(false),
     status: text('status').notNull().default('pending'), // pending|processing|published|failed|dead_letter
     publishedAt: timestamp('published_at', { withTimezone: true }).notNull(),
+    publishedAtSourceTz: text('published_at_source_tz'), // D-11: nullable RFC3339 string preserving source offset (e.g., "2026-04-20T09:00:00+08:00"). Some RSS entries have no tz info — then NULL.
     ingestedAt: timestamp('ingested_at', { withTimezone: true }).notNull().defaultNow(),
     processedAt: timestamp('processed_at', { withTimezone: true }),
     failureReason: text('failure_reason'),

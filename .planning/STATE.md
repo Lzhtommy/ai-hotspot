@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: Completed 01-05-ci-pipeline-PLAN.md — Phase 1 ready for verification
-last_updated: "2026-04-17T08:16:19.057Z"
-last_activity: 2026-04-17
+status: executing
+stopped_at: Completed 04-feed-ui-06-PLAN.md
+last_updated: "2026-04-22T07:53:40.982Z"
+last_activity: "2026-04-22 -- shipped Phases 1-4 via PR #2"
 progress:
   total_phases: 6
-  completed_phases: 1
-  total_plans: 6
-  completed_plans: 6
+  completed_phases: 4
+  total_plans: 22
+  completed_plans: 22
   percent: 100
 ---
 
@@ -21,22 +21,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-17)
 
 **Core value:** A single Chinese-language timeline where AI practitioners never miss a significant AI event, because the system hears it from every source, clusters duplicates, and ranks by LLM-judged importance — not chronology.
-**Current focus:** Phase 1 — Infrastructure Foundation
+**Current focus:** Phase 04 — feed-ui
 
 ## Current Position
 
-Phase: 1 of 6 (Infrastructure Foundation)
-Plan: 6 of 6 in current phase (next: 01-02-drizzle-schema)
-Status: Phase complete — ready for verification
-Last activity: 2026-04-17
+Phase: 5
+Plan: Not started
+Status: Ready to execute
+Last activity: 2026-04-22 -- shipped Phases 1-4 via PR #2
 
-Progress: [██░░░░░░░░] 17%
+Progress: [███░░░░░░░] 33%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 1
+- Total plans completed: 18
 - Average duration: 6min
 - Total execution time: 0.1 hours
 
@@ -45,6 +45,9 @@ Progress: [██░░░░░░░░] 17%
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | Phase 01 | 1 | 6min | 6min |
+| 01 | 6 | - | - |
+| 03 | 5 | - | - |
+| 04 | 6 | - | - |
 
 **Recent Trend:**
 
@@ -61,6 +64,17 @@ Progress: [██░░░░░░░░] 17%
 | Phase 01-infrastructure-foundation P04 | 10min | 3 tasks | 3 files |
 | Phase 01-infrastructure-foundation P06 | 4min | 2 tasks | 6 files |
 | Phase 01-infrastructure-foundation P05 | 3min | 3 tasks | 3 files |
+| Phase 02-ingestion-pipeline P03 | 5min | 4 tasks | 7 files |
+| Phase 02-ingestion-pipeline P04 | 8min | 2 tasks | 2 files |
+| Phase 02-ingestion-pipeline P05 | 9min | 3 tasks | 4 files |
+| Phase 03-llm-pipeline-clustering P03-01 | 526295min | 3 tasks | 6 files |
+| Phase 03-llm-pipeline-clustering P03-01 | 10min | 3 tasks | 6 files |
+| Phase 03-llm-pipeline-clustering P04 | 7 | 3 tasks | 9 files |
+| Phase 03-llm-pipeline-clustering P03-05 | 4min | 2 tasks | 3 files |
+| Phase 03-llm-pipeline-clustering P03-05 | 717min | 3 tasks | 4 files |
+| Phase 04-feed-ui P04 | 27 | 3 tasks | 16 files |
+| Phase 04-feed-ui P05 | 10 | 2 tasks | 10 files |
+| Phase 04-feed-ui P06 | 21 | 3 tasks | 21 files |
 
 ## Accumulated Context
 
@@ -87,6 +101,34 @@ Recent decisions affecting current work:
 - [Phase 01-infrastructure-foundation]: Plan 01-06: Runbook layout is one file per operational surface (rsshub, health, ci, vercel, database); README.md 'Further Reading' links to all five
 - [Phase 01-infrastructure-foundation]: Plan 01-05: CI pins pnpm to 10.32.1 (matches packageManager), supports both main+master push triggers; vercel.json installCommand+buildCommand but no db:migrate (D-18)
 - [Phase 01-infrastructure-foundation]: Plan 01-05: Task 4 live PR/preview verification deferred to phase-level HUMAN-UAT per execute-phase user_setup_status (user not yet linked GitHub remote/Vercel app/secrets); artifacts ready for /gsd-verify-work
+- [Phase 02-ingestion-pipeline]: Plan 02-03: batch.triggerAndWait v4 signature is Array<{id, payload}>-only; v3-style (taskId, items) removed — verified @trigger.dev/sdk@4.4.4 shared.d.ts:232
+- [Phase 02-ingestion-pipeline]: Plan 02-03: Core-logic / task-wrapper split pattern — Trigger.dev task files are thin adapters; business logic in pure src/lib/* modules with injected deps for unit testing
+- [Phase 02-ingestion-pipeline]: Plan 02-03: vitest.setup.ts bootstraps placeholder DATABASE_URL for unit tests that transitively import @/lib/db/client (eager neon() call); tests inject mocked db via deps
+- [Phase 02-ingestion-pipeline]: Plan 02-04: Seed scripts that import the shared db singleton must use tsx --env-file=.env.local — in-file dotenv.config() runs too late because ES-module imports are hoisted and the db client eagerly calls neon() at evaluation time
+- [Phase 02-ingestion-pipeline]: Plan 02-04: RSSHub routes stored as paths only (e.g. /anthropic/news) not full URLs — keeps ACCESS_KEY out of DB (D-20) and makes RSSHUB_BASE_URL rotatable from env without DB updates
+- [Phase 02-ingestion-pipeline]: Plan 02-05: db.execute result shape is { rows: Array<T>, rowCount, fields, ... } in drizzle-orm/neon-http — NOT a bare array. Cast to { rows: Array<T> } and index .rows[0].
+- [Phase 02-ingestion-pipeline]: Plan 02-05: CLI harness cleanup pattern — main() returns Promise<boolean>; top-level .then() calls process.exit AFTER finally runs. process.exit inside try bypasses finally in Node async runtime.
+- [Phase 02-ingestion-pipeline]: Plan 02-05: SC#2 (source isolation) DEFERRED to post-RSSHub-deployment run. Live RSSHub (HF Space) returns 503 to all routes — SC#2 requires at least one non-broken source to succeed in the same run, unobservable while all routes 503. Documented in 02-UAT.md with re-verification checklist.
+- [Phase 03-llm-pipeline-clustering]: Plan 03-01: 0003_snapshot.json is byte-identical copy-forward of 0002 — HNSW index not representable in Drizzle's current index builder; DSL unchanged
+- [Phase 03-llm-pipeline-clustering]: Plan 03-01: .env.example already contained all 5 Phase 3 vars from prior work; no append needed
+- [Phase 03-llm-pipeline-clustering]: Plan 03-01: vitest.setup.ts dummies: sk-ant-test-dummy / pa-test-dummy / pk-lf-test-dummy / sk-lf-test-dummy (clearly non-resolvable per T-03-09)
+- [Phase 03-llm-pipeline-clustering]: Plan 03-01: psql fallback used for Task 3 migration push (non-TTY drizzle-kit push would require interactive TTY confirmation); pnpm check:hnsw verified exit 0 on live Neon dev branch
+- [Phase 03-llm-pipeline-clustering]: A8 debounce verified: TriggerOptions.debounce exists in @trigger.dev/core@4.4.4 — Path A taken; refreshClusters.trigger(undefined, { debounce: buildDebounceOpts() })
+- [Phase 03-llm-pipeline-clustering]: W4 queue inline on task(): queue: { name: 'llm-pipeline', concurrencyLimit: 4 } confirmed in CommonTaskOptions types; trigger.config.ts unchanged
+- [Phase 03-llm-pipeline-clustering]: OTel stack: @langfuse/otel@5.1.0 + @arizeai/openinference-instrumentation-anthropic@0.1.9 + @opentelemetry/sdk-node@0.215.0; AnthropicInstrumentation.manuallyInstrument at module load precedes client.ts instantiation
+- [Phase 03-llm-pipeline-clustering]: ZodError DI injection for SC#3: import from 'zod/v4' matches process-item-core.ts catch clause
+- [Phase 03-llm-pipeline-clustering]: Sentinel URL randomization (Date.now() + Math.random()) avoids url_fingerprint UNIQUE collision on verify:llm re-runs
+- [Phase 03-llm-pipeline-clustering]: Plan 03-05: neon-serverless Pool driver adopted (fix 5be492b) — neon-http does not support transactions; Pool/WebSocket required for any future db.transaction() usage
+- [Phase 04-feed-ui]: ClusterSection extracted as minimal 'use client' wrapper — FeedCard outer stays RSC; only expand state is client-side
+- [Phase 04-feed-ui]: Native <dialog> for LoginPromptModal — showModal() provides focus trap + backdrop + Escape for free (no Radix)
+- [Phase 04-feed-ui]: nuqs shallow:false on FilterPopover — forces RSC re-render when URL params change (FEED-12)
+- [Phase 04-feed-ui]: vitest JSX via esbuild jsx:automatic — avoids ESM-only @vitejs/plugin-react in CJS vitest.config.ts
+- [Phase 04-feed-ui]: deleted src/app/page.tsx — Next.js resolves / through (reader)/page.tsx route group
+- [Phase 04-feed-ui]: generateMetadata does NOT set og:image manually — Next.js auto-wires opengraph-image.tsx
+- [Phase 04-feed-ui]: ISR pages show as ƒ in Next.js 15 build when DB unavailable at build time — revalidate still operative at runtime
+- [Phase 04-feed-ui]: E2E fixture uses HTTP GET to /api/e2e-fixture/sample-item rather than direct DB import — Playwright workers run outside Next.js process
+- [Phase 04-feed-ui]: SidebarMobileDrawer split into context provider + SidebarDrawerPanel — context must wrap entire shell so HamburgerButton in main can reach useSidebarDrawer
+- [Phase 04-feed-ui]: NuqsAdapter added to root layout.tsx — required for App Router nuqs useQueryState to work (FilterPopover was crashing /all without it)
 
 ### Pending Todos
 
@@ -97,6 +139,7 @@ None yet.
 - Phase 2 research flag: Verify Trigger.dev v4 batch.triggerByTaskAndWait API patterns before planning
 - Phase 2 research flag: Evaluate full-text extraction library (@mozilla/readability vs. unfluff vs. Jina.ai) before LLM pipeline planning
 - Phase 2 note: X/Twitter RSSHub routes are highest-volatility — treat as best-effort in v1
+- Phase 2 SC#2 blocked on RSSHub deployment — lurnings-rsshub.hf.space returns 503 on all canary routes. Re-verify via pnpm verify:ingest once healthy. Phase 3 prerequisite.
 
 ## Deferred Items
 
@@ -106,6 +149,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-17T08:16:19.053Z
-Stopped at: Completed 01-05-ci-pipeline-PLAN.md — Phase 1 ready for verification
+Last session: 2026-04-22T07:27:19.008Z
+Stopped at: Completed 04-feed-ui-06-PLAN.md
 Resume file: None

@@ -14,8 +14,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: Infrastructure Foundation** - All services provisioned and wired; project deploys to Vercel
 - [ ] **Phase 2: Ingestion Pipeline** - Hourly RSSHub polling deduplicates and enqueues items reliably
-- [ ] **Phase 3: LLM Pipeline + Clustering** - Every item receives translation, summary, score, tags, 推荐理由, and cluster assignment
-- [ ] **Phase 4: Feed UI** - Public timeline (精选 + 全部 AI 动态) renders enriched items with dark-theme design
+- [x] **Phase 3: LLM Pipeline + Clustering** - Every item receives translation, summary, score, tags, 推荐理由, and cluster assignment (completed 2026-04-21)
+- [x] **Phase 4: Feed UI** - Public timeline (精选 + 全部 AI 动态) renders enriched items with dark-theme design (completed 2026-04-22)
 - [ ] **Phase 5: Auth + User Interactions** - Users can log in and save or vote on items
 - [ ] **Phase 6: Admin + Operational Hardening** - Admin manages sources and users; errors, costs, and dead-letters are visible
 
@@ -48,7 +48,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Intentionally breaking one source's RSSHub route does not prevent the remaining sources from being polled and enqueued
   3. Each source row in the database reflects accurate last_fetched_at, consecutive_empty_count, and consecutive_error_count after the poll
   4. All item timestamps in the database are stored as UTC regardless of source-local timezone
-**Plans**: TBD
+**Plans:** 5 plans
+- [x] 02-01-PLAN.md — Schema migration: add items.published_at_source_tz TEXT NULL, generate 0002 migration, push to live Neon dev branch
+- [x] 02-02-PLAN.md — Ingest utilities: normalizeUrl (D-04), fingerprint (SHA-256), parseRSS (rss-parser wrapper); Vitest unit tests
+- [x] 02-03-PLAN.md — Trigger.dev v4 tasks: ingest-hourly (schedules.task cron) + fetch-source (task maxDuration=90) + runFetchSource core orchestrator with D-08 counter semantics
+- [x] 02-04-PLAN.md — Canary source seed: drizzle/seed-sources.ts with 3 RSSHub routes, idempotent ON CONFLICT, pnpm db:seed alias
+- [x] 02-05-PLAN.md — Verification harness: scripts/verify-ingest.ts asserts all 4 Phase 2 success criteria programmatically; UAT checkpoint
 
 ### Phase 3: LLM Pipeline + Clustering
 **Goal**: Every published item has a Chinese summary, 0-100 hotness score, 推荐理由, auto-tags, and a cluster assignment; prompt caching is active; all failures land in dead-letter state rather than being dropped
@@ -60,7 +65,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. An item whose LLM response is malformed (missing score or required fields) transitions to dead-letter state and is never written to the published feed
   4. Two items from different sources covering the same event are assigned to the same cluster, and the cluster's member_count increments correctly
   5. Langfuse shows a trace per item with cost breakdown visible in the dashboard
-**Plans**: TBD
+**Plans:** 5/5 plans complete
+- [x] 03-01-PLAN.md — HNSW index migration + settings threshold seed + env registry + check:hnsw assertion script (hard gate; [BLOCKING] schema push)
+- [x] 03-02-PLAN.md — LLM core library: client, schema, prompt (cached ≥4096 tokens + untrusted_content), extract (SSRF-guarded Readability), enrich (Haiku 4.5 structured output), embed (Voyage 1024-dim), pricing, process-item-core orchestrator
+- [x] 03-03-PLAN.md — Cluster library: threshold (settings-backed + 0.82 default), join-or-create (pgvector <=> + ±24h + transactional), refresh (member_count + primary + earliest/latest + centroid + buildDebounceOpts)
+- [x] 03-04-PLAN.md — Trigger.dev v4 tasks: process-pending (cron */5 + FOR UPDATE SKIP LOCKED + fan-out), process-item (OTel flush), refresh-clusters (debounce-invoked); Langfuse OTel bootstrap
+- [x] 03-05-PLAN.md — Live verification harness scripts/verify-llm.ts + 03-UAT.md human checklist (asserts all 5 ROADMAP SCs)
 **UI hint**: no
 
 ### Phase 4: Feed UI
@@ -71,9 +81,15 @@ Decimal phases appear between their surrounding integers in numeric order.
   1. The / (精选) page loads for an anonymous user showing top-scored items grouped by time with source badge, Chinese summary, hotness score, 推荐理由, tags, and cluster count badge when applicable
   2. The /all page shows a full chronological feed with source and tag filter controls and pagination or infinite scroll
   3. An item detail page at /items/[id] shows the full summary, all cluster member sources with links, and the original article link; pasting the URL into WeChat renders a share card with og:title and og:description
-  4. The layout renders correctly on a 375px-wide mobile viewport and on desktop, using the dark theme with green accent
+  4. The layout renders correctly on a 375px-wide mobile viewport and on desktop, using the paper+amber light theme per CONTEXT.md D-02 (supersedes original dark/green anchor)
   5. CJK text is displayed using self-hosted Noto Sans SC fonts without any request to fonts.googleapis.com
-**Plans**: TBD
+**Plans:** 6/6 plans complete
+- [x] 04-01-PLAN.md — Foundation: self-hosted fonts (Geist+Noto SC+JetBrains Mono), Tailwind v4 @theme tokens port, layout primitives, pure utils (source-palette/tag-tones/group-by-hour), env vars
+- [x] 04-02-PLAN.md — Layout shell: Sidebar+mobile drawer+NavRow+PipelineStatusCard+UserChip+FeedTopBar+FeedTabs+EmptyState
+- [x] 04-03-PLAN.md — Data access: get-feed Redis cache + get-item + cache-invalidate + /api/revalidate (shared-secret gated) + Trigger.dev refresh-clusters hook
+- [x] 04-04-PLAN.md — Feed card: 8-step FeedCard + ScoreBadge/HotnessBar/ClusterTrigger/ClusterSiblings/FeedCardActions/LoginPromptModal/SkeletonCard/Timeline/FilterPopover
+- [x] 04-05-PLAN.md — Routes: (reader)/layout + / (精选 ISR 300) + /all (nuqs + pagination ISR 300) + /items/[id] (ISR 3600 + generateMetadata) + opengraph-image.tsx (Edge + CJK font) + /favorites + /loading
+- [x] 04-06-PLAN.md — Validation: Playwright E2E (no-fonts-CDN, og-meta, responsive, filters, a11y) + scripts/verify-feed.ts + 04-UAT.md
 **UI hint**: yes
 
 ### Phase 5: Auth + User Interactions
@@ -111,7 +127,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 |-------|----------------|--------|-----------|
 | 1. Infrastructure Foundation | 0/6 | Planned | - |
 | 2. Ingestion Pipeline | 0/TBD | Not started | - |
-| 3. LLM Pipeline + Clustering | 0/TBD | Not started | - |
-| 4. Feed UI | 0/TBD | Not started | - |
+| 3. LLM Pipeline + Clustering | 5/5 | Complete   | 2026-04-21 |
+| 4. Feed UI | 6/6 | Complete   | 2026-04-22 |
 | 5. Auth + User Interactions | 0/TBD | Not started | - |
 | 6. Admin + Operational Hardening | 0/TBD | Not started | - |

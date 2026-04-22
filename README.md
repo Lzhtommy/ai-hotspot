@@ -79,3 +79,5 @@ docs/                  # Runbooks — rsshub, health, ci, vercel, database
 ## License
 
 TBD.
+
+<!-- CI verification trigger 1776671036 -->

@@ -1,0 +1,328 @@
+/* ==========================================================================
+   Testify — colors_and_type.css
+   All design tokens expressed as CSS custom properties.
+   Import once in :root scope.
+   ========================================================================== */
+
+/* ---------- Fonts ------------------------------------------------------- */
+
+@font-face {
+  font-family: 'Geist';
+  src: url('./fonts/Geist-Variable.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('./fonts/JetBrainsMono-Variable.woff2') format('woff2-variations');
+  font-weight: 100 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* ---------- Color: Warm neutrals (the spine) ------------------------- */
+
+  --paper: #faf8f4; /* app background, slightly off-white */
+  --paper-deep: #f3efe6; /* marketing hero bg, alt surface */
+  --surface-0: #ffffff; /* cards, modals, inputs */
+  --surface-1: #f6f3ec; /* subtle fills, hover rows */
+  --surface-2: #efebe1; /* pressed rows, kbd keys */
+
+  --line-weak: #ebe7df; /* 1px hairlines inside cards */
+  --line: #d9d3c7; /* 1px section dividers */
+  --line-strong: #bdb4a2; /* focus-visible outlines, strong dividers */
+
+  /* Ink ramp — warm-leaning near-blacks */
+  --ink-900: #0b0b0c; /* body text, primary filled buttons */
+  --ink-800: #1f1e1c; /* button hover */
+  --ink-700: #3a3833; /* secondary text, icon default */
+  --ink-600: #5c584f; /* tertiary text, labels */
+  --ink-500: #807a6d; /* placeholders */
+  --ink-400: #a49d8c; /* disabled text, helper text */
+  --ink-300: #c8c1af; /* disabled icons */
+
+  /* ---------- Color: Accent (the single hue) --------------------------- */
+
+  --accent-50: #fcf3e0;
+  --accent-100: #f7e3b4;
+  --accent-300: #e8b864;
+  --accent-500: #d4911c; /* primary accent — honey amber */
+  --accent-600: #b67912;
+  --accent-700: #8f5d0a;
+  --accent-900: #4d3106;
+
+  /* ---------- Color: Semantic ----------------------------------------- */
+
+  --success-500: #2f7d4f;
+  --success-50: #e8f3ec;
+  --danger-500: #b3261e;
+  --danger-50: #fbeae8;
+  --info-500: #2558b5;
+  --info-50: #e7eefa;
+  --warning-500: var(--accent-500);
+  --warning-50: var(--accent-50);
+
+  /* ---------- Color: Semantic FG aliases ------------------------------- */
+
+  --fg-1: var(--ink-900); /* primary body */
+  --fg-2: var(--ink-700); /* secondary */
+  --fg-3: var(--ink-600); /* tertiary */
+  --fg-4: var(--ink-500); /* quaternary / placeholder */
+  --fg-disabled: var(--ink-400);
+  --fg-on-accent: #ffffff;
+  --fg-on-ink: var(--paper);
+
+  --bg-app: var(--paper);
+  --bg-surface: var(--surface-0);
+  --bg-sunken: var(--surface-1);
+  --bg-pressed: var(--surface-2);
+
+  /* ---------- Shadows -------------------------------------------------- */
+
+  --shadow-sm: 0 1px 2px rgba(16, 12, 6, 0.05);
+  --shadow-md: 0 6px 16px -4px rgba(16, 12, 6, 0.1), 0 2px 4px rgba(16, 12, 6, 0.04);
+  --shadow-lg: 0 20px 40px -12px rgba(16, 12, 6, 0.18), 0 4px 8px rgba(16, 12, 6, 0.06);
+  --shadow-focus: 0 0 0 2px var(--paper), 0 0 0 4px var(--accent-500);
+
+  /* ---------- Radii ---------------------------------------------------- */
+
+  --radius-xs: 4px;
+  --radius-sm: 6px; /* inputs, buttons, chips */
+  --radius-md: 10px; /* cards, menus, modals */
+  --radius-lg: 16px; /* hero surfaces */
+  --radius-pill: 999px;
+
+  /* ---------- Spacing (4pt base) -------------------------------------- */
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-14: 56px;
+  --space-18: 72px;
+  --space-24: 96px;
+
+  /* ---------- Type: families ------------------------------------------ */
+
+  --font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, 'SF Mono', Consolas, monospace;
+
+  /* ---------- Type: scale --------------------------------------------- */
+
+  --fs-12: 12px;
+  --fs-13: 13px;
+  --fs-14: 14px;
+  --fs-15: 15px;
+  --fs-16: 16px;
+  --fs-18: 18px;
+  --fs-20: 20px;
+  --fs-24: 24px;
+  --fs-30: 30px;
+  --fs-38: 38px;
+  --fs-48: 48px;
+  --fs-60: 60px;
+
+  /* Line-heights */
+  --lh-tight: 1.15;
+  --lh-snug: 1.3;
+  --lh-normal: 1.5;
+  --lh-loose: 1.65;
+
+  /* Tracking */
+  --tr-tight: -0.02em;
+  --tr-display: -0.015em;
+  --tr-body: -0.005em;
+  --tr-eyebrow: 0.08em;
+
+  /* ---------- Motion --------------------------------------------------- */
+
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --dur-micro: 120ms;
+  --dur: 180ms;
+  --dur-slow: 240ms;
+
+  /* ---------- Z-index -------------------------------------------------- */
+
+  --z-header: 40;
+  --z-dropdown: 50;
+  --z-modal: 60;
+  --z-toast: 70;
+}
+
+/* ==========================================================================
+   Base elements — opt in by importing this file and NOT resetting
+   ========================================================================== */
+
+html,
+body {
+  background: var(--bg-app);
+  color: var(--fg-1);
+  font-family: var(--font-sans);
+  font-size: var(--fs-15);
+  line-height: var(--lh-normal);
+  letter-spacing: var(--tr-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ---------- Semantic text roles ----------------------------------------- */
+
+.display-xl,
+h1.display {
+  font-family: var(--font-sans);
+  font-size: var(--fs-60);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tr-tight);
+  font-weight: 600;
+  color: var(--fg-1);
+}
+
+.display-lg {
+  font-size: var(--fs-48);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tr-tight);
+  font-weight: 600;
+}
+
+h1,
+.h1 {
+  font-size: var(--fs-38);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tr-display);
+  font-weight: 600;
+  color: var(--fg-1);
+}
+
+h2,
+.h2 {
+  font-size: var(--fs-30);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tr-display);
+  font-weight: 600;
+  color: var(--fg-1);
+}
+
+h3,
+.h3 {
+  font-size: var(--fs-24);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tr-display);
+  font-weight: 600;
+  color: var(--fg-1);
+}
+
+h4,
+.h4 {
+  font-size: var(--fs-20);
+  line-height: var(--lh-snug);
+  font-weight: 600;
+  color: var(--fg-1);
+}
+
+h5,
+.h5 {
+  font-size: var(--fs-16);
+  line-height: var(--lh-normal);
+  font-weight: 600;
+  color: var(--fg-1);
+}
+
+p,
+.body {
+  font-size: var(--fs-15);
+  line-height: var(--lh-normal);
+  color: var(--fg-1);
+}
+
+.body-lg {
+  font-size: var(--fs-18);
+  line-height: var(--lh-loose);
+  color: var(--fg-2);
+}
+
+.body-sm {
+  font-size: var(--fs-13);
+  line-height: var(--lh-normal);
+  color: var(--fg-2);
+}
+
+.label {
+  font-size: var(--fs-13);
+  line-height: var(--lh-normal);
+  font-weight: 500;
+  color: var(--fg-2);
+}
+
+.caption {
+  font-size: var(--fs-12);
+  line-height: var(--lh-normal);
+  color: var(--fg-3);
+}
+
+.eyebrow {
+  font-size: var(--fs-12);
+  line-height: 1;
+  letter-spacing: var(--tr-eyebrow);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--fg-3);
+}
+
+code,
+kbd,
+samp,
+pre,
+.mono {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  letter-spacing: 0;
+}
+
+kbd {
+  display: inline-block;
+  min-width: 20px;
+  padding: 2px 6px;
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: var(--radius-xs);
+  font-size: var(--fs-12);
+  color: var(--fg-2);
+  text-align: center;
+}
+
+a {
+  color: var(--ink-900);
+  text-decoration: underline;
+  text-decoration-color: var(--ink-300);
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+  transition: text-decoration-color var(--dur) var(--ease);
+}
+a:hover {
+  text-decoration-color: var(--accent-500);
+}
+
+hr {
+  border: none;
+  border-top: 1px solid var(--line-weak);
+  margin: var(--space-6) 0;
+}
+
+::selection {
+  background: var(--accent-100);
+  color: var(--ink-900);
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-radius: var(--radius-sm);
+}
