@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Completed 04-feed-ui-06-PLAN.md
-last_updated: "2026-04-22T07:53:40.982Z"
-last_activity: "2026-04-22 -- shipped Phases 1-4 via PR #2"
+last_updated: "2026-04-22T09:50:27.347Z"
+last_activity: "2026-04-22 - PR #5 opened: fix(trigger) bundle prompts/*.md"
 progress:
   total_phases: 6
   completed_phases: 4
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 Phase: 5
 Plan: Not started
 Status: Ready to execute
-Last activity: 2026-04-22 - Completed quick task 260422-ogt: Fix Trigger.dev deploy ENOENT for src/lib/llm/prompts/*.md by adding additionalFiles build extension to trigger.config.ts
+Last activity: 2026-04-22 - PR #5 opened: fix(trigger) bundle prompts/*.md
 
 Progress: [███░░░░░░░] 33%
 
