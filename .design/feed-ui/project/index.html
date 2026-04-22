@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>AI Hotspot — 中文 AI 动态</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="ds/colors_and_type.css">
+  <style>
+    html, body, #root { height: 100%; margin: 0; }
+    body {
+      font-family: var(--font-sans);
+      color: var(--fg-1);
+      background: var(--bg-app);
+      /* Chinese fallback stack after Geist */
+      font-family: 'Geist', -apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Segoe UI', sans-serif;
+    }
+    * { box-sizing: border-box; }
+    button { font-family: inherit; }
+    *:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--accent-500);
+      border-radius: 6px;
+    }
+    /* Scrollbar softening for the main feed */
+    .scroll::-webkit-scrollbar { width: 10px; height: 10px; }
+    .scroll::-webkit-scrollbar-thumb { background: var(--surface-2); border-radius: 999px; border: 2px solid transparent; background-clip: padding-box; }
+    .scroll::-webkit-scrollbar-thumb:hover { background: var(--line); background-clip: padding-box; border: 2px solid transparent; }
+
+    /* Tweaks panel */
+    .tweaks-panel {
+      position: fixed; right: 20px; bottom: 20px;
+      width: 280px;
+      background: var(--surface-0);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      box-shadow: var(--shadow-lg);
+      padding: 16px;
+      z-index: 100;
+      font-size: 13px;
+      display: none;
+    }
+    .tweaks-panel.open { display: block; }
+
+    /* Dark mode overrides (applied when data-theme="dark" on root) */
+    [data-theme="dark"] {
+      --paper:       #0E0F10;
+      --paper-deep:  #0A0B0C;
+      --surface-0:   #16181A;
+      --surface-1:   #1C1F22;
+      --surface-2:   #23272B;
+      --line-weak:   #23272B;
+      --line:        #2C3135;
+      --line-strong: #3A4046;
+      --ink-900:     #EDECE7;
+      --ink-800:     #E2E0DA;
+      --ink-700:     #BDB8AC;
+      --ink-600:     #928C7E;
+      --ink-500:     #6E6859;
+      --ink-400:     #4D4839;
+      --ink-300:     #3A362A;
+      --fg-1: var(--ink-900);
+      --fg-2: var(--ink-700);
+      --fg-3: var(--ink-600);
+      --fg-4: var(--ink-500);
+      --bg-app:     var(--paper);
+      --bg-surface: var(--surface-0);
+      --shadow-sm:  0 1px 2px rgba(0,0,0,0.4);
+      --shadow-md:  0 6px 16px -4px rgba(0,0,0,0.6), 0 2px 4px rgba(0,0,0,0.4);
+      --shadow-lg:  0 20px 40px -12px rgba(0,0,0,0.7), 0 4px 8px rgba(0,0,0,0.4);
+    }
+    [data-theme="dark"] .icon-invert { filter: invert(1) hue-rotate(180deg) brightness(1.1); }
+  </style>
+</head>
+<body data-screen-label="AI Hotspot — Timeline">
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script type="text/babel" src="src/data.jsx"></script>
+  <script type="text/babel" src="src/primitives.jsx"></script>
+  <script type="text/babel" src="src/sidebar.jsx"></script>
+  <script type="text/babel" src="src/feed_card.jsx"></script>
+  <script type="text/babel" src="src/feed_views.jsx"></script>
+  <script type="text/babel" src="src/admin_views.jsx"></script>
+  <script type="text/babel" src="src/tweaks.jsx"></script>
+  <script type="text/babel" src="src/app.jsx"></script>
+</body>
+</html>
