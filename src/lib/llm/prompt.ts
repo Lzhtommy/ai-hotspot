@@ -45,11 +45,15 @@ export function buildUserMessage(params: {
   title: string;
   sourceLang: 'zh' | 'en';
 }): string {
-  // LLM-09: wrap article body in untrusted_content XML tags for prompt-injection defense.
+  // LLM-09: wrap BOTH title and body in untrusted_content XML tags.
+  // Title comes from the same untrusted RSS feed as the body — placing it outside
+  // the fence would let a crafted title bypass the prompt-injection boundary.
   return (
-    `Source language: ${params.sourceLang}\n` +
+    `Source language: ${params.sourceLang}\n\n` +
+    `<untrusted_content>\n` +
     `Title: ${params.title}\n\n` +
-    `<untrusted_content>\n${params.text}\n</untrusted_content>\n\n` +
+    `${params.text}\n` +
+    `</untrusted_content>\n\n` +
     `Return the enrichment JSON.`
   );
 }

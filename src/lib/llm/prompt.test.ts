@@ -23,10 +23,14 @@ describe('buildUserMessage', () => {
     expect(msg).toContain('hello');
   });
 
-  it('includes source language and title outside the delimiters', () => {
+  it('includes source language outside the fence and title inside it (WR-04 prompt-injection mitigation)', () => {
     const msg = buildUserMessage({ text: 'body', title: 'MyTitle', sourceLang: 'zh' });
     const before = msg.split('<untrusted_content>')[0];
-    expect(before).toContain('MyTitle');
+    const inside = msg.split('<untrusted_content>')[1].split('</untrusted_content>')[0];
+    // sourceLang is trusted metadata — stays outside the fence
     expect(before).toContain('zh');
+    // title comes from untrusted RSS — must be inside the fence
+    expect(before).not.toContain('MyTitle');
+    expect(inside).toContain('MyTitle');
   });
 });
