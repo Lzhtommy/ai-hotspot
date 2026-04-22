@@ -94,6 +94,34 @@ describe('extractFullText', () => {
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
+  it('SSRF guard: 0.0.0.0 → no fetch, returns fallback', async () => {
+    const fetchSpy = vi.fn();
+    globalThis.fetch = fetchSpy;
+    const result = await extractFullText('short', 'http://0.0.0.0/path');
+    expect(result.extracted).toBe(false);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it('SSRF guard: IPv4-mapped IPv6 metadata endpoint [::ffff:169.254.169.254] → no fetch, returns fallback', async () => {
+    const fetchSpy = vi.fn();
+    globalThis.fetch = fetchSpy;
+    // Node URL API normalizes bracketed IPv6 to no-bracket hostname
+    const result = await extractFullText(
+      'short',
+      'http://[::ffff:169.254.169.254]/latest/meta-data/',
+    );
+    expect(result.extracted).toBe(false);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it('SSRF guard: IPv4-mapped IPv6 RFC1918 [::ffff:10.0.0.1] → no fetch, returns fallback', async () => {
+    const fetchSpy = vi.fn();
+    globalThis.fetch = fetchSpy;
+    const result = await extractFullText('short', 'http://[::ffff:10.0.0.1]/path');
+    expect(result.extracted).toBe(false);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
   it('SSRF guard: non-http scheme (javascript:) → returns fallback', async () => {
     const fetchSpy = vi.fn();
     globalThis.fetch = fetchSpy;
@@ -119,9 +147,9 @@ describe('extractFullText', () => {
 
   it('fetch returns 2xx but content-length > 2MB → fallback', async () => {
     const SIZE_2MB_PLUS = 2 * 1024 * 1024 + 1;
-    globalThis.fetch = vi.fn().mockResolvedValue(
-      makeHtmlResponse('<html><body>hi</body></html>', SIZE_2MB_PLUS),
-    );
+    globalThis.fetch = vi
+      .fn()
+      .mockResolvedValue(makeHtmlResponse('<html><body>hi</body></html>', SIZE_2MB_PLUS));
     const result = await extractFullText('short', 'https://example.com/article');
     expect(result.extracted).toBe(false);
     expect(result.text).toBe('short');

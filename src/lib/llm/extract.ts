@@ -33,14 +33,35 @@ const SIZE_CAP_BYTES = 2 * 1024 * 1024;
 const DEFAULT_THRESHOLD = 500;
 
 function isPrivateHost(hostname: string): boolean {
-  // RFC1918 + loopback + link-local; return true to BLOCK.
-  if (hostname === 'localhost' || hostname === '::1') return true;
-  if (/^127\./.test(hostname)) return true;
-  if (/^10\./.test(hostname)) return true;
-  if (/^192\.168\./.test(hostname)) return true;
-  if (/^172\.(1[6-9]|2[0-9]|3[01])\./.test(hostname)) return true;
-  if (/^169\.254\./.test(hostname)) return true; // link-local
-  if (/^fc00:|^fe80:/i.test(hostname)) return true;
+  // RFC1918 + loopback + link-local + 0.0.0.0 + IPv4-mapped IPv6; return true to BLOCK.
+  // Node's URL API normalizes IPv6 literals: strips brackets → "::ffff:a9fe:a9fe" form.
+  // Strip brackets so we can match raw IPv6 strings (e.g. "[::1]" → "::1").
+  const h = hostname.startsWith('[') && hostname.endsWith(']') ? hostname.slice(1, -1) : hostname;
+
+  if (h === 'localhost' || h === '::1' || h === '0.0.0.0') return true;
+  if (/^127\./.test(h)) return true;
+  if (/^10\./.test(h)) return true;
+  if (/^192\.168\./.test(h)) return true;
+  if (/^172\.(1[6-9]|2[0-9]|3[01])\./.test(h)) return true;
+  if (/^169\.254\./.test(h)) return true; // link-local IPv4 + AWS/GCP metadata
+  if (/^fc00:|^fe80:/i.test(h)) return true; // IPv6 ULA + link-local
+
+  // IPv4-mapped IPv6 in two forms Node may produce:
+  //   dotted-decimal: "::ffff:169.254.169.254" (some runtimes)
+  //   hex groups:     "::ffff:a9fe:a9fe"       (Node 18+ normalizes to this)
+  if (/^::ffff:/i.test(h)) {
+    const mapped = h.replace(/^::ffff:/i, '');
+    // If it looks like dotted-decimal already, recurse directly.
+    if (/^\d+\.\d+\.\d+\.\d+$/.test(mapped)) return isPrivateHost(mapped);
+    // Otherwise convert two hex groups (XXXX:XXXX) to a.b.c.d and recurse.
+    const hexMatch = /^([0-9a-f]+):([0-9a-f]+)$/i.exec(mapped);
+    if (hexMatch) {
+      const hi = parseInt(hexMatch[1], 16);
+      const lo = parseInt(hexMatch[2], 16);
+      const dotted = [(hi >> 8) & 0xff, hi & 0xff, (lo >> 8) & 0xff, lo & 0xff].join('.');
+      return isPrivateHost(dotted);
+    }
+  }
   return false;
 }
 
