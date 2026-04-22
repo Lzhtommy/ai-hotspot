@@ -12,13 +12,21 @@
  *   STEP G: one UPDATE items (set all enrichment fields, status='published')
  *           + two INSERT pipeline_runs (enrich + embed)  — LLM-12
  *
- * ERROR PATH:
- *   - ZodError / EnrichError('parse') / EnrichError('schema') / EmbedError(malformed)
- *     → TERMINAL: UPDATE items SET status='dead_letter', failure_reason, retry_count+=1
- *   - Network/5xx transient AND retry_count < 3
- *     → rethrow (Trigger.dev v4 retries in Plan 04)
- *   - retry_count >= 3
- *     → TERMINAL: status='dead_letter'
+ * ERROR PATH (classification rules):
+ *   TERMINAL (no retry, status='dead_letter'):
+ *     - ZodError: schema enforcement failed — data is unfixable
+ *     - EnrichError kind='parse': Anthropic returned malformed JSON — not retryable
+ *     - EnrichError kind='schema': zod re-validation failed — not retryable
+ *     - EmbedError with 'malformed' in message: Voyage returned wrong dimensions
+ *     - retryCount >= MAX_RETRIES (3): retry budget exhausted regardless of error type
+ *   RETRYABLE (rethrow → Trigger.dev retries the task):
+ *     - EnrichError kind='api': Anthropic network/5xx/rate-limit — transient
+ *     - EmbedError (non-malformed): Voyage network failure — transient
+ *     - ClusterError: cluster insert/transaction failure — transient
+ *     - Any other thrown error
+ *
+ *   Adding a new error kind: decide terminal vs retryable, add to the correct
+ *   list above AND update the `isTerminal` predicate in the catch block below.
  *
  * Extracted so it is unit-testable without the Trigger.dev runtime. The
  * Trigger.dev task file (Plan 04 — src/trigger/process-item.ts) is a thin
