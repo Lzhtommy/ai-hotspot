@@ -84,7 +84,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. The layout renders correctly on a 375px-wide mobile viewport and on desktop, using the paper+amber light theme per CONTEXT.md D-02 (supersedes original dark/green anchor)
   5. CJK text is displayed using self-hosted Noto Sans SC fonts without any request to fonts.googleapis.com
 **Plans:** 6 plans
-- [ ] 04-01-PLAN.md — Foundation: self-hosted fonts (Geist+Noto SC+JetBrains Mono), Tailwind v4 @theme tokens port, layout primitives, pure utils (source-palette/tag-tones/group-by-hour), env vars
+- [x] 04-01-PLAN.md — Foundation: self-hosted fonts (Geist+Noto SC+JetBrains Mono), Tailwind v4 @theme tokens port, layout primitives, pure utils (source-palette/tag-tones/group-by-hour), env vars
 - [ ] 04-02-PLAN.md — Layout shell: Sidebar+mobile drawer+NavRow+PipelineStatusCard+UserChip+FeedTopBar+FeedTabs+EmptyState
 - [ ] 04-03-PLAN.md — Data access: get-feed Redis cache + get-item + cache-invalidate + /api/revalidate (shared-secret gated) + Trigger.dev refresh-clusters hook
 - [ ] 04-04-PLAN.md — Feed card: 8-step FeedCard + ScoreBadge/HotnessBar/ClusterTrigger/ClusterSiblings/FeedCardActions/LoginPromptModal/SkeletonCard/Timeline/FilterPopover
