@@ -83,7 +83,13 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. An item detail page at /items/[id] shows the full summary, all cluster member sources with links, and the original article link; pasting the URL into WeChat renders a share card with og:title and og:description
   4. The layout renders correctly on a 375px-wide mobile viewport and on desktop, using the dark theme with green accent
   5. CJK text is displayed using self-hosted Noto Sans SC fonts without any request to fonts.googleapis.com
-**Plans**: TBD
+**Plans:** 6 plans
+- [ ] 04-01-PLAN.md — Foundation: self-hosted fonts (Geist+Noto SC+JetBrains Mono), Tailwind v4 @theme tokens port, layout primitives, pure utils (source-palette/tag-tones/group-by-hour), env vars
+- [ ] 04-02-PLAN.md — Layout shell: Sidebar+mobile drawer+NavRow+PipelineStatusCard+UserChip+FeedTopBar+FeedTabs+EmptyState
+- [ ] 04-03-PLAN.md — Data access: get-feed Redis cache + get-item + cache-invalidate + /api/revalidate (shared-secret gated) + Trigger.dev refresh-clusters hook
+- [ ] 04-04-PLAN.md — Feed card: 8-step FeedCard + ScoreBadge/HotnessBar/ClusterTrigger/ClusterSiblings/FeedCardActions/LoginPromptModal/SkeletonCard/Timeline/FilterPopover
+- [ ] 04-05-PLAN.md — Routes: (reader)/layout + / (精选 ISR 300) + /all (nuqs + pagination ISR 300) + /items/[id] (ISR 3600 + generateMetadata) + opengraph-image.tsx (Edge + CJK font) + /favorites + /loading
+- [ ] 04-06-PLAN.md — Validation: Playwright E2E (no-fonts-CDN, og-meta, responsive, filters, a11y) + scripts/verify-feed.ts + 04-UAT.md
 **UI hint**: yes
 
 ### Phase 5: Auth + User Interactions
