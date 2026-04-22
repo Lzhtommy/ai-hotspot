@@ -1,4 +1,5 @@
 import { defineConfig } from '@trigger.dev/sdk';
+import { additionalFiles } from '@trigger.dev/build/extensions/core';
 
 /**
  * Trigger.dev v4 project config.
@@ -32,5 +33,13 @@ export default defineConfig({
       factor: 2,
       randomize: true,
     },
+  },
+  // src/lib/llm/prompt.ts reads three markdown files via readFileSync at module load.
+  // Trigger.dev's bundler does not copy non-JS assets by default, causing ENOENT at
+  // container runtime. additionalFiles copies the globbed files into the deploy artifact
+  // preserving relative paths, so process.cwd() + 'src/lib/llm/prompts/*.md' resolves
+  // correctly inside /app.
+  build: {
+    extensions: [additionalFiles({ files: ['./src/lib/llm/prompts/**/*.md'] })],
   },
 });
