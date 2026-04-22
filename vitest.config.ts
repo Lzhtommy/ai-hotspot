@@ -2,9 +2,15 @@ import { defineConfig } from 'vitest/config';
 import path from 'node:path';
 
 export default defineConfig({
+  esbuild: {
+    // Enable JSX transform for .tsx test files using the automatic React JSX runtime.
+    // This avoids the ESM-only @vitejs/plugin-react requirement in a CJS vitest.config.ts.
+    jsx: 'automatic',
+    jsxImportSource: 'react',
+  },
   test: {
     environment: 'node',
-    include: ['src/**/*.test.ts', 'src/**/*.spec.ts'],
+    include: ['src/**/*.test.ts', 'src/**/*.test.tsx', 'src/**/*.spec.ts', 'src/**/*.spec.tsx'],
     globals: false,
     setupFiles: ['./vitest.setup.ts'],
     // voyageai ESM package uses bare directory imports (../api) that Node's ESM resolver
