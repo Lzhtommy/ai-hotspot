@@ -94,23 +94,19 @@ export async function runRefreshClusters(deps?: {
       })
       .where(eq(clusters.id, clusterId));
 
-    // 5b. Update centroid via raw SQL if available
+    // 5b. Update centroid via raw SQL if available.
+    // Use sql.param() to force parameterized binding — plain string interpolation
+    // in Drizzle's sql`` template is a raw literal substitution, not a bind value.
     if (centroidStr) {
       await db.execute(sql`
-        UPDATE clusters SET centroid = ${centroidStr}::vector
+        UPDATE clusters SET centroid = ${sql.param(centroidStr)}::vector
         WHERE id = ${clusterId}
       `);
     }
 
     // 6. Flip is_cluster_primary — exactly one row per cluster (CLUST-07)
-    await db
-      .update(items)
-      .set({ isClusterPrimary: false })
-      .where(eq(items.clusterId, clusterId));
-    await db
-      .update(items)
-      .set({ isClusterPrimary: true })
-      .where(eq(items.id, newPrimaryId));
+    await db.update(items).set({ isClusterPrimary: false }).where(eq(items.clusterId, clusterId));
+    await db.update(items).set({ isClusterPrimary: true }).where(eq(items.id, newPrimaryId));
 
     updated += 1;
   }
