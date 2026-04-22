@@ -102,3 +102,9 @@ jobs:
         run: pnpm trigger:deploy --env prod
         env:
           TRIGGER_ACCESS_TOKEN: ${{ secrets.TRIGGER_ACCESS_TOKEN }}
+          # trigger.config.ts reads process.env.TRIGGER_PROJECT_REF at bundle
+          # time. Missing → resolves to the literal "undefined" and the CLI
+          # reports "Project not found: undefined". The ref is public
+          # (proj_xxx on the Trigger.dev dashboard) — vars is preferred over
+          # secrets, but either works.
+          TRIGGER_PROJECT_REF: ${{ vars.TRIGGER_PROJECT_REF || secrets.TRIGGER_PROJECT_REF }}
