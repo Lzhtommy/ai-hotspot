@@ -23,6 +23,8 @@
  *   - src/components/layout/user-chip.tsx (ghost — 登录)
  */
 
+'use client';
+
 import { Icon, type IconName } from './icon';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'accent' | 'danger';

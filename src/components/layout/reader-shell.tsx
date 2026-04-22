@@ -15,17 +15,22 @@
 
 import { usePathname } from 'next/navigation';
 import { Sidebar } from './sidebar';
-import { SidebarMobileDrawer } from './sidebar-mobile-drawer';
+import { SidebarMobileDrawer, SidebarDrawerPanel } from './sidebar-mobile-drawer';
 
 export function ReaderShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   return (
-    <div className="min-h-full lg:grid lg:grid-cols-[224px_1fr]">
-      <SidebarMobileDrawer>
-        <Sidebar pathname={pathname} />
-      </SidebarMobileDrawer>
-      <main className="min-w-0">{children}</main>
-    </div>
+    // SidebarMobileDrawer is the context provider — wraps everything so
+    // HamburgerButton (inside main) can reach the toggle via useSidebarDrawer.
+    <SidebarMobileDrawer>
+      <div className="min-h-full lg:grid lg:grid-cols-[224px_1fr]">
+        {/* SidebarDrawerPanel is the animated off-canvas panel for mobile */}
+        <SidebarDrawerPanel>
+          <Sidebar pathname={pathname} />
+        </SidebarDrawerPanel>
+        <main className="min-w-0">{children}</main>
+      </div>
+    </SidebarMobileDrawer>
   );
 }

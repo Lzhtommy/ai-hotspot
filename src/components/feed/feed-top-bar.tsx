@@ -22,6 +22,7 @@
  */
 
 import { Button } from '@/components/layout/button';
+import { HamburgerButton } from '@/components/layout/hamburger-button';
 import { FeedTabs } from './feed-tabs';
 
 export interface FeedTopBarProps {
@@ -55,8 +56,7 @@ export function FeedTopBar({
     lastSyncMinutes == null ? '—' : lastSyncMinutes < 1 ? '刚刚' : `${lastSyncMinutes} 分钟前`;
 
   // H1 per view — feed_views.jsx line 42; UI-SPEC Copywriting
-  const h1 =
-    view === 'featured' ? '精选' : view === 'all' ? '全部 AI 动态' : '收藏';
+  const h1 = view === 'featured' ? '精选' : view === 'all' ? '全部 AI 动态' : '收藏';
 
   // Subtitle per view — feed_views.jsx lines 45–47; UI-SPEC Copywriting
   const subtitle =
@@ -81,7 +81,16 @@ export function FeedTopBar({
       className="max-sm:!px-4"
     >
       {/* Title row + action buttons */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          gap: 16,
+        }}
+      >
+        {/* Hamburger button — mobile only (<lg); opens sidebar drawer */}
+        <HamburgerButton />
         <div>
           {/* Page H1 — 22px/600 per UI-SPEC Typography */}
           <h1
@@ -110,16 +119,6 @@ export function FeedTopBar({
 
         {/* Action buttons — feed_views.jsx lines 52–57 */}
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
-          {/* 过滤 — enabled on all only; visual only (Plan 05 wires filter popover) */}
-          <Button
-            variant="ghost"
-            size="md"
-            disabled={view !== 'all'}
-            title={view !== 'all' ? '仅在全部动态页使用' : undefined}
-          >
-            <span className="max-sm:hidden">过滤</span>
-          </Button>
-
           {/* 导出 — disabled, Phase 6 开放 — feed_views.jsx line 54; CONTEXT D-22 */}
           <Button variant="secondary" size="md" disabled title="Phase 6 开放">
             <span className="max-sm:hidden">导出</span>

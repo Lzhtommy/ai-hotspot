@@ -2,18 +2,22 @@
 /**
  * SidebarMobileDrawer — Phase 4 FEED-07, UI-SPEC Responsive Contract.
  *
- * Client wrapper that provides responsive drawer behavior for the Sidebar:
+ * Context provider + drawer wrapper for the sidebar responsive behavior:
  *   - Desktop (≥1024px): Sidebar renders as a sticky left column
  *   - Mobile (<1024px): Sidebar slides in from the left as a fixed overlay
  *
- * Owns isOpen state and exposes SidebarDrawerContext so the FeedTopBar
- * hamburger button can call toggle() without prop-drilling.
+ * Architecture:
+ *   - SidebarMobileDrawer: context provider that wraps the entire reader shell
+ *   - SidebarDrawerPanel: the animated wrapper div around just the Sidebar component
+ *
+ * The separation allows HamburgerButton (inside main content area) to access
+ * the context even though it is not a descendant of the drawer panel.
  *
  * Auto-closes on route change via usePathname effect.
  *
  * Consumed by:
- *   - src/app/(reader)/layout.tsx (wraps <Sidebar>)
- *   - src/components/feed/feed-top-bar.tsx (reads useSidebarDrawer for toggle)
+ *   - src/components/layout/reader-shell.tsx (SidebarMobileDrawer wraps grid; SidebarDrawerPanel wraps Sidebar)
+ *   - src/components/layout/hamburger-button.tsx (reads useSidebarDrawer for toggle)
  */
 
 import { createContext, useContext, useEffect, useState } from 'react';
@@ -33,6 +37,7 @@ export function useSidebarDrawer(): SidebarDrawerCtx {
   return c;
 }
 
+/** Context provider — wraps the entire reader shell so all children share drawer state. */
 export function SidebarMobileDrawer({ children }: { children: React.ReactNode }) {
   const [isOpen, setOpen] = useState(false);
   const pathname = usePathname();
@@ -50,26 +55,7 @@ export function SidebarMobileDrawer({ children }: { children: React.ReactNode })
 
   return (
     <SidebarDrawerContext.Provider value={ctx}>
-      {/*
-        Desktop: sticky top-0 (sidebar stays in viewport while scrolling).
-        Mobile: fixed off-screen left; translates to 0 when isOpen.
-        Transition 180ms per UI-SPEC prefers-reduced-motion (globals.css reduces to 0ms).
-      */}
-      <div
-        className={[
-          // Desktop: render inline, no overlay
-          'lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 lg:z-0 lg:flex-shrink-0',
-          // Mobile: fixed drawer — slides in/out
-          'fixed inset-y-0 left-0 z-40 transition-transform duration-[180ms]',
-          isOpen ? 'translate-x-0' : '-translate-x-full',
-          // Desktop always visible regardless of isOpen
-          'lg:!translate-x-0 lg:!position-[unset]',
-        ].join(' ')}
-        aria-label="主导航"
-      >
-        {children}
-      </div>
-
+      {children}
       {/* Backdrop — visible only on mobile when drawer is open */}
       {isOpen && (
         <div
@@ -80,5 +66,26 @@ export function SidebarMobileDrawer({ children }: { children: React.ReactNode })
         />
       )}
     </SidebarDrawerContext.Provider>
+  );
+}
+
+/** Animated panel wrapper — renders around just the Sidebar component. */
+export function SidebarDrawerPanel({ children }: { children: React.ReactNode }) {
+  const { isOpen } = useSidebarDrawer();
+  return (
+    <div
+      className={[
+        // Desktop: render inline, no overlay
+        'lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 lg:z-0 lg:flex-shrink-0',
+        // Mobile: fixed drawer — slides in/out
+        'fixed inset-y-0 left-0 z-40 transition-transform duration-[180ms]',
+        isOpen ? 'translate-x-0' : '-translate-x-full',
+        // Desktop always visible regardless of isOpen
+        'lg:!translate-x-0',
+      ].join(' ')}
+      aria-label="主导航"
+    >
+      {children}
+    </div>
   );
 }

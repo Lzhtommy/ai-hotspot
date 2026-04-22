@@ -145,7 +145,7 @@ export async function Sidebar({ pathname }: SidebarProps) {
           marginBottom: 4,
           background: 'var(--surface-1)',
           borderRadius: 6,
-          color: 'var(--fg-4)',
+          color: 'var(--fg-3)', // --fg-3 = --ink-600 (#5c584f) — meets WCAG AA 4.5:1 on --surface-1
           fontSize: 12.5, // sidebar.jsx line 183 — fractional
           cursor: 'text',
         }}
@@ -154,7 +154,7 @@ export async function Sidebar({ pathname }: SidebarProps) {
       >
         <Icon name="search" size={13} />
         {/* UI-SPEC Copywriting: "搜索动态…" + "⌘K" — sidebar.jsx line 186 */}
-        <span style={{ flex: 1, color: 'var(--fg-4)' }}>搜索动态…</span>
+        <span style={{ flex: 1, color: 'var(--fg-3)' }}>搜索动态…</span>
         <kbd
           style={{
             marginLeft: 'auto',

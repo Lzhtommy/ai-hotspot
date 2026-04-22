@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import './globals.css';
 
 const siteUrl =
@@ -23,7 +24,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           crossOrigin="anonymous"
         />
       </head>
-      <body className="min-h-full flex flex-col bg-paper text-ink-900 font-sans">{children}</body>
+      <body className="min-h-full flex flex-col bg-paper text-ink-900 font-sans">
+        <NuqsAdapter>{children}</NuqsAdapter>
+      </body>
     </html>
   );
 }
