@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 Phase: 5
 Plan: Not started
 Status: Ready to execute
-Last activity: 2026-04-22 -- shipped Phases 1-4 via PR #2
+Last activity: 2026-04-22 - Completed quick task 260422-ogt: Fix Trigger.dev deploy ENOENT for src/lib/llm/prompts/*.md by adding additionalFiles build extension to trigger.config.ts
 
 Progress: [███░░░░░░░] 33%
 
@@ -140,6 +140,12 @@ None yet.
 - Phase 2 research flag: Evaluate full-text extraction library (@mozilla/readability vs. unfluff vs. Jina.ai) before LLM pipeline planning
 - Phase 2 note: X/Twitter RSSHub routes are highest-volatility — treat as best-effort in v1
 - Phase 2 SC#2 blocked on RSSHub deployment — lurnings-rsshub.hf.space returns 503 on all canary routes. Re-verify via pnpm verify:ingest once healthy. Phase 3 prerequisite.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260422-ogt | Fix Trigger.dev deploy ENOENT for src/lib/llm/prompts/*.md by adding additionalFiles build extension to trigger.config.ts | 2026-04-22 | 523dc77 | [260422-ogt-fix-trigger-dev-deploy-enoent-for-src-li](./quick/260422-ogt-fix-trigger-dev-deploy-enoent-for-src-li/) |
 
 ## Deferred Items
 
