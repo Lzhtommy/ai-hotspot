@@ -6,15 +6,17 @@ import { EmbedError } from './embed';
 
 // Helper: build a minimal db mock that records calls.
 // Extends the makeDbMock factory pattern from src/lib/ingest/fetch-source-core.test.ts.
-function makeDbMock(itemRow?: Partial<{
-  id: bigint;
-  title: string;
-  bodyRaw: string;
-  url: string;
-  publishedAt: Date;
-  retryCount: number;
-  sourceLang: string;
-}>) {
+function makeDbMock(
+  itemRow?: Partial<{
+    id: bigint;
+    title: string;
+    bodyRaw: string;
+    url: string;
+    publishedAt: Date;
+    retryCount: number;
+    sourceLang: string;
+  }>,
+) {
   const updates: Array<Record<string, unknown>> = [];
   const inserts: Array<Record<string, unknown>> = [];
 
@@ -142,8 +144,8 @@ describe('runProcessItem', () => {
     expect(inserts[0]).toMatchObject({ status: 'error' });
   });
 
-  it('LLM-11 terminal: retryCount=2 + transient error → dead_letter (retriesExhausted)', async () => {
-    const { db, updates } = makeDbMock({ retryCount: 2 });
+  it('LLM-11 terminal: retryCount=3 + transient error → dead_letter (retriesExhausted)', async () => {
+    const { db, updates } = makeDbMock({ retryCount: 3 });
     const transientErr = new Error('ECONNRESET network failure');
     transientErr.name = 'NetworkError';
     const mockEnrichTransient = vi.fn().mockRejectedValue(transientErr);
@@ -190,8 +192,8 @@ describe('runProcessItem', () => {
   });
 
   it('secret scrub: API key in error message → failureReason does NOT contain key material', async () => {
-    // Use retryCount=2 (exhausted) so the error path writes dead_letter and we can inspect failureReason
-    const { db, updates } = makeDbMock({ retryCount: 2 });
+    // Use retryCount=3 (exhausted) so the error path writes dead_letter and we can inspect failureReason
+    const { db, updates } = makeDbMock({ retryCount: 3 });
     const leakyErr = new Error('sk-ant-xxxxxxxx authentication failed pa-secret-key');
     leakyErr.name = 'AuthenticationError';
     const mockEnrichLeaky = vi.fn().mockRejectedValue(leakyErr);

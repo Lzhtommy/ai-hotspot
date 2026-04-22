@@ -186,7 +186,7 @@ export async function runProcessItem(params: {
       err instanceof ZodError ||
       (err instanceof EnrichError && (err.kind === 'parse' || err.kind === 'schema')) ||
       (err instanceof EmbedError && String(err.message).includes('malformed'));
-    const retriesExhausted = retryCount >= MAX_RETRIES - 1;
+    const retriesExhausted = retryCount >= MAX_RETRIES; // dead-letter after 3 retryable failures
 
     // Scrub: never persist err.message (may contain URLs with keys, headers) — use err.name only.
     const scrubbedReason = (err instanceof Error ? err.name : 'UnknownError').slice(0, 500);
