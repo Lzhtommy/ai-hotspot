@@ -1,7 +1,10 @@
 /**
  * Dynamic OG image for item detail pages — Phase 4 FEED-09, D-25.
  *
- * Edge runtime: 1200×630 PNG rendered via next/og ImageResponse.
+ * Node runtime: 1200×630 PNG rendered via next/og ImageResponse.
+ * Node (not Edge) is required because the bundled NotoSansSC-Variable.woff2
+ * exceeds Vercel's 1 MB Edge Function limit. ISR + Vercel image cache
+ * make cold-start latency negligible.
  * Noto Sans SC ArrayBuffer loaded at request time to support Chinese characters
  * (Pitfall 2 — without fonts param, CJK chars render as tofu squares).
  *
@@ -17,7 +20,7 @@
 import { ImageResponse } from 'next/og';
 import { getItem } from '@/lib/feed/get-item';
 
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 export const alt = 'AI Hotspot item';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
