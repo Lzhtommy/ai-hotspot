@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "03-05 Task 3 checkpoint — awaiting human pnpm verify:llm live run"
-last_updated: "2026-04-21T13:31:12.275Z"
-last_activity: 2026-04-21
+stopped_at: Completed 03-05-PLAN.md — Phase 3 all 5 plans done, awaiting orchestrator phase-complete gates
+last_updated: "2026-04-22T01:26:13.874Z"
+last_activity: 2026-04-22
 progress:
   total_phases: 6
   completed_phases: 3
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 ## Current Position
 
 Phase: 03 (llm-pipeline-clustering) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 Status: Ready to execute
-Last activity: 2026-04-21
+Last activity: 2026-04-22
 
 Progress: [███░░░░░░░] 33%
 
@@ -69,6 +69,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 03-llm-pipeline-clustering P03-01 | 10min | 3 tasks | 6 files |
 | Phase 03-llm-pipeline-clustering P04 | 7 | 3 tasks | 9 files |
 | Phase 03-llm-pipeline-clustering P03-05 | 4min | 2 tasks | 3 files |
+| Phase 03-llm-pipeline-clustering P03-05 | 717min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -112,6 +113,7 @@ Recent decisions affecting current work:
 - [Phase 03-llm-pipeline-clustering]: OTel stack: @langfuse/otel@5.1.0 + @arizeai/openinference-instrumentation-anthropic@0.1.9 + @opentelemetry/sdk-node@0.215.0; AnthropicInstrumentation.manuallyInstrument at module load precedes client.ts instantiation
 - [Phase 03-llm-pipeline-clustering]: ZodError DI injection for SC#3: import from 'zod/v4' matches process-item-core.ts catch clause
 - [Phase 03-llm-pipeline-clustering]: Sentinel URL randomization (Date.now() + Math.random()) avoids url_fingerprint UNIQUE collision on verify:llm re-runs
+- [Phase 03-llm-pipeline-clustering]: Plan 03-05: neon-serverless Pool driver adopted (fix 5be492b) — neon-http does not support transactions; Pool/WebSocket required for any future db.transaction() usage
 
 ### Pending Todos
 
@@ -132,6 +134,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-21T13:31:12.271Z
-Stopped at: 03-05 Task 3 checkpoint — awaiting human pnpm verify:llm live run
+Last session: 2026-04-22T01:26:13.870Z
+Stopped at: Completed 03-05-PLAN.md — Phase 3 all 5 plans done, awaiting orchestrator phase-complete gates
 Resume file: None
