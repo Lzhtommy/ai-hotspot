@@ -69,7 +69,14 @@ export function startOtel(sdk: OtelSdkLike = otel): void {
  * awaited in the `finally {}` block of every Trigger.dev task run function
  * (Pitfall 6 — worker process may be recycled before batch-exported spans
  * reach Langfuse if this is not called).
+ *
+ * Resets `started` after shutdown so that warm Trigger.dev workers that
+ * reuse the same process across multiple task invocations can re-start the
+ * SDK on the next run. Without this reset, `startOtel()` would silently
+ * no-op on the second invocation (started=true) while the SDK is shut down,
+ * causing all subsequent Anthropic calls to emit no spans to Langfuse.
  */
 export async function flushOtel(sdk: OtelSdkLike = otel): Promise<void> {
   await sdk.shutdown();
+  started = false; // allow next warm-worker invocation to re-start the SDK
 }

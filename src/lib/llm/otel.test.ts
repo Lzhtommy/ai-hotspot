@@ -38,6 +38,10 @@ describe('startOtel', () => {
 });
 
 describe('flushOtel', () => {
+  beforeEach(() => {
+    __resetStartedForTest();
+  });
+
   it('awaits sdk.shutdown() (flushes pending spans before worker recycle — LLM-13 contract)', async () => {
     const sdk = makeSdkMock();
     await flushOtel(sdk as never);
@@ -47,5 +51,16 @@ describe('flushOtel', () => {
   it('resolves without error when shutdown resolves', async () => {
     const sdk = makeSdkMock();
     await expect(flushOtel(sdk as never)).resolves.toBeUndefined();
+  });
+
+  it('resets started flag so warm-worker re-invocation can re-start the SDK (WR-03)', async () => {
+    const sdk = makeSdkMock();
+    startOtel(sdk as never);
+    expect(sdk.start).toHaveBeenCalledTimes(1);
+    // Flush shuts down and resets the flag
+    await flushOtel(sdk as never);
+    // Next invocation (new warm run) must re-start
+    startOtel(sdk as never);
+    expect(sdk.start).toHaveBeenCalledTimes(2);
   });
 });
