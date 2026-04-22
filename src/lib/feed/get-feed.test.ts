@@ -5,7 +5,7 @@
  */
 
 import { describe, expect, it, vi, type Mock } from 'vitest';
-import { buildFeedKey, getFeed, type GetFeedParams, type GetFeedResult } from './get-feed';
+import { buildFeedKey, getFeed, type GetFeedResult } from './get-feed';
 
 // ---------------------------------------------------------------------------
 // buildFeedKey unit tests
@@ -156,14 +156,10 @@ describe('getFeed cache semantics', () => {
       get: vi.fn().mockResolvedValue(null),
       set: vi.fn().mockResolvedValue('OK'),
     };
-    let capturedPredicates: unknown[] = [];
     const chainable = {
       from: vi.fn().mockReturnThis(),
       leftJoin: vi.fn().mockReturnThis(),
-      where: vi.fn().mockImplementation((...args: unknown[]) => {
-        capturedPredicates = args;
-        return chainable;
-      }),
+      where: vi.fn().mockReturnThis(),
       orderBy: vi.fn().mockReturnThis(),
       limit: vi.fn().mockReturnThis(),
       offset: vi.fn().mockResolvedValue([]),
