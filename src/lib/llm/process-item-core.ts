@@ -101,10 +101,18 @@ export async function runProcessItem(params: {
     const { text } = await extractFn(row.bodyRaw ?? '', row.url);
 
     // STEP C — enrich
+    const sourceLang = (row.sourceLang as 'zh' | 'en') ?? 'en';
+    if (!row.sourceLang) {
+      // leftJoin miss: source row deleted or item has no sourceId. Default to 'en'.
+      // Log so orphaned items can be detected in Langfuse / Sentry.
+      console.warn(
+        `process-item: item ${itemId} has no source language (source missing?), defaulting to 'en'`,
+      );
+    }
     const enrichRes = await enrichFn({
       text,
       title: row.title,
-      sourceLang: (row.sourceLang as 'zh' | 'en') ?? 'en',
+      sourceLang,
     });
 
     // STEP D — validate happens inside enrich via EnrichmentSchema.parse — we trust enrichRes.enrichment here.
