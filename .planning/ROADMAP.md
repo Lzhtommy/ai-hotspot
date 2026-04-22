@@ -81,7 +81,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   1. The / (精选) page loads for an anonymous user showing top-scored items grouped by time with source badge, Chinese summary, hotness score, 推荐理由, tags, and cluster count badge when applicable
   2. The /all page shows a full chronological feed with source and tag filter controls and pagination or infinite scroll
   3. An item detail page at /items/[id] shows the full summary, all cluster member sources with links, and the original article link; pasting the URL into WeChat renders a share card with og:title and og:description
-  4. The layout renders correctly on a 375px-wide mobile viewport and on desktop, using the dark theme with green accent
+  4. The layout renders correctly on a 375px-wide mobile viewport and on desktop, using the paper+amber light theme per CONTEXT.md D-02 (supersedes original dark/green anchor)
   5. CJK text is displayed using self-hosted Noto Sans SC fonts without any request to fonts.googleapis.com
 **Plans:** 6 plans
 - [ ] 04-01-PLAN.md — Foundation: self-hosted fonts (Geist+Noto SC+JetBrains Mono), Tailwind v4 @theme tokens port, layout primitives, pure utils (source-palette/tag-tones/group-by-hour), env vars

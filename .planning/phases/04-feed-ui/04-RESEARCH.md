@@ -872,32 +872,32 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
 
 **Risk mitigation:** Each assumption above should be referenced in the plan's "Known Gotchas" section; A1/A2/A8 warrant explicit discussion-phase clarification before implementation begins, but CONTEXT.md has already been approved so the planner should proceed on A1/A2/A8 as written and flag at verify-work if issues arise.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should `/items/[id]` use `generateStaticParams` to pre-build the top-N most-trafficked item pages?**
    - What we know: Each item page is `revalidate = 3600`; first visit triggers generation, subsequent visits hit CDN until TTL.
    - What's unclear: Whether to pre-build top-50 cluster-primary item pages at build time for faster first-visit.
-   - Recommendation: Skip in Phase 4. ISR on first-visit is fast enough. `generateStaticParams` adds build-time coupling to DB state.
+   - **RESOLVED:** Skip in Phase 4. ISR on first-visit is fast enough. `generateStaticParams` adds build-time coupling to DB state.
 
 2. **Tailwind v4 `@theme` block size.**
    - What we know: The design bundle has ~60 CSS tokens; Tailwind v4 auto-generates a utility per `--color-*`, `--font-*`, `--spacing-*`.
    - What's unclear: Whether to port EVERY token or just the subset actively used — the design carries `--accent-50..900` (10 shades) but only 4 are referenced.
-   - Recommendation: Port the full set in `@theme`. Cheap to do; planner discretion.
+   - **RESOLVED:** Port the full set in `@theme`. Cheap to do; planner discretion.
 
 3. **Shadcn `dialog` + `popover` — install now or hand-roll?**
    - What we know: UI-SPEC permits installation. shadcn components ship Tailwind v3 classes by default; v4 compatibility may require manual class adjustments.
    - What's unclear: Whether the planner's time-budget favors `npx shadcn add dialog popover` (fast) or hand-roll Radix directly (cleaner control).
-   - Recommendation: Install shadcn `dialog` + `popover`; accept minor v3→v4 class adjustments (trivially auto-convertible). Saves ~1 hour of focus-trap + keyboard plumbing.
+   - **RESOLVED:** Install shadcn `dialog` + `popover`; accept minor v3→v4 class adjustments (trivially auto-convertible). Saves ~1 hour of focus-trap + keyboard plumbing.
 
 4. **Search-params ISR cache universe size.**
    - What we know: Each `?page=N&tags=a,b,c&source=X` combination is a separate ISR entry.
    - What's unclear: How many combinations will Vercel's ISR store without thrashing? ~50 pages × 10 sources × 2^10 tag subsets is intractable — but real usage concentrates on a few.
-   - Recommendation: Accept the "long tail" assumption — Vercel auto-evicts LRU. Add `generateStaticParams` returning `[]` for explicit "ISR for any param combo" if needed.
+   - **RESOLVED:** Accept the "long tail" assumption — Vercel auto-evicts LRU. Add `generateStaticParams` returning `[]` for explicit "ISR for any param combo" if needed.
 
 5. **Dismiss / re-scrape of WeChat share card after content changes.**
    - What we know: WeChat caches previews server-side; no public debugger tool.
    - What's unclear: Whether item edits (which shouldn't happen in v1 — items are immutable after publish per LLM-05) would ever need re-scrape.
-   - Recommendation: Non-issue in v1 since items are immutable. Document for Phase 6.
+   - **RESOLVED:** Non-issue in v1 since items are immutable. Document for Phase 6.
 
 ## Environment Availability
 
