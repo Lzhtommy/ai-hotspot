@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 4 UI-SPEC approved
-last_updated: "2026-04-22T06:01:52.650Z"
-last_activity: 2026-04-22 -- Phase 04 execution started
+stopped_at: Completed 04-feed-ui-04-04-PLAN.md
+last_updated: "2026-04-22T06:52:42.201Z"
+last_activity: 2026-04-22
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 22
-  completed_plans: 16
-  percent: 73
+  completed_plans: 20
+  percent: 91
 ---
 
 # Project State
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 ## Current Position
 
 Phase: 04 (feed-ui) — EXECUTING
-Plan: 1 of 6
-Status: Executing Phase 04
-Last activity: 2026-04-22 -- Phase 04 execution started
+Plan: 2 of 6
+Status: Ready to execute
+Last activity: 2026-04-22
 
 Progress: [███░░░░░░░] 33%
 
@@ -71,6 +71,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 03-llm-pipeline-clustering P04 | 7 | 3 tasks | 9 files |
 | Phase 03-llm-pipeline-clustering P03-05 | 4min | 2 tasks | 3 files |
 | Phase 03-llm-pipeline-clustering P03-05 | 717min | 3 tasks | 4 files |
+| Phase 04-feed-ui P04 | 27 | 3 tasks | 16 files |
 
 ## Accumulated Context
 
@@ -115,6 +116,10 @@ Recent decisions affecting current work:
 - [Phase 03-llm-pipeline-clustering]: ZodError DI injection for SC#3: import from 'zod/v4' matches process-item-core.ts catch clause
 - [Phase 03-llm-pipeline-clustering]: Sentinel URL randomization (Date.now() + Math.random()) avoids url_fingerprint UNIQUE collision on verify:llm re-runs
 - [Phase 03-llm-pipeline-clustering]: Plan 03-05: neon-serverless Pool driver adopted (fix 5be492b) — neon-http does not support transactions; Pool/WebSocket required for any future db.transaction() usage
+- [Phase 04-feed-ui]: ClusterSection extracted as minimal 'use client' wrapper — FeedCard outer stays RSC; only expand state is client-side
+- [Phase 04-feed-ui]: Native <dialog> for LoginPromptModal — showModal() provides focus trap + backdrop + Escape for free (no Radix)
+- [Phase 04-feed-ui]: nuqs shallow:false on FilterPopover — forces RSC re-render when URL params change (FEED-12)
+- [Phase 04-feed-ui]: vitest JSX via esbuild jsx:automatic — avoids ESM-only @vitejs/plugin-react in CJS vitest.config.ts
 
 ### Pending Todos
 
@@ -135,6 +140,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-22T02:16:55.880Z
-Stopped at: Phase 4 UI-SPEC approved
-Resume file: .planning/phases/04-feed-ui/04-UI-SPEC.md
+Last session: 2026-04-22T06:52:42.198Z
+Stopped at: Completed 04-feed-ui-04-04-PLAN.md
+Resume file: None

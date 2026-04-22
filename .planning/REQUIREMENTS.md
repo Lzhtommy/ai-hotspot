@@ -59,16 +59,16 @@ Requirements for initial release. Each maps to a roadmap phase.
 
 - [ ] **FEED-01**: `/` (精选) renders top-scoring items with ISR (5-minute revalidate), grouped by time
 - [ ] **FEED-02**: `/all` (全部 AI 动态) renders full chronological feed with pagination/infinite scroll
-- [ ] **FEED-03**: Item card shows: source name + badge, title, Chinese summary, hotness score, 推荐理由, tags, cluster count (`另有 N 个源也报道了此事件` when count > 0)
+- [x] **FEED-03**: Item card shows: source name + badge, title, Chinese summary, hotness score, 推荐理由, tags, cluster count (`另有 N 个源也报道了此事件` when count > 0)
 - [ ] **FEED-04**: Item detail page `/items/[id]` shows full summary, cluster member list with source+link, original article link
-- [ ] **FEED-05**: Timeline groups items by HH:MM within a day; day headers for scrolling context
+- [x] **FEED-05**: Timeline groups items by HH:MM within a day; day headers for scrolling context
 - [ ] **FEED-06**: Dark-theme design matches reference screenshot (green accent, card spacing, left sidebar)
 - [ ] **FEED-07**: Responsive layout works on mobile (≥375px) and desktop
 - [ ] **FEED-08**: CJK fonts self-hosted (Noto Sans SC subset); never loaded from Google Fonts
 - [ ] **FEED-09**: OG tags (`og:title`, `og:description`, `og:image`) present on item detail pages for WeChat share cards
 - [ ] **FEED-10**: Redis feed cache (5-min TTL) invalidated when a new cluster refresh completes
-- [ ] **FEED-11**: Chinese-only UI; English source items show Chinese-translated title and summary
-- [ ] **FEED-12**: Source filter / tag filter controls on `/all` view
+- [x] **FEED-11**: Chinese-only UI; English source items show Chinese-translated title and summary
+- [x] **FEED-12**: Source filter / tag filter controls on `/all` view
 
 ### Authentication
 
@@ -204,16 +204,16 @@ Which phases cover which requirements.
 | CLUST-07 | Phase 3 | Complete |
 | FEED-01 | Phase 4 | Pending |
 | FEED-02 | Phase 4 | Pending |
-| FEED-03 | Phase 4 | Pending |
+| FEED-03 | Phase 4 | Complete |
 | FEED-04 | Phase 4 | Pending |
-| FEED-05 | Phase 4 | Pending |
+| FEED-05 | Phase 4 | Complete |
 | FEED-06 | Phase 4 | Pending |
 | FEED-07 | Phase 4 | Pending |
 | FEED-08 | Phase 4 | Pending |
 | FEED-09 | Phase 4 | Pending |
 | FEED-10 | Phase 4 | Pending |
-| FEED-11 | Phase 4 | Pending |
-| FEED-12 | Phase 4 | Pending |
+| FEED-11 | Phase 4 | Complete |
+| FEED-12 | Phase 4 | Complete |
 | AUTH-01 | Phase 5 | Pending |
 | AUTH-02 | Phase 5 | Pending |
 | AUTH-03 | Phase 5 | Pending |
