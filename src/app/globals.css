@@ -1,26 +1,247 @@
 @import 'tailwindcss';
 
+@font-face {
+  font-family: 'Geist';
+  src: url('/fonts/Geist-Variable.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('/fonts/JetBrainsMono-Variable.woff2') format('woff2-variations');
+  font-weight: 100 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Noto Sans SC';
+  src: url('/fonts/NotoSansSC-Variable.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+4E00-9FFF, U+3000-303F, U+FF00-FFEF, U+2000-206F;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Paper + amber palette — ported verbatim from
+     .design/feed-ui/project/ds/colors_and_type.css (D-04). */
+
+  /* Warm neutrals */
+  --paper: #faf8f4;
+  --paper-deep: #f3efe6;
+  --surface-0: #ffffff;
+  --surface-1: #f6f3ec;
+  --surface-2: #efebe1;
+
+  --line-weak: #ebe7df;
+  --line: #d9d3c7;
+  --line-strong: #bdb4a2;
+
+  /* Ink ramp */
+  --ink-900: #0b0b0c;
+  --ink-800: #1f1e1c;
+  --ink-700: #3a3833;
+  --ink-600: #5c584f;
+  --ink-500: #807a6d;
+  --ink-400: #a49d8c;
+  --ink-300: #c8c1af;
+
+  /* Accent — honey amber */
+  --accent-50: #fcf3e0;
+  --accent-100: #f7e3b4;
+  --accent-300: #e8b864;
+  --accent-500: #d4911c;
+  --accent-600: #b67912;
+  --accent-700: #8f5d0a;
+  --accent-900: #4d3106;
+
+  /* Semantic */
+  --success-500: #2f7d4f;
+  --success-50: #e8f3ec;
+  --danger-500: #b3261e;
+  --danger-50: #fbeae8;
+  --info-500: #2558b5;
+  --info-50: #e7eefa;
+
+  /* Semantic FG aliases */
+  --fg-1: var(--ink-900);
+  --fg-2: var(--ink-700);
+  --fg-3: var(--ink-600);
+  --fg-4: var(--ink-500);
+  --fg-disabled: var(--ink-400);
+  --fg-on-accent: #ffffff;
+  --fg-on-ink: var(--paper);
+
+  --bg-app: var(--paper);
+  --bg-surface: var(--surface-0);
+  --bg-sunken: var(--surface-1);
+  --bg-pressed: var(--surface-2);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(16, 12, 6, 0.05);
+  --shadow-md: 0 6px 16px -4px rgba(16, 12, 6, 0.1), 0 2px 4px rgba(16, 12, 6, 0.04);
+  --shadow-lg: 0 20px 40px -12px rgba(16, 12, 6, 0.18), 0 4px 8px rgba(16, 12, 6, 0.06);
+  --shadow-focus: 0 0 0 2px var(--paper), 0 0 0 4px var(--accent-500);
+
+  /* Radii */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  /* Spacing (4pt base) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-14: 56px;
+  --space-18: 72px;
+  --space-24: 96px;
+
+  /* Motion */
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --dur-micro: 120ms;
+  --dur-180: 180ms;
+  --dur-240: 240ms;
+
+  /* Z-index */
+  --z-header: 40;
+  --z-dropdown: 50;
+  --z-modal: 60;
+  --z-toast: 70;
+}
+
+:root[data-theme='dark'] {
+  /* Preserved from .design/feed-ui/project/index.html lines 44–71 per CONTEXT D-02.
+     NOT wired to any runtime toggle in Phase 4 — a later phase may flip the selector. */
+  --paper: #0e0f10;
+  --paper-deep: #0a0b0c;
+  --surface-0: #16181a;
+  --surface-1: #1c1f22;
+  --surface-2: #23272b;
+  --line-weak: #23272b;
+  --line: #2c3135;
+  --line-strong: #3a4046;
+  --ink-900: #edece7;
+  --ink-800: #e2e0da;
+  --ink-700: #bdb8ac;
+  --ink-600: #928c7e;
+  --ink-500: #6e6859;
+  --ink-400: #4d4839;
+  --ink-300: #3a362a;
+  --fg-1: var(--ink-900);
+  --fg-2: var(--ink-700);
+  --fg-3: var(--ink-600);
+  --fg-4: var(--ink-500);
+  --bg-app: var(--paper);
+  --bg-surface: var(--surface-0);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 6px 16px -4px rgba(0, 0, 0, 0.6), 0 2px 4px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 20px 40px -12px rgba(0, 0, 0, 0.7), 0 4px 8px rgba(0, 0, 0, 0.4);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Colors — map CSS vars into Tailwind v4 utilities */
+  --color-paper: var(--paper);
+  --color-paper-deep: var(--paper-deep);
+  --color-surface-0: var(--surface-0);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-line-weak: var(--line-weak);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink-900: var(--ink-900);
+  --color-ink-800: var(--ink-800);
+  --color-ink-700: var(--ink-700);
+  --color-ink-600: var(--ink-600);
+  --color-ink-500: var(--ink-500);
+  --color-ink-400: var(--ink-400);
+  --color-ink-300: var(--ink-300);
+  --color-accent-50: var(--accent-50);
+  --color-accent-100: var(--accent-100);
+  --color-accent-300: var(--accent-300);
+  --color-accent-500: var(--accent-500);
+  --color-accent-600: var(--accent-600);
+  --color-accent-700: var(--accent-700);
+  --color-accent-900: var(--accent-900);
+  --color-success-500: var(--success-500);
+  --color-success-50: var(--success-50);
+  --color-danger-500: var(--danger-500);
+  --color-danger-50: var(--danger-50);
+  --color-info-500: var(--info-500);
+  --color-info-50: var(--info-50);
+
+  /* Font families */
+  --font-sans: 'Geist', 'Noto Sans SC', ui-sans-serif, system-ui, -apple-system,
+    'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, 'SF Mono', Consolas, monospace;
+
+  /* Radii */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  /* Spacing */
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-5: 20px;
+  --spacing-6: 24px;
+  --spacing-8: 32px;
+  --spacing-10: 40px;
+  --spacing-14: 56px;
+  --spacing-18: 72px;
+  --spacing-24: 96px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Global element resets */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+button {
+  font-family: inherit;
+}
+
+a {
+  color: var(--ink-900);
+  text-decoration: underline;
+  text-decoration-color: var(--ink-300);
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+}
+
+a:hover {
+  text-decoration-color: var(--accent-500);
+}
+
+::selection {
+  background: var(--accent-100);
+  color: var(--ink-900);
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-radius: var(--radius-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }
