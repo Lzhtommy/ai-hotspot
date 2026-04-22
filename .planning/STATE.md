@@ -5,7 +5,7 @@ milestone_name: milestone
 status: executing
 stopped_at: Completed 04-feed-ui-06-PLAN.md
 last_updated: "2026-04-22T09:50:27.347Z"
-last_activity: "2026-04-22 - PR #5 opened: fix(trigger) bundle prompts/*.md"
+last_activity: "2026-04-22 - Completed quick task 260422-rax: Neon WS fix"
 progress:
   total_phases: 6
   completed_phases: 4
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 Phase: 5
 Plan: Not started
 Status: Ready to execute
-Last activity: 2026-04-22 - PR #5 opened: fix(trigger) bundle prompts/*.md
+Last activity: 2026-04-22 - Completed quick task 260422-rax: Neon WS fix
 
 Progress: [███░░░░░░░] 33%
 
@@ -146,6 +146,7 @@ None yet.
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260422-ogt | Fix Trigger.dev deploy ENOENT for src/lib/llm/prompts/*.md by adding additionalFiles build extension to trigger.config.ts | 2026-04-22 | 523dc77 | [260422-ogt-fix-trigger-dev-deploy-enoent-for-src-li](./quick/260422-ogt-fix-trigger-dev-deploy-enoent-for-src-li/) |
+| 260422-rax | fix: Trigger.dev ingest-hourly fails due to Neon WebSocket incompat on Node 22 | 2026-04-22 | fdd0719 | [260422-rax-fix-trigger-dev-ingest-hourly-fails-due-](./quick/260422-rax-fix-trigger-dev-ingest-hourly-fails-due-/) |
 
 ## Deferred Items
 
