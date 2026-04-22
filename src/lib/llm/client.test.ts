@@ -11,13 +11,15 @@ describe('voyage.embed — in-process rate limit + 429 handling', () => {
     vi.useRealTimers();
   });
 
-  function mockFetch(
-    sequence: Array<{ ok: true; embedding: number[] } | { status: number; retryAfter?: string }>,
-  ): ReturnType<typeof vi.fn> {
+  type OkEntry = { kind: 'ok'; embedding: number[] };
+  type ErrEntry = { kind: 'err'; status: number; retryAfter?: string };
+  type Entry = OkEntry | ErrEntry;
+
+  function mockFetch(sequence: Entry[]): ReturnType<typeof vi.fn> {
     let i = 0;
     return vi.fn(async () => {
       const entry = sequence[i++] ?? sequence[sequence.length - 1];
-      if ('ok' in entry && entry.ok) {
+      if (entry.kind === 'ok') {
         return new Response(
           JSON.stringify({
             data: [{ embedding: entry.embedding, index: 0 }],
@@ -28,7 +30,7 @@ describe('voyage.embed — in-process rate limit + 429 handling', () => {
         );
       }
       const headers: Record<string, string> = { 'content-type': 'application/json' };
-      if ('retryAfter' in entry && entry.retryAfter) {
+      if (entry.retryAfter) {
         headers['retry-after'] = entry.retryAfter;
       }
       return new Response('rate limited', { status: entry.status, headers });
@@ -38,9 +40,9 @@ describe('voyage.embed — in-process rate limit + 429 handling', () => {
   it('spaces sequential calls by ~VOYAGE_INTERVAL_MS (3 RPM → 20s)', async () => {
     vi.stubEnv('VOYAGE_RPM', '3');
     const fetchMock = mockFetch([
-      { ok: true, embedding: new Array(1024).fill(0.1) },
-      { ok: true, embedding: new Array(1024).fill(0.2) },
-      { ok: true, embedding: new Array(1024).fill(0.3) },
+      { kind: 'ok', embedding: new Array(1024).fill(0.1) },
+      { kind: 'ok', embedding: new Array(1024).fill(0.2) },
+      { kind: 'ok', embedding: new Array(1024).fill(0.3) },
     ]);
     vi.stubGlobal('fetch', fetchMock);
 
@@ -70,8 +72,8 @@ describe('voyage.embed — in-process rate limit + 429 handling', () => {
   it('429 triggers a retry that honors Retry-After', async () => {
     vi.stubEnv('VOYAGE_RPM', '3');
     const fetchMock = mockFetch([
-      { status: 429, retryAfter: '5' },
-      { ok: true, embedding: new Array(1024).fill(0.7) },
+      { kind: 'err', status: 429, retryAfter: '5' },
+      { kind: 'ok', embedding: new Array(1024).fill(0.7) },
     ]);
     vi.stubGlobal('fetch', fetchMock);
 
@@ -93,9 +95,9 @@ describe('voyage.embed — in-process rate limit + 429 handling', () => {
   it('exhausted 429 retries throw VoyageRateLimitError', async () => {
     vi.stubEnv('VOYAGE_RPM', '3');
     const fetchMock = mockFetch([
-      { status: 429, retryAfter: '1' },
-      { status: 429, retryAfter: '1' },
-      { status: 429, retryAfter: '1' },
+      { kind: 'err', status: 429, retryAfter: '1' },
+      { kind: 'err', status: 429, retryAfter: '1' },
+      { kind: 'err', status: 429, retryAfter: '1' },
     ]);
     vi.stubGlobal('fetch', fetchMock);
 
