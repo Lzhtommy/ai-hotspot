@@ -156,9 +156,11 @@ describe('FeedCard — 8-step anatomy', () => {
 
   it('uses titleZh over title when both present (FEED-11)', () => {
     const html = renderToString(<FeedCard item={feedItem11} />);
+    // Chinese titleZh is shown inside the <h3>
     expect(html).toContain('Gemini 2.0 Flash 正式发布');
-    // The English title should NOT be the primary heading
-    expect(html).not.toContain('<h3');
+    // The English-only title string should NOT appear as the rendered heading content
+    // (the Link inside h3 renders titleZh, not the raw English title)
+    expect(html).not.toContain('>Gemini 2.0 Flash Launch<');
   });
 });
 
