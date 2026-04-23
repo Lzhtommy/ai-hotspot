@@ -82,6 +82,13 @@ interface ButtonProps {
   type?: 'button' | 'submit' | 'reset';
   title?: string;
   className?: string;
+  // Merged onto the inline styles below. Used sparingly for layout overrides
+  // (e.g. width: '100%' for full-width provider buttons in LoginPromptModal).
+  // Property names here win over the defaults (later spread wins).
+  style?: React.CSSProperties;
+  // Optional aria-label override. Useful when the visible text alone is not
+  // descriptive enough (e.g. icon-only buttons). Passed through verbatim.
+  'aria-label'?: string;
 }
 
 /**
@@ -99,6 +106,8 @@ export function Button({
   type = 'button',
   title,
   className,
+  style,
+  'aria-label': ariaLabel,
 }: ButtonProps) {
   const v = VARIANTS[variant];
   const s = SIZES[size];
@@ -109,6 +118,7 @@ export function Button({
       onClick={onClick}
       disabled={disabled}
       aria-disabled={disabled}
+      aria-label={ariaLabel}
       title={title}
       className={className}
       style={{
@@ -126,10 +136,13 @@ export function Button({
         opacity: disabled ? 0.4 : 1,
         display: 'inline-flex',
         alignItems: 'center',
+        justifyContent: 'center',
         gap: 6, // primitives.jsx L228
         whiteSpace: 'nowrap',
         transition: `background 120ms var(--ease)`,
         // Focus ring via CSS — falls back to :focus-visible global rule in globals.css
+        // Caller overrides (e.g. full-width) win via shallow merge.
+        ...style,
       }}
       onMouseEnter={(e) => {
         if (!disabled) (e.currentTarget as HTMLElement).style.background = v.hoverBg;
