@@ -26,6 +26,7 @@
     "db:check": "drizzle-kit check",
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx --env-file=.env.local drizzle/seed-sources.ts",
+    "db:apply:0005": "tsx --env-file=.env.local scripts/apply-0005-admin-ops.ts",
     "verify:ingest": "tsx --env-file=.env.local scripts/verify-ingest.ts",
     "verify:llm": "tsx --env-file=.env.local scripts/verify-llm.ts",
     "check:hnsw": "tsx --env-file=.env.local scripts/check-hnsw.ts",
