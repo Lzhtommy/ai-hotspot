@@ -112,7 +112,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] 05-06-PLAN.md — Server actions: favoriteItem/unfavoriteItem/voteItem with D-05 Layer 2 ban guard + D-12 vote state machine
 - [x] 05-07-PLAN.md — FeedCardActions useOptimistic wiring + IconButton active state + VOTE-03 PERSONALIZATION_COPY
 - [x] 05-08-PLAN.md — /favorites authenticated RSC: redirect anon to /, query favorites JOIN items reverse-chrono, dynamic='force-dynamic'
-- [ ] 05-09-PLAN.md — Playwright E2E: auth-github, auth-magic-link, anon-login-favorite, ban-enforcement + seedSession helper
+- [x] 05-09-PLAN.md — Playwright E2E: auth-github, auth-magic-link, anon-login-favorite, ban-enforcement + seedSession helper
 - [ ] 05-10-PLAN.md — docs/auth-providers.md runbook (GitHub/Google/Resend/Vercel env matrix/admin SQL) + final human verification
 **UI hint**: yes
 

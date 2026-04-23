@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-08-PLAN.md (/favorites authenticated RSC + Drizzle join + FavoritesEmpty authenticated branch)
-last_updated: "2026-04-23T07:05:48.391Z"
+stopped_at: Completed 05-09-PLAN.md (4 Playwright E2E specs + seedSession rewrite + test-db.ts split)
+last_updated: "2026-04-23T07:17:06.829Z"
 last_activity: 2026-04-23
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 33
-  completed_plans: 31
-  percent: 94
+  completed_plans: 32
+  percent: 97
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 ## Current Position
 
 Phase: 5 (auth-user-interactions) — EXECUTING
-Plan: 10 of 11 (05-00, 05-01, 05-02, 05-03, 05-04, 05-05, 05-06 complete; 05-07 next)
+Plan: 11 of 11 (05-00, 05-01, 05-02, 05-03, 05-04, 05-05, 05-06 complete; 05-07 next)
 Status: Ready to execute
 Last activity: 2026-04-23
 
@@ -82,6 +82,7 @@ Progress: [█████████░] 88%
 | Phase --phase P05-auth-user-interactions | --plan | 05 tasks | --duration files |
 | Phase 05-auth-user-interactions P07 | 11 min | 3 tasks | 10 files |
 | Phase 05-auth-user-interactions P08 | 8 min | 2 tasks | 4 files |
+| Phase 05-auth-user-interactions P09 | 7 min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -153,6 +154,9 @@ Recent decisions affecting current work:
 - [Phase 05-auth-user-interactions]: Plan 05-07: RSC prop-threading for auth — every feed page calls auth() + getUserInteractions, passes isAuthenticated + interactionMap through Timeline to FeedCard to FeedCardActions; zero useSession() on client (RESEARCH §Anti-Patterns + CLAUDE.md §11)
 - [Phase 05-auth-user-interactions]: Plan 05-07: IconButton tone extended with 'success' (like active) + ACTIVE_BG map (10% tone fills: accent-50/success-50/danger-50) per UI-SPEC §FeedCardActions active-state contract
 - [Phase 05-auth-user-interactions]: Plan 05-08: /favorites redirects anonymous users to / (D-15 Option A); authenticated users see favorites reverse-chrono via innerJoin(items) + orderBy(desc(favorites.createdAt)); FeedTopBar gains subtitle override prop
+- [Phase 05-auth-user-interactions]: Plan 05-09: Split tests/helpers/test-db.ts out of db.ts — Playwright workers (Node CJS) cannot import vitest; re-export preserves Vitest-side import path; vitest-free makeTestDb used by seedSession for E2E DB writes
+- [Phase 05-auth-user-interactions]: Plan 05-09: Auth cookie name derived from baseUrl protocol — __Secure-authjs.session-token on https, authjs.session-token on http — matches Auth.js v5 useSecureCookies auto-derivation
+- [Phase 05-auth-user-interactions]: Plan 05-09: Magic-link E2E uses OR-assertion (success 链接已发送 OR failure 发送失败) so CI works without RESEND_API_KEY; real deliverability UAT deferred to Plan 10 runbook
 
 ### Pending Todos
 
@@ -181,8 +185,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-23T07:05:48.387Z
-Stopped at: Completed 05-08-PLAN.md (/favorites authenticated RSC + Drizzle join + FavoritesEmpty authenticated branch)
+Last session: 2026-04-23T07:16:53.408Z
+Stopped at: Completed 05-09-PLAN.md (4 Playwright E2E specs + seedSession rewrite + test-db.ts split)
 Resume file: None
 
 **Planned Phase:** 05 (auth-user-interactions) — 11 plans — 2026-04-23T03:52:10.184Z
