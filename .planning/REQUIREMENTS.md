@@ -94,7 +94,7 @@ Requirements for initial release. Each maps to a roadmap phase.
 
 ### Admin Backend
 
-- [ ] **ADMIN-01**: Admin-only route `/admin` protected by role check
+- [x] **ADMIN-01**: Admin-only route `/admin` protected by role check
 - [ ] **ADMIN-02**: 信源 list view with source name, URL, weight, active toggle, last-fetched, consecutive errors
 - [ ] **ADMIN-03**: Admin can create a new source (RSSHub route or raw RSS URL) with weight and category
 - [ ] **ADMIN-04**: Admin can edit source weight, name, active state
@@ -230,7 +230,7 @@ Which phases cover which requirements.
 | VOTE-02 | Phase 5 | Complete |
 | VOTE-03 | Phase 5 | Complete |
 | VOTE-04 | Phase 5 | Complete |
-| ADMIN-01 | Phase 6 | Pending |
+| ADMIN-01 | Phase 6 | Complete |
 | ADMIN-02 | Phase 6 | Pending |
 | ADMIN-03 | Phase 6 | Pending |
 | ADMIN-04 | Phase 6 | Pending |

@@ -127,7 +127,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. A deliberate runtime error in a Trigger.dev task appears in the Sentry dashboard within minutes
   5. Dead-letter items are visible in the admin UI with a retry button that re-enqueues them through the LLM pipeline; sitemap.xml is publicly accessible and contains published item URLs
 **Plans:** 9 plans
-- [ ] 06-00-PLAN.md — Admin route gating foundation: middleware matcher + RSC layout requireAdmin() + admin shell nav + access-denied page (ADMIN-01)
+- [x] 06-00-PLAN.md — Admin route gating foundation: middleware matcher + RSC layout requireAdmin() + admin shell nav + access-denied page (ADMIN-01)
 - [ ] 06-01-PLAN.md — Schema extensions [BLOCKING drizzle push]: sources.deleted_at + category; users.banned_at + banned_by FK (ADMIN-03, ADMIN-05, ADMIN-08)
 - [ ] 06-02-PLAN.md — Sources management: list + health + create/edit/soft-delete Server Actions + ingest poller filter (ADMIN-02, ADMIN-03, ADMIN-04, ADMIN-05, ADMIN-06)
 - [ ] 06-03-PLAN.md — User management + atomic ban with session revocation (UPDATE users + DELETE sessions in one transaction) (ADMIN-07, ADMIN-08)

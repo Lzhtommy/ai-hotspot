@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: Completed 05-10-PLAN.md (docs/auth-providers.md runbook + README link; Phase 5 plans all complete)
-last_updated: "2026-04-23T11:37:34.114Z"
+status: executing
+stopped_at: Completed 06-00-PLAN.md (admin gate foundation — requireAdmin, middleware, /admin route group)
+last_updated: "2026-04-23T13:04:22.695Z"
 last_activity: 2026-04-23
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 42
-  completed_plans: 33
-  percent: 79
+  completed_plans: 34
+  percent: 81
 ---
 
 # Project State
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-17)
 
 **Core value:** A single Chinese-language timeline where AI practitioners never miss a significant AI event, because the system hears it from every source, clusters duplicates, and ranks by LLM-judged importance — not chronology.
-**Current focus:** Phase 5 — auth-user-interactions
+**Current focus:** Phase 06 — admin-operational-hardening
 
 ## Current Position
 
-Phase: 5 (auth-user-interactions) — EXECUTING
-Plan: 11 of 11 (05-00, 05-01, 05-02, 05-03, 05-04, 05-05, 05-06 complete; 05-07 next)
-Status: Phase complete — ready for verification
+Phase: 06 (admin-operational-hardening) — EXECUTING
+Plan: 2 of 9
+Status: Ready to execute
 Last activity: 2026-04-23
 
 Progress: [█████████░] 88%
@@ -84,6 +84,7 @@ Progress: [█████████░] 88%
 | Phase 05-auth-user-interactions P08 | 8 min | 2 tasks | 4 files |
 | Phase 05-auth-user-interactions P09 | 7 min | 3 tasks | 7 files |
 | Phase 05-auth-user-interactions P10 | 3 min | 3 tasks | 2 files |
+| Phase 06-admin-operational-hardening P00 | 7min | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -160,6 +161,9 @@ Recent decisions affecting current work:
 - [Phase 05-auth-user-interactions]: Plan 05-09: Magic-link E2E uses OR-assertion (success 链接已发送 OR failure 发送失败) so CI works without RESEND_API_KEY; real deliverability UAT deferred to Plan 10 runbook
 - [Phase 05-auth-user-interactions]: Plan 05-10: docs/auth-providers.md is the Phase 5 operational hand-off — 8 sections (OAuth apps, Resend, Vercel env matrix, admin SQL, preview smoke test, ban enforcement, deployment DoD); English prose to match existing docs/ runbooks, Chinese only for quoted in-app copy
 - [Phase 05-auth-user-interactions]: Plan 05-10: Task 3 live smoke-test checklist deferred to HUMAN-UAT (requires real OAuth apps + email inbox + browser); runbook grep-gated automated checks all pass — phase-close decoupled from experiential verification
+- [Phase 06-admin-operational-hardening]: Plan 06-00: Three-layer admin gate — edge cookie filter (middleware) + RSC requireAdmin() + per-action assertAdmin(). Every Phase 6 admin plan inherits the gate via app/admin/layout.tsx without re-declaring.
+- [Phase 06-admin-operational-hardening]: Plan 06-00: Edge middleware sets x-pathname header so RSC layout can skip requireAdmin() on /admin/access-denied — fixes redirect loop where non-admin users bounce forever between layout and access-denied.
+- [Phase 06-admin-operational-hardening]: Plan 06-00: assertAdmin declared as 'asserts session is AdminSession' — Server Actions narrow the session type in one call without a cast.
 
 ### Pending Todos
 
@@ -188,8 +192,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-23T07:24:03.293Z
-Stopped at: Completed 05-10-PLAN.md (docs/auth-providers.md runbook + README link; Phase 5 plans all complete)
+Last session: 2026-04-23T13:04:22.691Z
+Stopped at: Completed 06-00-PLAN.md (admin gate foundation — requireAdmin, middleware, /admin route group)
 Resume file: None
 
 **Planned Phase:** 6 (Admin + Operational Hardening) — 9 plans — 2026-04-23T11:37:34.098Z
