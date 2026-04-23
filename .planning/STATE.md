@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 05-09-PLAN.md (4 Playwright E2E specs + seedSession rewrite + test-db.ts split)
-last_updated: "2026-04-23T07:17:06.829Z"
+status: verifying
+stopped_at: Completed 05-10-PLAN.md (docs/auth-providers.md runbook + README link; Phase 5 plans all complete)
+last_updated: "2026-04-23T07:24:13.617Z"
 last_activity: 2026-04-23
 progress:
   total_phases: 6
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 33
-  completed_plans: 32
-  percent: 97
+  completed_plans: 33
+  percent: 100
 ---
 
 # Project State
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 
 Phase: 5 (auth-user-interactions) — EXECUTING
 Plan: 11 of 11 (05-00, 05-01, 05-02, 05-03, 05-04, 05-05, 05-06 complete; 05-07 next)
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-04-23
 
 Progress: [█████████░] 88%
@@ -83,6 +83,7 @@ Progress: [█████████░] 88%
 | Phase 05-auth-user-interactions P07 | 11 min | 3 tasks | 10 files |
 | Phase 05-auth-user-interactions P08 | 8 min | 2 tasks | 4 files |
 | Phase 05-auth-user-interactions P09 | 7 min | 3 tasks | 7 files |
+| Phase 05-auth-user-interactions P10 | 3 min | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -157,6 +158,8 @@ Recent decisions affecting current work:
 - [Phase 05-auth-user-interactions]: Plan 05-09: Split tests/helpers/test-db.ts out of db.ts — Playwright workers (Node CJS) cannot import vitest; re-export preserves Vitest-side import path; vitest-free makeTestDb used by seedSession for E2E DB writes
 - [Phase 05-auth-user-interactions]: Plan 05-09: Auth cookie name derived from baseUrl protocol — __Secure-authjs.session-token on https, authjs.session-token on http — matches Auth.js v5 useSecureCookies auto-derivation
 - [Phase 05-auth-user-interactions]: Plan 05-09: Magic-link E2E uses OR-assertion (success 链接已发送 OR failure 发送失败) so CI works without RESEND_API_KEY; real deliverability UAT deferred to Plan 10 runbook
+- [Phase 05-auth-user-interactions]: Plan 05-10: docs/auth-providers.md is the Phase 5 operational hand-off — 8 sections (OAuth apps, Resend, Vercel env matrix, admin SQL, preview smoke test, ban enforcement, deployment DoD); English prose to match existing docs/ runbooks, Chinese only for quoted in-app copy
+- [Phase 05-auth-user-interactions]: Plan 05-10: Task 3 live smoke-test checklist deferred to HUMAN-UAT (requires real OAuth apps + email inbox + browser); runbook grep-gated automated checks all pass — phase-close decoupled from experiential verification
 
 ### Pending Todos
 
@@ -185,8 +188,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-23T07:16:53.408Z
-Stopped at: Completed 05-09-PLAN.md (4 Playwright E2E specs + seedSession rewrite + test-db.ts split)
+Last session: 2026-04-23T07:24:03.293Z
+Stopped at: Completed 05-10-PLAN.md (docs/auth-providers.md runbook + README link; Phase 5 plans all complete)
 Resume file: None
 
 **Planned Phase:** 05 (auth-user-interactions) — 11 plans — 2026-04-23T03:52:10.184Z
