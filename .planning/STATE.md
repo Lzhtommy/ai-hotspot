@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 5 UI-SPEC approved
-last_updated: "2026-04-23T03:53:27.726Z"
-last_activity: 2026-04-23 -- Phase 5 execution started
+stopped_at: Completed 05-00-PLAN.md
+last_updated: "2026-04-23T04:03:08.222Z"
+last_activity: 2026-04-23
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 33
-  completed_plans: 22
-  percent: 67
+  completed_plans: 23
+  percent: 70
 ---
 
 # Project State
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 ## Current Position
 
 Phase: 5 (auth-user-interactions) — EXECUTING
-Plan: 1 of 11
-Status: Executing Phase 5
-Last activity: 2026-04-23 -- Phase 5 execution started
+Plan: 2 of 11
+Status: Ready to execute
+Last activity: 2026-04-23
 
 Progress: [███░░░░░░░] 33%
 
@@ -75,6 +75,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 04-feed-ui P04 | 27 | 3 tasks | 16 files |
 | Phase 04-feed-ui P05 | 10 | 2 tasks | 10 files |
 | Phase 04-feed-ui P06 | 21 | 3 tasks | 21 files |
+| Phase 05-auth-user-interactions P00 | 5 min | 3 tasks | 28 files |
 
 ## Accumulated Context
 
@@ -129,6 +130,9 @@ Recent decisions affecting current work:
 - [Phase 04-feed-ui]: E2E fixture uses HTTP GET to /api/e2e-fixture/sample-item rather than direct DB import — Playwright workers run outside Next.js process
 - [Phase 04-feed-ui]: SidebarMobileDrawer split into context provider + SidebarDrawerPanel — context must wrap entire shell so HamburgerButton in main can reach useSidebarDrawer
 - [Phase 04-feed-ui]: NuqsAdapter added to root layout.tsx — required for App Router nuqs useQueryState to work (FilterPopover was crashing /all without it)
+- [Phase 05-auth-user-interactions]: Plan 05-00: Vitest env switched node->jsdom; include paths extended to tests/unit + tests/integration for Phase 5 scaffolding
+- [Phase 05-auth-user-interactions]: Plan 05-00: seed-session helper uses raw SQL (drizzle-orm sql template) — avoids importing sessions schema symbol that Plan 05-01 will add
+- [Phase 05-auth-user-interactions]: Plan 05-00: @vitest/ui pinned to 2.1.9 to match vitest 2.x; pnpm default resolves to 4.x which peer-mismatches
 
 ### Pending Todos
 
@@ -157,8 +161,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: --stopped-at
-Stopped at: Phase 5 UI-SPEC approved
-Resume file: --resume-file
+Last session: 2026-04-23T04:03:08.218Z
+Stopped at: Completed 05-00-PLAN.md
+Resume file: None
 
 **Planned Phase:** 05 (auth-user-interactions) — 11 plans — 2026-04-23T03:52:10.184Z

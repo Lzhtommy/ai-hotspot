@@ -103,7 +103,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. An authenticated user can favorite an item and see it appear immediately in the /favorites page in reverse-chronological order; unfavoriting removes it
   5. An authenticated user can like or dislike an item; the UI reflects the action immediately and includes copy indicating personalization is forthcoming
 **Plans:** 11 plans
-- [ ] 05-00-PLAN.md — Wave 0 test infrastructure: Vitest + Playwright + 22 red-state test stubs + shared helpers (db, auth, seed-session)
+- [x] 05-00-PLAN.md — Wave 0 test infrastructure: Vitest + Playwright + 22 red-state test stubs + shared helpers (db, auth, seed-session)
 - [ ] 05-01-PLAN.md — Schema migration: extend users (email_verified + image), add accounts/sessions/verification_tokens (UUID FK), [BLOCKING] drizzle-kit push
 - [ ] 05-02-PLAN.md — Auth.js v5 config + session helpers + /api/auth/[...nextauth] route + ban callback (D-05 Layer 1) + .env.example
 - [ ] 05-03-PLAN.md — Providers: GitHub + Resend (Chinese magic-link) + Google; next.config.ts remotePatterns allowlist
