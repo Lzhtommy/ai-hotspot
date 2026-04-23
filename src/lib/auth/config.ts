@@ -16,8 +16,12 @@
 import type { NextAuthConfig } from 'next-auth';
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
 import { eq } from 'drizzle-orm';
+import GitHub from 'next-auth/providers/github';
+import Google from 'next-auth/providers/google';
+import Resend from 'next-auth/providers/resend';
 import { db } from '@/lib/db/client';
 import { users, accounts, sessions, verificationTokens } from '@/lib/db/schema';
+import { sendChineseMagicLink } from './magic-link-email';
 
 export const authConfig = {
   adapter: DrizzleAdapter(db, {
@@ -30,7 +34,45 @@ export const authConfig = {
   // D-19 — preview OAuth callback proxy. Auth.js v5 also auto-picks
   // AUTH_REDIRECT_PROXY_URL from env; explicit assignment documents the wiring.
   redirectProxyUrl: process.env.AUTH_REDIRECT_PROXY_URL,
-  providers: [], // Plan 03 populates GitHub + Resend + Google
+  // D-06 — provider ordering (GitHub → Resend → Google). GitHub is the primary
+  // OAuth button (CN-accessible via IPv6/cloudflare); Resend magic-link is the
+  // universal fallback; Google is secondary (GFW-blocked in mainland CN but
+  // required by AUTH-04).
+  providers: [
+    GitHub({
+      clientId: process.env.GITHUB_CLIENT_ID,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET,
+      // D-04 — GitHub: name|login → users.name, avatar_url → users.image
+      // (linkAccount event below mirrors image → users.avatar_url).
+      profile(profile) {
+        return {
+          id: String(profile.id),
+          name: profile.name ?? profile.login,
+          email: profile.email,
+          image: profile.avatar_url,
+        };
+      },
+    }),
+    Resend({
+      apiKey: process.env.RESEND_API_KEY,
+      from: process.env.RESEND_FROM,
+      // D-07 — Chinese body + 10-min TTL copy per UI-SPEC §Email body.
+      sendVerificationRequest: sendChineseMagicLink,
+    }),
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      // D-04 — Google: sub → id, picture → users.image.
+      profile(profile) {
+        return {
+          id: profile.sub,
+          name: profile.name,
+          email: profile.email,
+          image: profile.picture,
+        };
+      },
+    }),
+  ],
   callbacks: {
     // D-05 Layer 1 + D-08 — ban check + session payload shaping.
     // With database strategy, `user` is the DB row (users.*).

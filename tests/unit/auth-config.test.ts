@@ -31,8 +31,12 @@ describe('Phase 5 Auth.js config', () => {
     expect(typeof cfg.authConfig.adapter).toBe('object');
     expect(cfg.authConfig.session?.strategy).toBe('database');
     expect(Array.isArray(cfg.authConfig.providers)).toBe(true);
-    // Plan 03 populates providers; Plan 02 ships an empty array by design.
-    expect(cfg.authConfig.providers!.length).toBe(0);
+    // Plan 03 populates GitHub + Resend + Google (D-06). Before Plan 03 this
+    // asserted length===0; the length was the scope-boundary marker between
+    // Plans 02 and 03. With Plan 03 landed the length is 3 in the documented
+    // D-06 order. Per-provider shape + profile() assertions live in
+    // provider-github.test.ts, provider-resend.test.ts, provider-google.test.ts.
+    expect(cfg.authConfig.providers!.length).toBe(3);
     // redirectProxyUrl is wired to AUTH_REDIRECT_PROXY_URL (D-19).
     // May be undefined in test env; the assignment itself is what matters.
     expect(
