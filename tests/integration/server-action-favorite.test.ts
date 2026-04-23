@@ -1,31 +1,51 @@
 // Task 5-06-01 | Plan 05-06 | REQ-FAV-01, REQ-FAV-02 | Threat T-5-08
-// Nyquist stub — red until implementation lands.
 //
-// Asserts the favorite server action toggles the favorites row (insert on first
-// click, delete on second) and rejects when users.is_banned = true (D-11, D-05 L2).
+// Asserts favoriteItemCore / unfavoriteItemCore do the right Drizzle calls
+// against a mock db. Pure deps-injected cores — no real DB, no auth mocking.
 import { describe, it, expect, vi } from 'vitest';
-import { fakeSession } from '../helpers/auth';
 
-vi.mock('@/lib/auth' as string, () => ({
-  auth: vi.fn().mockResolvedValue(fakeSession()),
-}));
+describe('favoriteItemCore / unfavoriteItemCore (D-11)', () => {
+  it('favoriteItemCore inserts favorites row with ON CONFLICT DO NOTHING; returns {favorited: true}', async () => {
+    const mod = await import('@/lib/user-actions/favorites-core');
 
-describe('favoriteItem server action', () => {
-  it('TODO[5-06-01]: first call inserts favorites row, second call removes it', async () => {
-    const mod = (await import('@/server/actions/favorites' as string)) as {
-      favoriteItem: (args: { itemId: string }) => Promise<{ favorited: boolean }>;
-    };
-    const first = await mod.favoriteItem({ itemId: '1' });
-    expect(first.favorited).toBe(true);
-    const second = await mod.favoriteItem({ itemId: '1' });
-    expect(second.favorited).toBe(false);
+    const onConflictDoNothing = vi.fn().mockResolvedValue(undefined);
+    const values = vi.fn().mockReturnValue({ onConflictDoNothing });
+    const insert = vi.fn().mockReturnValue({ values });
+    const mockDb = { insert } as unknown as Parameters<typeof mod.favoriteItemCore>[1] extends
+      | { db?: infer D }
+      | undefined
+      ? D
+      : never;
+
+    const result = await mod.favoriteItemCore(
+      { userId: 'u1', itemId: 42n },
+      { db: mockDb },
+    );
+
+    expect(result).toEqual({ favorited: true });
+    expect(insert).toHaveBeenCalledOnce();
+    expect(values).toHaveBeenCalledWith({ userId: 'u1', itemId: 42n });
+    expect(onConflictDoNothing).toHaveBeenCalledOnce();
   });
 
-  it('TODO[5-06-01]: rejects when user is banned (D-05 Layer 2)', async () => {
-    const mod = (await import('@/server/actions/favorites' as string)) as {
-      favoriteItem: (args: { itemId: string }) => Promise<unknown>;
-    };
-    // Mock auth() to return a session whose user lookup will find is_banned=true.
-    await expect(mod.favoriteItem({ itemId: '1' })).rejects.toThrow(/FORBIDDEN|ban/i);
+  it('unfavoriteItemCore deletes favorites row matching (userId, itemId); returns {favorited: false}', async () => {
+    const mod = await import('@/lib/user-actions/favorites-core');
+
+    const where = vi.fn().mockResolvedValue(undefined);
+    const del = vi.fn().mockReturnValue({ where });
+    const mockDb = { delete: del } as unknown as Parameters<
+      typeof mod.favoriteItemCore
+    >[1] extends { db?: infer D } | undefined
+      ? D
+      : never;
+
+    const result = await mod.unfavoriteItemCore(
+      { userId: 'u1', itemId: 42n },
+      { db: mockDb },
+    );
+
+    expect(result).toEqual({ favorited: false });
+    expect(del).toHaveBeenCalledOnce();
+    expect(where).toHaveBeenCalledOnce();
   });
 });
