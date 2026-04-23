@@ -9,10 +9,20 @@ export default defineConfig({
     jsxImportSource: 'react',
   },
   test: {
-    environment: 'node',
-    include: ['src/**/*.test.ts', 'src/**/*.test.tsx', 'src/**/*.spec.ts', 'src/**/*.spec.tsx'],
+    environment: 'jsdom',
+    include: [
+      'src/**/*.test.ts',
+      'src/**/*.test.tsx',
+      'src/**/*.spec.ts',
+      'src/**/*.spec.tsx',
+      'tests/unit/**/*.test.ts',
+      'tests/unit/**/*.test.tsx',
+      'tests/integration/**/*.test.ts',
+      'tests/integration/**/*.test.tsx',
+    ],
+    exclude: ['tests/e2e/**', 'node_modules/**', 'dist/**', '.next/**'],
     globals: false,
-    setupFiles: ['./vitest.setup.ts'],
+    setupFiles: ['./vitest.setup.ts', './tests/setup.ts'],
     // voyageai ESM package uses bare directory imports (../api) that Node's ESM resolver
     // doesn't support. Force Vite to bundle voyageai so directory imports resolve correctly.
     // Note: deps.inline is deprecated in vitest 2.x in favour of server.deps.inline, but
