@@ -41,6 +41,13 @@ export interface FeedTopBarProps {
     all?: number;
     favorites?: number;
   };
+  /**
+   * Phase 5 Plan 05-08: optional subtitle override. When provided, replaces the
+   * default per-view subtitle. Used by /favorites authenticated branch to
+   * render `共 N 条` (with favorites) or `还没有收藏` (empty) per UI-SPEC
+   * §/favorites page.
+   */
+  subtitle?: string;
 }
 
 export function FeedTopBar({
@@ -50,6 +57,7 @@ export function FeedTopBar({
   lastSyncMinutes,
   pathname,
   counts,
+  subtitle: subtitleOverride,
 }: FeedTopBarProps) {
   // Sync label — same format as sidebar pipeline card (UI-SPEC Copywriting Contract)
   const syncLabel =
@@ -58,13 +66,15 @@ export function FeedTopBar({
   // H1 per view — feed_views.jsx line 42; UI-SPEC Copywriting
   const h1 = view === 'featured' ? '精选' : view === 'all' ? '全部 AI 动态' : '收藏';
 
-  // Subtitle per view — feed_views.jsx lines 45–47; UI-SPEC Copywriting
+  // Subtitle per view — feed_views.jsx lines 45–47; UI-SPEC Copywriting.
+  // When caller passes `subtitle`, it wins (Plan 05-08 /favorites authenticated subtitle).
   const subtitle =
-    view === 'featured'
+    subtitleOverride ??
+    (view === 'featured'
       ? `由 Claude 按策略筛选的高热度内容 · ${count} 条`
       : view === 'all'
         ? `按时间倒序 · 共 ${totalCount ?? count} 条 · 上次同步 ${syncLabel}`
-        : '登录后可查看收藏';
+        : '登录后可查看收藏');
 
   return (
     <div

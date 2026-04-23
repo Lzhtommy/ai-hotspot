@@ -58,7 +58,7 @@ vi.mock('next/navigation' as string, () => ({
 // Pre-seed a couple of rows for the "authenticated with favorites" case.
 const SEED_ROWS: Row[] = [
   {
-    id: 10n,
+    id: BigInt(10),
     title: 'Item 10',
     titleZh: null,
     summaryZh: '摘要 10',
@@ -76,7 +76,7 @@ const SEED_ROWS: Row[] = [
     favoritedAt: new Date('2026-04-22T11:00:00Z'),
   },
   {
-    id: 9n,
+    id: BigInt(9),
     title: 'Item 9',
     titleZh: null,
     summaryZh: '摘要 9',
@@ -127,17 +127,22 @@ describe('/favorites page auth gate + query (Plan 05-08)', () => {
     const pageMod = (await import('@/app/(reader)/favorites/page' as string)) as {
       default: () => Promise<unknown>;
     };
-    const out = (await pageMod.default()) as { props?: { children?: unknown } };
-    // Serialize to JSON-like string to make the empty-state heading assertion simple.
+    const out = (await pageMod.default()) as unknown;
     const dump = JSON.stringify(out, (_, v) =>
       typeof v === 'function' || (typeof v === 'object' && v !== null && 'current' in v)
         ? undefined
         : v,
     );
-    expect(dump).toContain('还没有收藏的动态');
+    // FavoritesEmpty is rendered with authenticated={true}; subtitle says 还没有收藏
+    // (the `还没有收藏的动态` heading lives inside the component's own render tree,
+    // which is not expanded without a renderer).
+    expect(dump).toContain('"authenticated":true');
+    expect(dump).toContain('还没有收藏');
+    // Zero-favorites path MUST NOT render Timeline.
+    expect(dump).not.toContain('interactionMap');
   });
 
-  it('authenticated user with favorites renders Timeline via FeedTopBar', async () => {
+  it('authenticated user with favorites renders Timeline + count subtitle', async () => {
     const authMod = (await import('@/lib/auth' as string)) as {
       auth: ReturnType<typeof vi.fn>;
     };
@@ -153,9 +158,13 @@ describe('/favorites page auth gate + query (Plan 05-08)', () => {
         ? undefined
         : v,
     );
-    // FeedTopBar present with favorites view; subtitle indicates count.
-    expect(dump).toContain('favorites');
+    // FeedTopBar present with favorites view; subtitle shows `共 2 条`.
+    expect(dump).toContain('"view":"favorites"');
+    expect(dump).toContain('"subtitle":"共 2 条"');
     // Empty-state heading MUST NOT appear when there are rows.
-    expect(dump).not.toContain('还没有收藏的动态');
+    expect(dump).not.toContain('"authenticated":true');
+    // Timeline receives isAuthenticated + initial={favorited:true, vote:0}
+    expect(dump).toContain('"isAuthenticated":true');
+    expect(dump).toContain('"favorited":true');
   });
 });
