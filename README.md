@@ -75,6 +75,7 @@ docs/                  # Runbooks — rsshub, health, ci, vercel, database
 - `docs/database.md` — Drizzle + Neon + pgvector migration workflow
 - `docs/ci.md` — GitHub Actions + secrets
 - `docs/vercel.md` — Vercel env vars + project settings
+- `docs/auth-providers.md` — Auth.js v5 provider setup, Vercel env scope matrix, admin promotion SQL, preview OAuth smoke test
 
 ## License
 
