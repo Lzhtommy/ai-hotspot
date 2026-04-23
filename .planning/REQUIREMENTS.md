@@ -86,7 +86,7 @@ Requirements for initial release. Each maps to a roadmap phase.
 
 - [x] **FAV-01**: Authenticated user can favorite (收藏) an item; UI state reflects immediately
 - [x] **FAV-02**: Authenticated user can unfavorite an item
-- [ ] **FAV-03**: `/favorites` page shows the user's saved items in reverse-chrono order
+- [x] **FAV-03**: `/favorites` page shows the user's saved items in reverse-chrono order
 - [x] **VOTE-01**: Authenticated user can like an item
 - [x] **VOTE-02**: Authenticated user can dislike an item
 - [x] **VOTE-03**: Like/dislike UI includes honest copy that personalization is forthcoming
@@ -225,7 +225,7 @@ Which phases cover which requirements.
 | AUTH-08 | Phase 5 | Complete |
 | FAV-01 | Phase 5 | Complete |
 | FAV-02 | Phase 5 | Complete |
-| FAV-03 | Phase 5 | Pending |
+| FAV-03 | Phase 5 | Complete |
 | VOTE-01 | Phase 5 | Complete |
 | VOTE-02 | Phase 5 | Complete |
 | VOTE-03 | Phase 5 | Complete |

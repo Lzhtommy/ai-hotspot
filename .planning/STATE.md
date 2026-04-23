@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-07-PLAN.md (FeedCardActions useOptimistic + VOTE-03 copy + RSC prop-threading)
-last_updated: "2026-04-23T06:56:01.949Z"
+stopped_at: Completed 05-08-PLAN.md (/favorites authenticated RSC + Drizzle join + FavoritesEmpty authenticated branch)
+last_updated: "2026-04-23T07:05:48.391Z"
 last_activity: 2026-04-23
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 33
-  completed_plans: 30
-  percent: 91
+  completed_plans: 31
+  percent: 94
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 ## Current Position
 
 Phase: 5 (auth-user-interactions) — EXECUTING
-Plan: 9 of 11 (05-00, 05-01, 05-02, 05-03, 05-04, 05-05, 05-06 complete; 05-07 next)
+Plan: 10 of 11 (05-00, 05-01, 05-02, 05-03, 05-04, 05-05, 05-06 complete; 05-07 next)
 Status: Ready to execute
 Last activity: 2026-04-23
 
@@ -81,6 +81,7 @@ Progress: [█████████░] 88%
 | Phase 05-auth-user-interactions P04 | 8 min | 3 tasks | 7 files |
 | Phase --phase P05-auth-user-interactions | --plan | 05 tasks | --duration files |
 | Phase 05-auth-user-interactions P07 | 11 min | 3 tasks | 10 files |
+| Phase 05-auth-user-interactions P08 | 8 min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -151,6 +152,7 @@ Recent decisions affecting current work:
 - [Phase 05-auth-user-interactions]: Plan 05-07: useOptimisticCompat wrapper — always-called useState/useEffect stable hook order across React 18.3 (vitest) + React 19 canary (Next 15 production); same source compile-and-pass both runtimes
 - [Phase 05-auth-user-interactions]: Plan 05-07: RSC prop-threading for auth — every feed page calls auth() + getUserInteractions, passes isAuthenticated + interactionMap through Timeline to FeedCard to FeedCardActions; zero useSession() on client (RESEARCH §Anti-Patterns + CLAUDE.md §11)
 - [Phase 05-auth-user-interactions]: Plan 05-07: IconButton tone extended with 'success' (like active) + ACTIVE_BG map (10% tone fills: accent-50/success-50/danger-50) per UI-SPEC §FeedCardActions active-state contract
+- [Phase 05-auth-user-interactions]: Plan 05-08: /favorites redirects anonymous users to / (D-15 Option A); authenticated users see favorites reverse-chrono via innerJoin(items) + orderBy(desc(favorites.createdAt)); FeedTopBar gains subtitle override prop
 
 ### Pending Todos
 
@@ -179,8 +181,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-23T06:56:01.944Z
-Stopped at: Completed 05-07-PLAN.md (FeedCardActions useOptimistic + VOTE-03 copy + RSC prop-threading)
+Last session: 2026-04-23T07:05:48.387Z
+Stopped at: Completed 05-08-PLAN.md (/favorites authenticated RSC + Drizzle join + FavoritesEmpty authenticated branch)
 Resume file: None
 
 **Planned Phase:** 05 (auth-user-interactions) — 11 plans — 2026-04-23T03:52:10.184Z
