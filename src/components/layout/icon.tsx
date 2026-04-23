@@ -32,7 +32,10 @@ export type IconName =
   | 'download'
   | 'loader'
   | 'alert-circle'
-  | 'tag';
+  | 'tag'
+  // Phase 5 additions (Plan 05-05) — UserChip authenticated branch
+  | 'log-out'
+  | 'user';
 
 interface IconProps {
   name: IconName;
