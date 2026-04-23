@@ -102,7 +102,18 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. An anonymous user clicking the favorite or like button sees a sign-in modal rather than an error
   4. An authenticated user can favorite an item and see it appear immediately in the /favorites page in reverse-chronological order; unfavoriting removes it
   5. An authenticated user can like or dislike an item; the UI reflects the action immediately and includes copy indicating personalization is forthcoming
-**Plans**: TBD
+**Plans:** 11 plans
+- [ ] 05-00-PLAN.md — Wave 0 test infrastructure: Vitest + Playwright + 22 red-state test stubs + shared helpers (db, auth, seed-session)
+- [ ] 05-01-PLAN.md — Schema migration: extend users (email_verified + image), add accounts/sessions/verification_tokens (UUID FK), [BLOCKING] drizzle-kit push
+- [ ] 05-02-PLAN.md — Auth.js v5 config + session helpers + /api/auth/[...nextauth] route + ban callback (D-05 Layer 1) + .env.example
+- [ ] 05-03-PLAN.md — Providers: GitHub + Resend (Chinese magic-link) + Google; next.config.ts remotePatterns allowlist
+- [ ] 05-04-PLAN.md — LoginPromptModal: real provider buttons + email magic-link form + 检查邮箱 success state; fix favorites-empty dispatchEvent
+- [ ] 05-05-PLAN.md — UserChip three-state render (anonymous / auth+image / auth+monogram) + sign-out popover; icon union extension
+- [ ] 05-06-PLAN.md — Server actions: favoriteItem/unfavoriteItem/voteItem with D-05 Layer 2 ban guard + D-12 vote state machine
+- [ ] 05-07-PLAN.md — FeedCardActions useOptimistic wiring + IconButton active state + VOTE-03 PERSONALIZATION_COPY
+- [ ] 05-08-PLAN.md — /favorites authenticated RSC: redirect anon to /, query favorites JOIN items reverse-chrono, dynamic='force-dynamic'
+- [ ] 05-09-PLAN.md — Playwright E2E: auth-github, auth-magic-link, anon-login-favorite, ban-enforcement + seedSession helper
+- [ ] 05-10-PLAN.md — docs/auth-providers.md runbook (GitHub/Google/Resend/Vercel env matrix/admin SQL) + final human verification
 **UI hint**: yes
 
 ### Phase 6: Admin + Operational Hardening
