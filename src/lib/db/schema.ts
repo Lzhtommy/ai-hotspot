@@ -30,6 +30,9 @@ export const sources = pgTable('sources', {
   consecutiveErrorCount: integer('consecutive_error_count').notNull().default(0),
   lastFetchedAt: timestamp('last_fetched_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  // Phase 6 — admin + ops
+  deletedAt: timestamp('deleted_at', { withTimezone: true }), // ADMIN-05 soft-delete
+  category: text('category'), // ADMIN-03: 'lab' | 'social' | 'forum' | 'cn_media' | 'other' (free-form in v1; UI-enforced)
 });
 
 // ITEMS — one row per ingested RSS entry
@@ -138,6 +141,9 @@ export const users = pgTable('users', {
   isBanned: boolean('is_banned').notNull().default(false),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   lastSeenAt: timestamp('last_seen_at', { withTimezone: true }),
+  // Phase 6 — ADMIN-08 ban audit trail
+  bannedAt: timestamp('banned_at', { withTimezone: true }),
+  bannedBy: uuid('banned_by'), // FK to users.id — self-referencing; declared as plain uuid to avoid TS circularity; FK enforced in SQL migration (users_banned_by_fk, ON DELETE SET NULL)
 });
 
 // FAVORITES
