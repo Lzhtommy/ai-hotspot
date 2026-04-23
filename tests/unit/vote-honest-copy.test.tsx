@@ -1,15 +1,24 @@
-// Task 5-07-02 | Plan 05-07 | REQ-VOTE-03
-// Nyquist stub — red until implementation lands.
+// Plan 05-07 Task 2 — REQ-VOTE-03
 //
-// Asserts FeedCard surfaces Chinese honest copy containing 个性化 + 即将
-// near the like/dislike icons (VOTE-03 locked sentiment).
-import { describe, it, expect } from 'vitest';
+// Asserts FeedCard surfaces VOTE-03 honest copy containing 个性化 + 即将
+// (locked sentiment). Copy is rendered inline beneath the action bar
+// on every card (authenticated or anonymous).
+
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+
+vi.mock('@/server/actions/favorites', () => ({
+  favoriteItem: vi.fn(),
+  unfavoriteItem: vi.fn(),
+}));
+vi.mock('@/server/actions/votes', () => ({
+  voteItem: vi.fn(),
+}));
+
 import { FeedCardActions } from '@/components/feed/feed-card-actions';
 
 describe('VOTE-03 honest copy', () => {
-  it('TODO[5-07-02]: copy contains 个性化 and 即将', () => {
-    // @ts-expect-error — new props added in Plan 05-07
+  it('copy contains 个性化 and 即将', () => {
     render(
       <FeedCardActions
         itemId="1"
@@ -18,10 +27,8 @@ describe('VOTE-03 honest copy', () => {
         isAuthenticated={false}
       />,
     );
-    // The copy may live in a title attribute, tooltip, or inline footnote. The
-    // test asserts it renders SOMEWHERE in the accessible tree.
-    const text = screen.queryByText(/个性化/);
-    expect(text, 'VOTE-03 copy missing 个性化').not.toBeNull();
+    // The copy renders as an aria-live="off" <p> below the action bar.
+    expect(screen.queryByText(/个性化/), 'VOTE-03 copy missing 个性化').not.toBeNull();
     expect(screen.queryByText(/即将/), 'VOTE-03 copy missing 即将').not.toBeNull();
   });
 });
