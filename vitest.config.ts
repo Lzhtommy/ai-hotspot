@@ -30,7 +30,13 @@ export default defineConfig({
     // the test runner. deps.inline (via vite-node) is the only option that resolves it here.
     // TODO: revisit when upgrading to vitest 3.x.
     deps: {
-      inline: ['voyageai'],
+      // voyageai: see note above.
+      // next-auth: next-auth@5.0.0-beta.31 imports `next/server` (no .js extension) from
+      // its lib/env.js in ESM mode. Node's ESM resolver cannot resolve the subpath without
+      // the extension, but Vite's resolver (via vite-node inlining) reads Next.js's exports
+      // map correctly. Inline next-auth + @auth/core (its transitive dep) so the test
+      // runner resolves these bare-subpath imports the way the Next.js bundler does.
+      inline: ['voyageai', 'next-auth', '@auth/core'],
     },
   },
   resolve: {
