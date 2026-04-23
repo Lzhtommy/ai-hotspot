@@ -20,12 +20,18 @@
 
 import { ReaderShell } from '@/components/layout/reader-shell';
 import { LoginPromptModal } from '@/components/feed/login-prompt-modal';
+import { PipelineStatusCard } from '@/components/layout/pipeline-status-card';
 import { auth } from '@/lib/auth';
 
 export default async function ReaderLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
+  // PipelineStatusCard is async (queries the DB). It must be rendered on the
+  // server and passed into ReaderShell (a Client Component) as a ReactNode —
+  // rendering it as a JSX descendant of ReaderShell would pull it into the
+  // client tree and break hydration of the entire sidebar (including
+  // UserChip's 登录 onClick handler).
   return (
-    <ReaderShell session={session}>
+    <ReaderShell session={session} pipelineStatus={<PipelineStatusCard />}>
       {children}
       <LoginPromptModal />
     </ReaderShell>

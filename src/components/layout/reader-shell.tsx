@@ -27,9 +27,15 @@ interface ReaderShellProps {
   children: React.ReactNode;
   /** Pre-fetched Auth.js session from the RSC layout. null when anonymous. */
   session: Session | null;
+  /**
+   * RSC-rendered <PipelineStatusCard /> passed in from the layout. Rendered on
+   * the server so the async DB query stays out of the client boundary; Sidebar
+   * just drops it in as a React node.
+   */
+  pipelineStatus: React.ReactNode;
 }
 
-export function ReaderShell({ children, session }: ReaderShellProps) {
+export function ReaderShell({ children, session, pipelineStatus }: ReaderShellProps) {
   const pathname = usePathname();
 
   return (
@@ -39,7 +45,7 @@ export function ReaderShell({ children, session }: ReaderShellProps) {
       <div className="min-h-full lg:grid lg:grid-cols-[224px_1fr]">
         {/* SidebarDrawerPanel is the animated off-canvas panel for mobile */}
         <SidebarDrawerPanel>
-          <Sidebar pathname={pathname} session={session} />
+          <Sidebar pathname={pathname} session={session} pipelineStatus={pipelineStatus} />
         </SidebarDrawerPanel>
         <main className="min-w-0">{children}</main>
       </div>

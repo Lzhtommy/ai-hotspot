@@ -17,11 +17,11 @@
  *   - src/app/(reader)/layout.tsx
  */
 
+import type { ReactNode } from 'react';
 import type { Session } from 'next-auth';
 import { Icon } from './icon';
 import { NavRow } from './nav-row';
 import { SectionLabel } from './section-label';
-import { PipelineStatusCard } from './pipeline-status-card';
 import { UserChip, type UserChipSessionUser } from './user-chip';
 
 // Reader nav per CONTEXT D-09 / sidebar.jsx lines 5–10
@@ -64,9 +64,16 @@ interface SidebarProps {
    * so it never needs useSession() (CLAUDE.md §11 + RESEARCH §Anti-Patterns).
    */
   session: Session | null;
+  /**
+   * RSC-rendered <PipelineStatusCard /> passed down from the layout. Must be
+   * produced on the server side — Sidebar is reachable through the
+   * ReaderShell client boundary, so rendering an async RSC here directly would
+   * break hydration of the entire sidebar (and block UserChip's onClick).
+   */
+  pipelineStatus: ReactNode;
 }
 
-export function Sidebar({ pathname, session }: SidebarProps) {
+export function Sidebar({ pathname, session, pipelineStatus }: SidebarProps) {
   // Map Auth.js Session.user (name/email/image optional) onto UserChip's
   // stricter SessionUser (id + email required). When id/email are missing
   // we treat the session as anonymous so UserChip renders the 登录 chip.
@@ -238,7 +245,7 @@ export function Sidebar({ pathname, session }: SidebarProps) {
 
       {/* Bottom section: PipelineStatusCard + UserChip — sidebar.jsx lines 227–300 */}
       <div style={{ marginTop: 'auto' }}>
-        <PipelineStatusCard />
+        {pipelineStatus}
         <UserChip session={userChipSession} />
       </div>
     </aside>
