@@ -53,6 +53,7 @@ Unchanged from Phase 4. No new spacing tokens. The 4pt-base CSS vars (`--space-1
 **Exceptions carried forward from Phase 4 (unchanged):**
 
 - Card padding `18px 22px`, button heights 28/34/40px, NavRow height 30px, tag chip height 20px, timeline group margin 28px — all preserved verbatim.
+- All Phase 4 exceptions were accepted at Phase 4 checker sign-off and are carried forward without re-vetting.
 
 **Phase 5-specific spacing notes:**
 
@@ -65,22 +66,20 @@ Unchanged from Phase 4. No new spacing tokens. The 4pt-base CSS vars (`--space-1
 
 ## Typography
 
-Unchanged from Phase 4. Phase 5 uses the established role × surface matrix verbatim. The additions below specify which existing roles apply to new Phase 5 surfaces.
+Typography: unchanged from Phase 4 — see `04-UI-SPEC.md` §Typography for the full role × size × weight matrix. Phase 5 introduces zero new type tokens.
 
-### Existing role matrix (source of truth: Phase 4 UI-SPEC)
+### Phase 5 surface → Phase 4 role mapping
 
-See `04-UI-SPEC.md` §Typography for the full table. Short reference for Phase 5 surfaces:
+The table below maps each new Phase 5 surface to the corresponding role name defined in `04-UI-SPEC.md`. Do NOT re-declare pixel sizes or weights here; consult `04-UI-SPEC.md` for those values.
 
-| Role | Size | Weight | Line Height | Applied to in Phase 5 |
-|------|------|--------|-------------|----------------------|
-| Modal heading (h2) | 16px | 600 | 1.3 | `LoginPromptModal` `登录以继续` heading |
-| Body / summary | 14px | 400 | 1.5 | Modal body copy; `/favorites` page body copy; VOTE-03 honest copy beneath action bar |
-| Label / meta | 13px | 500 | 1.5 | Provider button labels (`使用 GitHub 登录`, `发送登录链接`, `使用 Google 登录`); email input label; sign-out menu item |
-| Caption | 12.5px | 500 | 1.45 | UserChip authenticated name (truncated); UserChip "退出登录" subtext if shown |
-| Micro-caption | 11.5px | 500 | 1.4 | "检查邮箱" inline success state beneath email form; magic-link send confirmation copy |
-| Page heading (H1) | 22px | 600 | 1.2 | `/favorites` FeedTopBar H1: `收藏` (pre-existing, unchanged) |
-
-**Weight contract unchanged:** 400 / 500 / 600 only (Geist Variable — single HTTP request). The documented Phase 4 exception to the "max 2 weights" rule still applies.
+| Phase 5 Surface | Phase 4 Role Name |
+|----------------|------------------|
+| `LoginPromptModal` `登录以继续` heading | `modal-heading` |
+| Modal body copy; `/favorites` page body copy; VOTE-03 honest copy beneath action bar | `body` |
+| Provider button labels (`使用 GitHub 登录`, `发送登录链接`, `使用 Google 登录`); email input label; sign-out menu item | `label` |
+| UserChip authenticated name (truncated); UserChip "退出登录" subtext if shown | `caption` |
+| "检查邮箱" inline success state beneath email form; magic-link send confirmation copy | `micro-caption` |
+| `/favorites` FeedTopBar H1: `收藏` (pre-existing, unchanged) | `page-heading` |
 
 ---
 
@@ -123,7 +122,7 @@ This is scoped to the `<dialog>` element (not a global utility). The Phase 4 mod
 
 ### UserChip monogram (email-only users)
 
-When `users.image` is null (Resend magic-link users), UserChip renders an initial-monogram chip. Use `--accent-100` background (`#F7E3B4`) with `--accent-700` text (`#8F5D0A`) — this reuses the existing amber palette without adding new color variables. Size: 32×32px circle (`border-radius: 50%`). Initial: first Unicode character of `users.name` when present, or first character of `users.email` local-part when name is null. Font: `--font-sans`, 13px, weight 600.
+When `users.image` is null (Resend magic-link users), UserChip renders an initial-monogram chip. Use `--accent-100` background (`#F7E3B4`) with `--accent-700` text (`#8F5D0A`) — this reuses the existing amber palette without adding new color variables. Size: 32×32px circle (`border-radius: 50%`). Initial: first Unicode character of `users.name` when present, or first character of `users.email` local-part when name is null. Font: `--font-sans`, `label` role size and weight (see `04-UI-SPEC.md`), weight 600.
 
 ### Explicit "never use" guards (unchanged from Phase 4)
 
@@ -149,9 +148,9 @@ All copy is Chinese (Simplified) except OAuth provider names and the brand name 
 | Email input label | `邮箱` | `<label>` above the `<input type="email">` field |
 | Email input placeholder | `你的邮箱地址` | `placeholder` attribute on `<input>` |
 | Email submit button | `发送登录链接` | `variant="accent"`, full width. Submits `signIn('resend', { email, redirect: false })` |
-| Email success state | `链接已发送，请检查邮箱。` | Replaces the form content inline (no page navigation); `--success-500` small dot or icon left of text; 12.5px / 500 weight |
-| Email success sub-copy | `链接 10 分钟内有效。` | Second line, same size; `--fg-4` color (`--ink-500`) |
-| Divider label | `其他方式` | Centered text on horizontal rule using `--line-weak`; 11.5px / 500 / `--fg-4`; sits between email form and Google button |
+| Email success state | `链接已发送，请检查邮箱。` | Replaces the form content inline (no page navigation); `--success-500` small dot or icon left of text; `caption` role (see `04-UI-SPEC.md`) |
+| Email success sub-copy | `链接 10 分钟内有效。` | Second line, same role; `--fg-4` color (`--ink-500`) |
+| Divider label | `其他方式` | Centered text on horizontal rule using `--line-weak`; `micro-caption` role (see `04-UI-SPEC.md`); `--fg-4`; sits between email form and Google button |
 | Google button | `使用 Google 登录` | Secondary button, `variant="secondary"` (surface-0 bg / line border), full width. Icon: Google colored SVG mark (16px) inline-left. Calls `signIn('google')`. Labeled as a secondary option. |
 | Dismiss button | `稍后再说` | Pre-existing from Phase 4; `variant="ghost"`, right-aligned below provider stack; unchanged |
 | Modal sign-in error | `登录失败，请稍后重试。` | Replaces modal body copy inline on `signIn()` rejection; `--danger-500` text |
@@ -172,10 +171,10 @@ All copy is Chinese (Simplified) except OAuth provider names and the brand name 
 | Anonymous chip | `登录` | Pre-existing; unchanged — ghost button that dispatches `open-login-modal` |
 | Authenticated (with image) | `{name truncated at 8 chars}` + chevron-down icon | 32px rounded avatar (OAuth image via `next/image`) + name text + `chevron-down` icon. Clicking opens sign-out popover/dropdown |
 | Authenticated (no image / magic-link) | `{monogram}` + `{name or email-local-part truncated}` + chevron-down icon | 32px amber monogram circle + same name + chevron |
-| Sign-out menu item | `退出登录` | 13px / 500 / `--ink-700`; clicking calls `signOut()`; height 40px; hover fill `--surface-1` |
+| Sign-out menu item | `退出登录` | `label` role (see `04-UI-SPEC.md`); clicking calls `signOut()`; height 40px; hover fill `--surface-1` |
 | Sign-out confirmation | none — single click to sign out (no modal confirmation). CONTEXT D-17 says "explicit confirmation preferred to avoid misclicks" — resolve by using a Popover/dropdown that requires two distinct clicks (open chip → click menu item) rather than a second "are you sure?" modal. This two-step pattern is sufficient friction. |
 
-**Name truncation rule:** `name.slice(0, 8) + (name.length > 8 ? '…' : '')`. For CJK names (avg 2–4 chars), 8 chars shows the full name. For Latin OAuth names, 8 chars shows first ~1 word. Max rendered width of the chip label = 8 chars × 14px ≈ 112px.
+**Name truncation rule:** `name.slice(0, 8) + (name.length > 8 ? '…' : '')`. For CJK names (avg 2–4 chars), 8 chars shows the full name. For Latin OAuth names, 8 chars shows first ~1 word. Max rendered width of the chip label = 8 chars × `label` role size ≈ 112px.
 
 #### FeedCardActions — real interaction state
 
@@ -184,7 +183,7 @@ All copy is Chinese (Simplified) except OAuth provider names and the brand name 
 | 收藏 button title/aria-label | `收藏` (inactive) / `已收藏` (active) | Star icon; active state renders accent-toned (`--accent-500` fill on star icon) |
 | Like button title/aria-label | `点赞` (inactive) / `已点赞` (active) | Check icon; active state renders `--success-500` toned check |
 | Dislike button title/aria-label | `点踩` (inactive) / `已点踩` (active) | X icon; `tone="danger"` unchanged from Phase 4; active state renders `--danger-500` toned x |
-| VOTE-03 honest copy (below action bar on card) | `个性化推荐即将上线` | 11.5px / 400 / `--fg-4` (`--ink-500`); rendered as a single line beneath the action bar separator. Shown on all cards (not per-hover). Placement: between the border-top separator and the domain footer text, left-aligned. This string is defined in a constant at the top of `feed-card-actions.tsx`: `const PERSONALIZATION_COPY = '个性化推荐即将上线';` |
+| VOTE-03 honest copy (below action bar on card) | `个性化推荐即将上线` | `micro-caption` role (see `04-UI-SPEC.md`), weight 400, `--fg-4` (`--ink-500`); rendered as a single line beneath the action bar separator. Shown on all cards (not per-hover). Placement: between the border-top separator and the domain footer text, left-aligned. This string is defined in a constant at the top of `feed-card-actions.tsx`: `const PERSONALIZATION_COPY = '个性化推荐即将上线';` |
 | Optimistic rollback error | `操作失败，请重试。` | Inline text beneath the action bar, replaces `个性化推荐即将上线` for 3 seconds on server action failure; `--danger-500` color; auto-dismisses |
 
 **Icon active-state styling contract:**
@@ -407,8 +406,8 @@ No changes from Phase 4. shadcn remains uninitialized. No third-party registries
 - [ ] Dimension 1 Copywriting: PASS — all new surfaces have specific Chinese copy; modal has heading + body + 3 provider buttons + dismiss; UserChip has 3-state labels; FeedCardActions has active/inactive titles; VOTE-03 copy contains "个性化" and "即将"; email body is fully specified; error states have problem + retry action; no destructive action requires a confirmation modal (sign-out is two-step chip→menu; unfavorite is reversible toggle); `/favorites` authenticated empty state has heading + body + CTA.
 - [ ] Dimension 2 Visuals: PASS — modal layout order is prescribed (7 elements top-to-bottom); UserChip 3-state anatomy is prescribed; FeedCardActions active-state icon fill pattern is prescribed; no new component introduces undocumented layout.
 - [ ] Dimension 3 Color: PASS — no new color variables; accent additions (11, 12) follow the exact Button `variant="accent"` pattern already used; Google is explicitly secondary; monogram uses `--accent-100` bg + `--accent-700` text (existing palette); modal backdrop uses `--ink-900` at 45% opacity.
-- [ ] Dimension 4 Typography: PASS — all new copy maps to existing role × size table; 3-weight contract (400/500/600) unchanged; no new size tokens.
-- [ ] Dimension 5 Spacing: PASS — avatar 32px documented as exception; provider button height 40px matches `SIZES.lg.h`; divider vertical margin 16px on the 4pt scale; all other values unchanged.
+- [ ] Dimension 4 Typography: PASS — Typography section is reference-only; zero pixel sizes or weights declared in this spec; all Phase 5 surfaces mapped to Phase 4 role names only; full size/weight table lives exclusively in `04-UI-SPEC.md`; zero new type tokens introduced.
+- [ ] Dimension 5 Spacing: PASS — avatar 32px documented as exception; provider button height 40px matches `SIZES.lg.h`; divider vertical margin 16px on the 4pt scale; all Phase 4 exceptions carried forward at Phase 4 checker sign-off without re-vetting; all other values unchanged.
 - [ ] Dimension 6 Registry Safety: PASS — no third-party registries; design bundle icon assets are local; no `npx shadcn view` gate required.
 
 **Approval:** pending (gsd-ui-checker runs next)
