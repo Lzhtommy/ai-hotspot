@@ -80,35 +80,40 @@ describe('Plan 06-00 Task 1 — requireAdmin()', () => {
 
 describe('Plan 06-00 Task 1 — assertAdmin()', () => {
   it('throws AdminAuthError("UNAUTHENTICATED") when session is null', async () => {
-    const { assertAdmin, AdminAuthError } = await import('@/lib/auth/admin');
-    expect(() => assertAdmin(null)).toThrow(AdminAuthError);
+    const mod = await import('@/lib/auth/admin');
+    // Re-bind through a plain-function type — `asserts` predicates on a
+    // dynamically-imported binding trip TS2775 at the call site because TS
+    // cannot guarantee the name is declared with an explicit annotation.
+    // Erasing the predicate via `as` is safe here: the tests only care about
+    // runtime behavior, and the assertion narrowing is validated by the
+    // static type of `assertAdmin` at its declaration site.
+    const assertAdmin = mod.assertAdmin as (s: unknown) => void;
+    expect(() => assertAdmin(null)).toThrow(mod.AdminAuthError);
     try {
       assertAdmin(null);
     } catch (err) {
-      expect(err).toBeInstanceOf(AdminAuthError);
-      expect((err as InstanceType<typeof AdminAuthError>).code).toBe('UNAUTHENTICATED');
+      expect(err).toBeInstanceOf(mod.AdminAuthError);
+      expect((err as InstanceType<typeof mod.AdminAuthError>).code).toBe('UNAUTHENTICATED');
     }
   });
 
   it('throws AdminAuthError("FORBIDDEN") when role !== "admin"', async () => {
-    const { assertAdmin, AdminAuthError } = await import('@/lib/auth/admin');
+    const mod = await import('@/lib/auth/admin');
+    const assertAdmin = mod.assertAdmin as (s: unknown) => void;
     const session = fakeSession({ role: 'user' });
     try {
-      // Cast FakeSession through unknown to appease the NextAuth Session param
-      // without pulling real next-auth types into the test file.
-      assertAdmin(session as unknown as Parameters<typeof assertAdmin>[0]);
+      assertAdmin(session);
       throw new Error('assertAdmin did not throw for non-admin session');
     } catch (err) {
-      expect(err).toBeInstanceOf(AdminAuthError);
-      expect((err as InstanceType<typeof AdminAuthError>).code).toBe('FORBIDDEN');
+      expect(err).toBeInstanceOf(mod.AdminAuthError);
+      expect((err as InstanceType<typeof mod.AdminAuthError>).code).toBe('FORBIDDEN');
     }
   });
 
   it('returns normally when role === "admin"', async () => {
-    const { assertAdmin } = await import('@/lib/auth/admin');
+    const mod = await import('@/lib/auth/admin');
+    const assertAdmin = mod.assertAdmin as (s: unknown) => void;
     const session = fakeSession({ role: 'admin' });
-    expect(() =>
-      assertAdmin(session as unknown as Parameters<typeof assertAdmin>[0]),
-    ).not.toThrow();
+    expect(() => assertAdmin(session)).not.toThrow();
   });
 });
