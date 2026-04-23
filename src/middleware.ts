@@ -53,7 +53,18 @@ export function middleware(req: NextRequest) {
   const cookieName = isSecure ? '__Secure-authjs.session-token' : 'authjs.session-token';
 
   const hasSession = req.cookies.has(cookieName);
-  if (!hasSession) {
+
+  // Special-case /admin/access-denied: non-admin authenticated users MUST be
+  // able to reach this page (requireAdmin() redirects them here). We cannot
+  // let anonymous traffic through, but we also cannot require the admin
+  // layout's requireAdmin() to fire here — that would create a redirect
+  // loop (non-admin → /admin/access-denied → non-admin → ...). Anonymous
+  // requests still get bounced to /; authenticated requests pass through
+  // and the layout's loop-guard (via x-pathname header, set below) skips
+  // requireAdmin() when the target IS access-denied.
+  const isAccessDenied = pathname === '/admin/access-denied';
+
+  if (!hasSession && !isAccessDenied) {
     const url = req.nextUrl.clone();
     url.pathname = '/';
     // Preserve the originally-requested admin path so a post-login flow
@@ -62,9 +73,13 @@ export function middleware(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Cookie present — defer to Layer 2 (requireAdmin() in app/admin/layout.tsx)
-  // for the DB-backed role check.
-  return NextResponse.next();
+  // Propagate pathname via a request header so the admin layout (RSC) can
+  // detect the access-denied route and skip requireAdmin() there, breaking
+  // the non-admin redirect loop. This is the ONLY reason middleware runs
+  // for /admin/access-denied even when the session cookie is missing.
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set('x-pathname', pathname);
+  return NextResponse.next({ request: { headers: requestHeaders } });
 }
 
 export const config = {
