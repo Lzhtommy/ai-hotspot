@@ -1,24 +1,68 @@
-// Task 5-05-02 | Plan 05-05 | REQ-AUTH-06
-// Nyquist stub — red until implementation lands.
+// Plan 05-05 Task 2 — UserChip sign-out popover test.
 //
-// Asserts the sign-out menu item invokes signOut() from @/lib/auth (NOT next-auth/react).
+// Asserts clicking 退出登录 menu item submits a form whose action is the
+// signOutAction server action imported from @/server/actions/auth.
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 
-const signOutMock = vi.fn().mockResolvedValue({ ok: true });
-vi.mock('@/lib/auth' as string, () => ({ signOut: signOutMock }));
+const signOutActionMock = vi.fn().mockResolvedValue(undefined);
+vi.mock('@/server/actions/auth', () => ({
+  signOutAction: signOutActionMock,
+}));
+
+vi.mock('next/image', () => ({
+  __esModule: true,
+  default: (props: { src: string; alt: string; width?: number; height?: number }) => {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={props.src} alt={props.alt} width={props.width} height={props.height} />;
+  },
+}));
 
 describe('UserChip sign-out', () => {
-  it('TODO[5-05-02]: clicking 退出登录 calls signOut()', async () => {
-    const { UserChip } = (await import('@/components/layout/user-chip')) as {
-      UserChip: React.ComponentType<Record<string, unknown>>;
-    };
+  it('clicking 退出登录 invokes signOutAction via form submission', async () => {
+    signOutActionMock.mockClear();
+    const { UserChip } = await import('@/components/layout/user-chip');
     render(
-      <UserChip session={{ id: 'u1', name: 'Alice', image: null, email: 'a@b.c', role: 'user' }} />,
+      <UserChip
+        session={{
+          user: {
+            id: 'u1',
+            email: 'alice@example.com',
+            name: 'Alice',
+            image: null,
+            role: 'user',
+          },
+        }}
+      />,
     );
-    // Open the popover, then click 退出登录.
-    fireEvent.click(screen.getByRole('button', { name: /Alice|用户/ }));
-    fireEvent.click(await screen.findByRole('menuitem', { name: /退出登录/ }));
-    expect(signOutMock).toHaveBeenCalled();
+    // Open the popover
+    fireEvent.click(screen.getByRole('button', { name: /Alice/ }));
+    // 退出登录 menu item is present
+    const item = await screen.findByRole('menuitem', { name: /退出登录/ });
+    expect(item).toBeInTheDocument();
+    // Click the menu item → form submits → onSubmit handler calls signOutAction
+    fireEvent.click(item);
+    expect(signOutActionMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('popover exposes role="menu" with role="menuitem" for a11y', () => {
+    return import('@/components/layout/user-chip').then(({ UserChip }) => {
+      render(
+        <UserChip
+          session={{
+            user: {
+              id: 'u1',
+              email: 'alice@example.com',
+              name: 'Alice',
+              image: null,
+              role: 'user',
+            },
+          }}
+        />,
+      );
+      fireEvent.click(screen.getByRole('button', { name: /Alice/ }));
+      expect(screen.getByRole('menu')).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: /退出登录/ })).toBeInTheDocument();
+    });
   });
 });
