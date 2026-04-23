@@ -27,7 +27,12 @@ function makeAnthropicMock(behavior: 'ok' | 'schema-fail' | 'api-error' | 'ok-wi
           recommendation: 'Short rec',
           tags: ['模型发布'],
         },
-        usage: { input_tokens: 100, output_tokens: 50, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 },
+        usage: {
+          input_tokens: 100,
+          output_tokens: 50,
+          cache_read_input_tokens: 0,
+          cache_creation_input_tokens: 0,
+        },
       };
     }
 
@@ -115,9 +120,12 @@ describe('enrichWithClaude', () => {
     expect(err).toBeInstanceOf(EnrichError);
     const enrichErr = err as EnrichError;
     expect(enrichErr.kind).toBe('api');
-    // Secret scrub: message must contain err.name ('ConnectionError'), NOT err.message ('connection refused')
+    // Detail policy (2026-04-23): include err.name + err.message sliced to 300 chars
+    // so Trigger.dev logs surface the real failure cause. Anthropic SDK redacts
+    // credentials; 300-char slice guards against runaway payloads.
     expect(enrichErr.message).toContain('ConnectionError');
-    expect(enrichErr.message).not.toContain('connection refused');
+    expect(enrichErr.message).toContain('connection refused');
+    expect(enrichErr.message.length).toBeLessThanOrEqual(400);
   });
 
   it('usage propagation: cache_read_input_tokens reflected in result', async () => {

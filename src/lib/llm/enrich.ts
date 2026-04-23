@@ -8,6 +8,7 @@
  * Consumed by: src/lib/llm/process-item-core.ts
  */
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
+import { APIError } from '@anthropic-ai/sdk';
 import { anthropic as realAnthropic } from './client';
 import { EnrichmentSchema, type Enrichment } from './schema';
 import { buildSystemPrompt, buildUserMessage } from './prompt';
@@ -69,10 +70,12 @@ export async function enrichWithClaude(params: {
       output_config: { format: zodOutputFormat(EnrichmentSchema as never) },
     });
   } catch (err) {
-    throw new EnrichError(
-      `Anthropic call failed: ${err instanceof Error ? err.name : 'unknown'}`,
-      'api',
-    );
+    const detail = describeAnthropicError(err);
+    // Surface to Trigger.dev logs so "Error" no longer hides the real cause.
+    // Anthropic SDK redacts credentials; message is sliced to 300 chars as a
+    // belt-and-suspenders guard against runaway payloads (T-03-19 spirit preserved).
+    console.error('[enrich] Anthropic call failed', detail);
+    throw new EnrichError(`Anthropic call failed: ${detail}`, 'api');
   }
   const parsed = (res as unknown as { parsed_output?: Enrichment }).parsed_output;
   if (!parsed) {
@@ -91,4 +94,18 @@ export async function enrichWithClaude(params: {
     },
     latencyMs: Date.now() - start,
   };
+}
+
+// Turn an Anthropic SDK exception into a short, log-safe detail string.
+// APIError carries HTTP status + error.type (e.g. 'rate_limit_error'); plain Errors
+// fall back to name+message. Message is sliced to 300 chars.
+function describeAnthropicError(err: unknown): string {
+  if (err instanceof APIError) {
+    const msg = (err.message ?? '').slice(0, 300);
+    return `${err.name} status=${err.status ?? 'none'} type=${err.type ?? 'none'} ${msg}`;
+  }
+  if (err instanceof Error) {
+    return `${err.name}: ${(err.message ?? '').slice(0, 300)}`;
+  }
+  return 'unknown';
 }
