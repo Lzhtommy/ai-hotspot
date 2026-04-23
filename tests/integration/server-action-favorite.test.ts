@@ -18,13 +18,13 @@ describe('favoriteItemCore / unfavoriteItemCore (D-11)', () => {
       : never;
 
     const result = await mod.favoriteItemCore(
-      { userId: 'u1', itemId: 42n },
+      { userId: 'u1', itemId: BigInt(42) },
       { db: mockDb },
     );
 
     expect(result).toEqual({ favorited: true });
     expect(insert).toHaveBeenCalledOnce();
-    expect(values).toHaveBeenCalledWith({ userId: 'u1', itemId: 42n });
+    expect(values).toHaveBeenCalledWith({ userId: 'u1', itemId: BigInt(42) });
     expect(onConflictDoNothing).toHaveBeenCalledOnce();
   });
 
@@ -40,7 +40,7 @@ describe('favoriteItemCore / unfavoriteItemCore (D-11)', () => {
       : never;
 
     const result = await mod.unfavoriteItemCore(
-      { userId: 'u1', itemId: 42n },
+      { userId: 'u1', itemId: BigInt(42) },
       { db: mockDb },
     );
 
