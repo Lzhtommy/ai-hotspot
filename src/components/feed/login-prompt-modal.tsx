@@ -121,7 +121,15 @@ function EmailMagicLinkForm() {
   const [pending, startTransition] = useTransition();
   const [state, setState] = useState<'idle' | 'success' | 'error'>('idle');
 
-  function handleAction(formData: FormData) {
+  // Use onSubmit (not action={fn}) so the handler is invoked in both Next.js
+  // runtime (client-side RSC submit) AND the Vitest/jsdom test environment.
+  // React 18.3 does NOT support function-valued `action` on <form>; it only
+  // works through the Next.js App Router compiler transform. Calling the
+  // server action from an onSubmit handler preserves the server-action
+  // semantics (fetch POST under the hood) while remaining testable.
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
     startTransition(async () => {
       const result = await signInResendAction(formData);
       if ('success' in result && result.success) {
@@ -176,7 +184,7 @@ function EmailMagicLinkForm() {
   }
 
   return (
-    <form action={handleAction} style={{ width: '100%' }}>
+    <form onSubmit={handleSubmit} style={{ width: '100%' }}>
       <label
         htmlFor="login-email"
         style={{
@@ -322,7 +330,13 @@ export function LoginPromptModal() {
         {/* Provider stack — locked top-to-bottom order per UI-SPEC §LoginPromptModal */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {/* 3. GitHub (accent, full-width) */}
-          <form action={signInGithubAction} style={{ width: '100%' }}>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              void signInGithubAction();
+            }}
+            style={{ width: '100%' }}
+          >
             <Button
               type="submit"
               variant="accent"
@@ -376,7 +390,13 @@ export function LoginPromptModal() {
           </div>
 
           {/* 6. Google (secondary, full-width) */}
-          <form action={signInGoogleAction} style={{ width: '100%' }}>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              void signInGoogleAction();
+            }}
+            style={{ width: '100%' }}
+          >
             <Button
               type="submit"
               variant="secondary"
