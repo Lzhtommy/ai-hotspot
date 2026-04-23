@@ -84,12 +84,12 @@ Requirements for initial release. Each maps to a roadmap phase.
 
 ### User Interactions
 
-- [ ] **FAV-01**: Authenticated user can favorite (收藏) an item; UI state reflects immediately
-- [ ] **FAV-02**: Authenticated user can unfavorite an item
+- [x] **FAV-01**: Authenticated user can favorite (收藏) an item; UI state reflects immediately
+- [x] **FAV-02**: Authenticated user can unfavorite an item
 - [ ] **FAV-03**: `/favorites` page shows the user's saved items in reverse-chrono order
-- [ ] **VOTE-01**: Authenticated user can like an item
-- [ ] **VOTE-02**: Authenticated user can dislike an item
-- [ ] **VOTE-03**: Like/dislike UI includes honest copy that personalization is forthcoming
+- [x] **VOTE-01**: Authenticated user can like an item
+- [x] **VOTE-02**: Authenticated user can dislike an item
+- [x] **VOTE-03**: Like/dislike UI includes honest copy that personalization is forthcoming
 - [x] **VOTE-04**: Favorite/like/dislike actions require login — anonymous click prompts sign-in modal
 
 ### Admin Backend
@@ -223,12 +223,12 @@ Which phases cover which requirements.
 | AUTH-06 | Phase 5 | Pending |
 | AUTH-07 | Phase 5 | Complete |
 | AUTH-08 | Phase 5 | Complete |
-| FAV-01 | Phase 5 | Pending |
-| FAV-02 | Phase 5 | Pending |
+| FAV-01 | Phase 5 | Complete |
+| FAV-02 | Phase 5 | Complete |
 | FAV-03 | Phase 5 | Pending |
-| VOTE-01 | Phase 5 | Pending |
-| VOTE-02 | Phase 5 | Pending |
-| VOTE-03 | Phase 5 | Pending |
+| VOTE-01 | Phase 5 | Complete |
+| VOTE-02 | Phase 5 | Complete |
+| VOTE-03 | Phase 5 | Complete |
 | VOTE-04 | Phase 5 | Complete |
 | ADMIN-01 | Phase 6 | Pending |
 | ADMIN-02 | Phase 6 | Pending |

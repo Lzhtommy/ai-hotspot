@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-05-PLAN.md (UserChip three-state authenticated render)
-last_updated: "2026-04-23T06:39:46.743Z"
+stopped_at: Completed 05-07-PLAN.md (FeedCardActions useOptimistic + VOTE-03 copy + RSC prop-threading)
+last_updated: "2026-04-23T06:56:01.949Z"
 last_activity: 2026-04-23
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 33
-  completed_plans: 29
-  percent: 88
+  completed_plans: 30
+  percent: 91
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 ## Current Position
 
 Phase: 5 (auth-user-interactions) — EXECUTING
-Plan: 8 of 11 (05-00, 05-01, 05-02, 05-03, 05-04, 05-05, 05-06 complete; 05-07 next)
+Plan: 9 of 11 (05-00, 05-01, 05-02, 05-03, 05-04, 05-05, 05-06 complete; 05-07 next)
 Status: Ready to execute
 Last activity: 2026-04-23
 
@@ -80,6 +80,7 @@ Progress: [█████████░] 88%
 | Phase 05-auth-user-interactions P02 | 5 | 3 tasks | 11 files |
 | Phase 05-auth-user-interactions P04 | 8 min | 3 tasks | 7 files |
 | Phase --phase P05-auth-user-interactions | --plan | 05 tasks | --duration files |
+| Phase 05-auth-user-interactions P07 | 11 min | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -147,6 +148,9 @@ Recent decisions affecting current work:
 - [Phase 05-auth-user-interactions]: Plan 05-05: Session prop-drilled from RSC layout (`await auth()` in `src/app/(reader)/layout.tsx`) through ReaderShell → Sidebar → UserChip — UserChip never calls useSession() (CLAUDE.md §11 + RESEARCH §Anti-Patterns).
 - [Phase 05-auth-user-interactions]: Plan 05-05: AuthenticatedChip extracted as child component so useState/useEffect do not run under UserChip's always-branching anonymous early-return (rules-of-hooks compliance).
 - [Phase 05-auth-user-interactions]: Plan 05-05: Sidebar downgraded from `async function` to sync — `async` in a Client-Component parent (ReaderShell) was a latent bug; session now arrives via prop from the RSC layout boundary.
+- [Phase 05-auth-user-interactions]: Plan 05-07: useOptimisticCompat wrapper — always-called useState/useEffect stable hook order across React 18.3 (vitest) + React 19 canary (Next 15 production); same source compile-and-pass both runtimes
+- [Phase 05-auth-user-interactions]: Plan 05-07: RSC prop-threading for auth — every feed page calls auth() + getUserInteractions, passes isAuthenticated + interactionMap through Timeline to FeedCard to FeedCardActions; zero useSession() on client (RESEARCH §Anti-Patterns + CLAUDE.md §11)
+- [Phase 05-auth-user-interactions]: Plan 05-07: IconButton tone extended with 'success' (like active) + ACTIVE_BG map (10% tone fills: accent-50/success-50/danger-50) per UI-SPEC §FeedCardActions active-state contract
 
 ### Pending Todos
 
@@ -175,8 +179,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: --stopped-at
-Stopped at: Completed 05-05-PLAN.md (UserChip three-state authenticated render)
-Resume file: --resume-file
+Last session: 2026-04-23T06:56:01.944Z
+Stopped at: Completed 05-07-PLAN.md (FeedCardActions useOptimistic + VOTE-03 copy + RSC prop-threading)
+Resume file: None
 
 **Planned Phase:** 05 (auth-user-interactions) — 11 plans — 2026-04-23T03:52:10.184Z
