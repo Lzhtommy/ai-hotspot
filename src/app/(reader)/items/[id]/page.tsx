@@ -21,6 +21,9 @@ import { SourceDot } from '@/components/layout/source-dot';
 import { Tag } from '@/components/layout/tag';
 import { Eyebrow } from '@/components/layout/eyebrow';
 import { ScoreBadge } from '@/components/feed/score-badge';
+import { FeedCardActions } from '@/components/feed/feed-card-actions';
+import { auth } from '@/lib/auth';
+import { getUserInteractions } from '@/lib/user-actions/get-interactions';
 
 export const revalidate = 3600;
 
@@ -63,6 +66,14 @@ export default async function ItemDetailPage({ params }: { params: Promise<{ id:
   const dateStr = formatInTimeZone(new Date(item.publishedAt), tz, 'M月d日 HH:mm');
   const title = item.titleZh ?? item.title;
   const siblings = item.siblings ?? [];
+
+  // Phase 5 Plan 05-07: thread session + initial interaction for this single item.
+  const session = await auth();
+  const isAuthenticated = !!session?.user?.id;
+  const interactionMap = isAuthenticated
+    ? await getUserInteractions(session!.user!.id!, [BigInt(id)])
+    : new Map<string, { favorited: boolean; vote: -1 | 0 | 1 }>();
+  const initial = interactionMap.get(String(id)) ?? { favorited: false, vote: 0 };
 
   return (
     <article className="px-[32px] py-[24px] max-sm:px-[16px] max-w-[720px] mx-auto">
@@ -131,6 +142,15 @@ export default async function ItemDetailPage({ params }: { params: Promise<{ id:
           查看原文 ↗
         </a>
       </div>
+
+      {/* Phase 5 Plan 05-07: FeedCard-equivalent action bar for the detail surface.
+          Threads isAuthenticated + initial so useOptimistic has a truthful start. */}
+      <FeedCardActions
+        itemId={item.id}
+        url={item.url}
+        isAuthenticated={isAuthenticated}
+        initial={initial}
+      />
 
       {/* Cluster siblings section (when there are other sources covering the same event) */}
       {siblings.length > 1 && (

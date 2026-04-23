@@ -35,13 +35,17 @@ interface FeedCardProps {
   item: FeedListItem;
   /** Pre-fetched cluster sibling items (passed from getFeed join) */
   siblings?: FeedListItem[];
+  /** Phase 5 Plan 05-07: session presence flag; forwarded to FeedCardActions. */
+  isAuthenticated?: boolean;
+  /** Phase 5 Plan 05-07: initial favorite + vote state for this item; forwarded to FeedCardActions. */
+  initial?: { favorited: boolean; vote: -1 | 0 | 1 };
 }
 
 /**
  * Full-density FeedCard RSC implementing D-17 eight-step anatomy.
  * All pixel values traced to feed_card.jsx source lines.
  */
-export function FeedCard({ item, siblings }: FeedCardProps) {
+export function FeedCard({ item, siblings, isAuthenticated, initial }: FeedCardProps) {
   // Format published time in Asia/Shanghai per D-21
   let timeStr = '';
   try {
@@ -240,7 +244,13 @@ export function FeedCard({ item, siblings }: FeedCardProps) {
       )}
 
       {/* ——— Step 8: Action bar (always rendered) ——— */}
-      <FeedCardActions itemId={item.id} url={item.url} sourceUrl={null} />
+      <FeedCardActions
+        itemId={item.id}
+        url={item.url}
+        sourceUrl={null}
+        isAuthenticated={isAuthenticated ?? false}
+        initial={initial ?? { favorited: false, vote: 0 }}
+      />
     </article>
   );
 }

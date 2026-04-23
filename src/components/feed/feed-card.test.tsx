@@ -128,9 +128,10 @@ describe('FeedCard — 8-step anatomy', () => {
 
   it('renders action bar aria-labels (step 8)', () => {
     const html = renderToString(<FeedCard item={fullItem} />);
+    // Phase 5 05-07 UI-SPEC §FeedCardActions: Chinese inactive labels.
     expect(html).toContain('收藏');
-    expect(html).toContain('Like');
-    expect(html).toContain('Dislike');
+    expect(html).toContain('点赞');
+    expect(html).toContain('点踩');
     expect(html).toContain('打开原文');
   });
 

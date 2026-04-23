@@ -18,6 +18,11 @@ import { EmptyState } from '@/components/feed/empty-state';
 import { FilterPopover } from '@/components/feed/filter-popover';
 import { db } from '@/lib/db/client';
 import { sources } from '@/lib/db/schema';
+import { auth } from '@/lib/auth';
+import { getUserInteractions } from '@/lib/user-actions/get-interactions';
+
+// Plan 05-07 prop-threading contract: every <FeedCard> rendered through <Timeline>
+// below receives isAuthenticated + initial via forwarded props (see Timeline.tsx).
 
 export const revalidate = 300;
 
@@ -33,6 +38,16 @@ export default async function AllFeedPage({
     tags,
     sourceId: source ? Number(source) : null,
   });
+
+  // Phase 5 Plan 05-07: thread session + initial interactions into every FeedCard.
+  const session = await auth();
+  const isAuthenticated = !!session?.user?.id;
+  const interactionMap = isAuthenticated
+    ? await getUserInteractions(
+        session!.user!.id!,
+        items.map((i) => BigInt(i.id)),
+      )
+    : new Map<string, { favorited: boolean; vote: -1 | 0 | 1 }>();
 
   // Available sources for the filter popover
   const availableSources = await db.select({ id: sources.id, name: sources.name }).from(sources);
@@ -65,7 +80,12 @@ export default async function AllFeedPage({
         )
       ) : (
         <>
-          <Timeline items={items} />
+          <Timeline
+            items={items}
+            isAuthenticated={isAuthenticated}
+            interactionMap={interactionMap}
+            initial={{ favorited: false, vote: 0 }}
+          />
           {totalPages > 1 && (
             <nav className="flex justify-center gap-2 py-8" aria-label="分页">
               {page > 1 && (

@@ -28,13 +28,27 @@ interface TimelineProps {
   clusterSiblings?: Record<string, FeedListItem[]>;
   /** Anchor for relative day labels (今天/昨天). Defaults to now. */
   now?: Date;
+  /** Phase 5 Plan 05-07: session presence flag forwarded to every FeedCard. */
+  isAuthenticated?: boolean;
+  /** Phase 5 Plan 05-07: Map<String(item.id), { favorited, vote }> forwarded to FeedCard. */
+  interactionMap?: Map<string, { favorited: boolean; vote: -1 | 0 | 1 }>;
+  /** Phase 5 Plan 05-07: Fallback initial state for items missing from interactionMap. */
+  initial?: { favorited: boolean; vote: -1 | 0 | 1 };
 }
 
 /**
  * Hour-grouped timeline of FeedCard items.
  * Group headers show day+hour label + item count in 条.
  */
-export function Timeline({ items, clusterSiblings, now }: TimelineProps) {
+export function Timeline({
+  items,
+  clusterSiblings,
+  now,
+  isAuthenticated,
+  interactionMap,
+  initial: fallbackInitial,
+}: TimelineProps) {
+  const defaultInitial = fallbackInitial ?? { favorited: false, vote: 0 as const };
   // groupByHour expects FeedItem[] — cast via type alias (FeedListItem is a superset)
   const groups = groupByHour(items as unknown as FeedItem[], now);
 
@@ -117,7 +131,16 @@ export function Timeline({ items, clusterSiblings, now }: TimelineProps) {
               const siblings = feedItem.clusterId
                 ? clusterSiblings?.[feedItem.clusterId]
                 : undefined;
-              return <FeedCard key={feedItem.id} item={feedItem} siblings={siblings} />;
+              const initial = interactionMap?.get(String(feedItem.id)) ?? defaultInitial;
+              return (
+                <FeedCard
+                  key={feedItem.id}
+                  item={feedItem}
+                  siblings={siblings}
+                  isAuthenticated={isAuthenticated ?? false}
+                  initial={initial}
+                />
+              );
             })}
           </div>
         </section>
