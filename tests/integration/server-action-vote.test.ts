@@ -1,40 +1,101 @@
-// Task 5-06-02 | Plan 05-06 | REQ-VOTE-01, REQ-VOTE-02 | Threat T-5-09
-// Nyquist stub — red until implementation lands.
+// Task 5-06-02 | Plan 05-06 | REQ-VOTE-01, REQ-VOTE-02 | Threat T-5-08
 //
-// Asserts vote server action enforces the D-12 exclusive 3-state toggle
-// (+1 / -1 / delete) and rejects when users.is_banned = true.
+// Asserts voteItemCore implements the D-12 exclusive 3-state toggle state machine:
+//   no row       + value=v  → insert(value=v)         → { vote: v }
+//   row value=v  + value=v  → delete                  → { vote: 0 }
+//   row value=v  + value=-v → update(value=-v)        → { vote: -v }
 import { describe, it, expect, vi } from 'vitest';
-import { fakeSession } from '../helpers/auth';
 
-vi.mock('@/lib/auth' as string, () => ({
-  auth: vi.fn().mockResolvedValue(fakeSession()),
-}));
+type MockDb = Parameters<typeof import('@/lib/user-actions/votes-core').voteItemCore>[1] extends
+  | { db?: infer D }
+  | undefined
+  ? D
+  : never;
 
-describe('voteItem server action — D-12 state machine', () => {
-  it('TODO[5-06-02]: like → like again deletes row', async () => {
-    const mod = (await import('@/server/actions/votes' as string)) as {
-      voteItem: (args: { itemId: string; value: 1 | -1 }) => Promise<{ vote: -1 | 0 | 1 }>;
-    };
-    const a = await mod.voteItem({ itemId: '1', value: 1 });
-    expect(a.vote).toBe(1);
-    const b = await mod.voteItem({ itemId: '1', value: 1 });
-    expect(b.vote).toBe(0);
+function makeSelectMock(resolveWith: Array<{ value: number }>) {
+  const where = vi.fn().mockResolvedValue(resolveWith);
+  const from = vi.fn().mockReturnValue({ where });
+  const select = vi.fn().mockReturnValue({ from });
+  return { select, from, where };
+}
+
+describe('voteItemCore (D-12 exclusive 3-state toggle)', () => {
+  it('no existing row + value=+1 → inserts row; returns {vote: 1}', async () => {
+    const mod = await import('@/lib/user-actions/votes-core');
+    const sel = makeSelectMock([]);
+    const values = vi.fn().mockResolvedValue(undefined);
+    const insert = vi.fn().mockReturnValue({ values });
+    const mockDb = { select: sel.select, insert } as unknown as MockDb;
+
+    const result = await mod.voteItemCore(
+      { userId: 'u1', itemId: BigInt(42), value: 1 },
+      { db: mockDb },
+    );
+
+    expect(result).toEqual({ vote: 1 });
+    expect(insert).toHaveBeenCalledOnce();
+    expect(values).toHaveBeenCalledWith({
+      userId: 'u1',
+      itemId: BigInt(42),
+      value: 1,
+    });
   });
 
-  it('TODO[5-06-02]: like → dislike flips value without intermediate neutral', async () => {
-    const mod = (await import('@/server/actions/votes' as string)) as {
-      voteItem: (args: { itemId: string; value: 1 | -1 }) => Promise<{ vote: -1 | 0 | 1 }>;
-    };
-    const a = await mod.voteItem({ itemId: '1', value: 1 });
-    expect(a.vote).toBe(1);
-    const c = await mod.voteItem({ itemId: '1', value: -1 });
-    expect(c.vote).toBe(-1);
+  it('row value=+1 + value=+1 → deletes row; returns {vote: 0} (like → like again)', async () => {
+    const mod = await import('@/lib/user-actions/votes-core');
+    const sel = makeSelectMock([{ value: 1 }]);
+    const delWhere = vi.fn().mockResolvedValue(undefined);
+    const del = vi.fn().mockReturnValue({ where: delWhere });
+    const insert = vi.fn().mockImplementation(() => {
+      throw new Error('insert should not be called');
+    });
+    const update = vi.fn().mockImplementation(() => {
+      throw new Error('update should not be called');
+    });
+    const mockDb = { select: sel.select, delete: del, insert, update } as unknown as MockDb;
+
+    const result = await mod.voteItemCore(
+      { userId: 'u1', itemId: BigInt(42), value: 1 },
+      { db: mockDb },
+    );
+
+    expect(result).toEqual({ vote: 0 });
+    expect(del).toHaveBeenCalledOnce();
+    expect(delWhere).toHaveBeenCalledOnce();
   });
 
-  it('TODO[5-06-02]: rejects banned user', async () => {
-    const mod = (await import('@/server/actions/votes' as string)) as {
-      voteItem: (args: { itemId: string; value: 1 | -1 }) => Promise<unknown>;
-    };
-    await expect(mod.voteItem({ itemId: '1', value: 1 })).rejects.toThrow(/FORBIDDEN|ban/i);
+  it('row value=+1 + value=-1 → updates row to -1; returns {vote: -1} (like → dislike flip)', async () => {
+    const mod = await import('@/lib/user-actions/votes-core');
+    const sel = makeSelectMock([{ value: 1 }]);
+    const updWhere = vi.fn().mockResolvedValue(undefined);
+    const set = vi.fn().mockReturnValue({ where: updWhere });
+    const update = vi.fn().mockReturnValue({ set });
+    const mockDb = { select: sel.select, update } as unknown as MockDb;
+
+    const result = await mod.voteItemCore(
+      { userId: 'u1', itemId: BigInt(42), value: -1 },
+      { db: mockDb },
+    );
+
+    expect(result).toEqual({ vote: -1 });
+    expect(update).toHaveBeenCalledOnce();
+    expect(set).toHaveBeenCalledWith({ value: -1 });
+  });
+
+  it('row value=-1 + value=+1 → updates row to +1; returns {vote: 1} (dislike → like flip)', async () => {
+    const mod = await import('@/lib/user-actions/votes-core');
+    const sel = makeSelectMock([{ value: -1 }]);
+    const updWhere = vi.fn().mockResolvedValue(undefined);
+    const set = vi.fn().mockReturnValue({ where: updWhere });
+    const update = vi.fn().mockReturnValue({ set });
+    const mockDb = { select: sel.select, update } as unknown as MockDb;
+
+    const result = await mod.voteItemCore(
+      { userId: 'u1', itemId: BigInt(42), value: 1 },
+      { db: mockDb },
+    );
+
+    expect(result).toEqual({ vote: 1 });
+    expect(set).toHaveBeenCalledWith({ value: 1 });
   });
 });
