@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-00-PLAN.md
-last_updated: "2026-04-23T04:03:08.222Z"
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-04-23T05:53:10.026Z"
 last_activity: 2026-04-23
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 33
-  completed_plans: 23
-  percent: 70
+  completed_plans: 24
+  percent: 73
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 ## Current Position
 
 Phase: 5 (auth-user-interactions) — EXECUTING
-Plan: 2 of 11
+Plan: 3 of 11
 Status: Ready to execute
 Last activity: 2026-04-23
 
@@ -76,6 +76,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 04-feed-ui P05 | 10 | 2 tasks | 10 files |
 | Phase 04-feed-ui P06 | 21 | 3 tasks | 21 files |
 | Phase 05-auth-user-interactions P00 | 5 min | 3 tasks | 28 files |
+| Phase 05-auth-user-interactions P01 | 22 min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -133,6 +134,8 @@ Recent decisions affecting current work:
 - [Phase 05-auth-user-interactions]: Plan 05-00: Vitest env switched node->jsdom; include paths extended to tests/unit + tests/integration for Phase 5 scaffolding
 - [Phase 05-auth-user-interactions]: Plan 05-00: seed-session helper uses raw SQL (drizzle-orm sql template) — avoids importing sessions schema symbol that Plan 05-01 will add
 - [Phase 05-auth-user-interactions]: Plan 05-00: @vitest/ui pinned to 2.1.9 to match vitest 2.x; pnpm default resolves to 4.x which peer-mismatches
+- [Phase 05-auth-user-interactions]: Plan 05-01: psql-equivalent runner (scripts/apply-0004-auth.ts) used over drizzle-kit push — push was non-TTY-blocked AND proposed DROP of Plan 03-01 HNSW index (Drizzle DSL cannot represent HNSW). All future Phase 5+ migrations should follow scripts/apply-NNNN-*.ts pattern until the DSL gap closes.
+- [Phase 05-auth-user-interactions]: Plan 05-01: camelCase quoted SQL identifiers ("userId", "providerAccountId", "sessionToken") are scoped to the three Auth.js adapter tables only (accounts/sessions/verification_tokens) — @auth/drizzle-adapter contract requirement. Rest of schema keeps snake_case.
 
 ### Pending Todos
 
@@ -161,8 +164,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-23T04:03:08.218Z
-Stopped at: Completed 05-00-PLAN.md
+Last session: 2026-04-23T05:53:10.022Z
+Stopped at: Completed 05-01-PLAN.md
 Resume file: None
 
 **Planned Phase:** 05 (auth-user-interactions) — 11 plans — 2026-04-23T03:52:10.184Z

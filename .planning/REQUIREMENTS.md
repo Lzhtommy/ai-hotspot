@@ -72,7 +72,7 @@ Requirements for initial release. Each maps to a roadmap phase.
 
 ### Authentication
 
-- [ ] **AUTH-01**: Auth.js v5 configured with Drizzle adapter
+- [x] **AUTH-01**: Auth.js v5 configured with Drizzle adapter
 - [ ] **AUTH-02**: GitHub OAuth login works end-to-end on production and preview URLs
 - [ ] **AUTH-03**: Email magic link login works via Resend (China-accessible email delivery)
 - [ ] **AUTH-04**: Google OAuth available as secondary option (not the default button)
@@ -214,7 +214,7 @@ Which phases cover which requirements.
 | FEED-10 | Phase 4 | Pending |
 | FEED-11 | Phase 4 | Complete |
 | FEED-12 | Phase 4 | Complete |
-| AUTH-01 | Phase 5 | Pending |
+| AUTH-01 | Phase 5 | Complete |
 | AUTH-02 | Phase 5 | Pending |
 | AUTH-03 | Phase 5 | Pending |
 | AUTH-04 | Phase 5 | Pending |
