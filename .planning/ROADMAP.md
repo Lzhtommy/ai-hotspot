@@ -105,7 +105,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans:** 11 plans
 - [x] 05-00-PLAN.md — Wave 0 test infrastructure: Vitest + Playwright + 22 red-state test stubs + shared helpers (db, auth, seed-session)
 - [x] 05-01-PLAN.md — Schema migration: extend users (email_verified + image), add accounts/sessions/verification_tokens (UUID FK), [BLOCKING] drizzle-kit push
-- [ ] 05-02-PLAN.md — Auth.js v5 config + session helpers + /api/auth/[...nextauth] route + ban callback (D-05 Layer 1) + .env.example
+- [x] 05-02-PLAN.md — Auth.js v5 config + session helpers + /api/auth/[...nextauth] route + ban callback (D-05 Layer 1) + .env.example
 - [ ] 05-03-PLAN.md — Providers: GitHub + Resend (Chinese magic-link) + Google; next.config.ts remotePatterns allowlist
 - [ ] 05-04-PLAN.md — LoginPromptModal: real provider buttons + email magic-link form + 检查邮箱 success state; fix favorites-empty dispatchEvent
 - [ ] 05-05-PLAN.md — UserChip three-state render (anonymous / auth+image / auth+monogram) + sign-out popover; icon union extension

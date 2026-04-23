@@ -76,10 +76,10 @@ Requirements for initial release. Each maps to a roadmap phase.
 - [ ] **AUTH-02**: GitHub OAuth login works end-to-end on production and preview URLs
 - [ ] **AUTH-03**: Email magic link login works via Resend (China-accessible email delivery)
 - [ ] **AUTH-04**: Google OAuth available as secondary option (not the default button)
-- [ ] **AUTH-05**: `AUTH_REDIRECT_PROXY_URL` configured so OAuth callbacks work on Vercel preview deployments
+- [x] **AUTH-05**: `AUTH_REDIRECT_PROXY_URL` configured so OAuth callbacks work on Vercel preview deployments
 - [ ] **AUTH-06**: Anonymous read works for all feed pages; no login wall
-- [ ] **AUTH-07**: User sessions persist across browser refresh
-- [ ] **AUTH-08**: Sign out works from any page
+- [x] **AUTH-07**: User sessions persist across browser refresh
+- [x] **AUTH-08**: Sign out works from any page
 
 ### User Interactions
 
@@ -218,10 +218,10 @@ Which phases cover which requirements.
 | AUTH-02 | Phase 5 | Pending |
 | AUTH-03 | Phase 5 | Pending |
 | AUTH-04 | Phase 5 | Pending |
-| AUTH-05 | Phase 5 | Pending |
+| AUTH-05 | Phase 5 | Complete |
 | AUTH-06 | Phase 5 | Pending |
-| AUTH-07 | Phase 5 | Pending |
-| AUTH-08 | Phase 5 | Pending |
+| AUTH-07 | Phase 5 | Complete |
+| AUTH-08 | Phase 5 | Complete |
 | FAV-01 | Phase 5 | Pending |
 | FAV-02 | Phase 5 | Pending |
 | FAV-03 | Phase 5 | Pending |
