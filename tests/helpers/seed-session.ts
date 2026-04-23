@@ -1,83 +1,113 @@
 /**
- * seed-session — Phase 5 Wave 0.
+ * seed-session — Phase 5 Plan 05-09.
  *
- * Inserts a row into the Auth.js `sessions` table on the active Neon branch
- * and returns the sessionToken + userId + a Playwright storageState cookie shape.
+ * Inserts a `users` row + a `sessions` row on the active Neon branch and
+ * returns a Playwright-compatible cookie shape for authenticated E2E flows.
  *
- * IMPORTANT: This helper depends on Plan 05-01 having created the `sessions`
- * adapter table. In Wave 0 the table does not yet exist; callers should catch
- * the resulting DB error and skip. See 05-PATTERNS.md §14 (no-analog / fresh).
+ * Usage:
+ *   const seeded = await seedSession({ name: 'Alice' });
+ *   try {
+ *     await context.addCookies([seeded.cookie]);
+ *     // ...test against authenticated UI...
+ *   } finally {
+ *     await seeded.cleanup();
+ *   }
+ *
+ * Threat mitigations:
+ *   T-5-E2E-01 (accidental prod writes) — makeTestDb() fail-closes when
+ *   DATABASE_URL looks like a production branch (see tests/helpers/db.ts).
  *
  * Consumed by:
- *   - tests/e2e/*.spec.ts (via Playwright storageState)
- *   - tests/integration/ban-enforcement.test.ts (cookie-level assertions)
+ *   - tests/e2e/*.spec.ts (Playwright storageState / context.addCookies)
  */
 import { randomUUID } from 'node:crypto';
-import { sql } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { makeTestDb } from './db';
+import * as schema from '@/lib/db/schema';
 
 export interface SeededSession {
   sessionToken: string;
   userId: string;
+  email: string;
   /**
-   * Playwright storageState cookie entry for `authjs.session-token`.
-   * Pass directly into `browser.newContext({ storageState: { cookies: [cookie], origins: [] } })`.
+   * Cookie entry compatible with Playwright's `BrowserContext.addCookies`.
    */
   cookie: {
     name: string;
     value: string;
     domain: string;
     path: string;
+    expires: number;
     httpOnly: boolean;
     secure: boolean;
     sameSite: 'Lax' | 'Strict' | 'None';
-    expires: number;
   };
+  cleanup: () => Promise<void>;
 }
 
 export interface SeedSessionOptions {
-  userId: string;
+  email?: string;
+  name?: string;
+  isBanned?: boolean;
+  role?: 'user' | 'admin';
   /** ms until expiry. Default: 30 days. */
   ttlMs?: number;
-  /** Cookie domain. Default: 'localhost'. */
-  domain?: string;
+  /** Base URL used to derive cookie domain + secure flag. Default: http://localhost:3000. */
+  baseUrl?: string;
 }
 
 /**
- * Inserts a `sessions` row for the given user and returns the cookie shape.
- *
- * Requires:
- *   - DATABASE_URL set to a non-prod Neon branch
- *   - `sessions` adapter table exists (Plan 05-01)
- *   - `users` row with id === options.userId already present
+ * Seeds a user + session row on the active Neon test branch and returns
+ * the cookie + cleanup. Cookie name follows Auth.js v5 convention:
+ *   - `authjs.session-token`            (http — dev / localhost)
+ *   - `__Secure-authjs.session-token`   (https — preview / prod)
  */
-export async function seedSession(options: SeedSessionOptions): Promise<SeededSession> {
+export async function seedSession(options: SeedSessionOptions = {}): Promise<SeededSession> {
   const db = makeTestDb();
+  const email = options.email ?? `e2e-${randomUUID().slice(0, 8)}@test.local`;
+
+  const [userRow] = await db
+    .insert(schema.users)
+    .values({
+      email,
+      name: options.name ?? 'E2E User',
+      role: options.role ?? 'user',
+      isBanned: options.isBanned ?? false,
+    })
+    .returning({ id: schema.users.id });
+
+  if (!userRow?.id) {
+    throw new Error('seedSession: failed to insert users row');
+  }
+  const userId = userRow.id;
+
   const sessionToken = randomUUID();
   const ttl = options.ttlMs ?? 30 * 24 * 60 * 60 * 1000;
   const expires = new Date(Date.now() + ttl);
 
-  // Raw SQL insert — avoids importing the schema symbol, which would fail
-  // at Wave 0 because the sessions table isn't in schema.ts yet.
-  // The sessions adapter table lands in Plan 05-01; calls to this helper
-  // before that plan runs will fail at the DB layer (expected; tests skip).
-  await db.execute(
-    sql`INSERT INTO sessions ("sessionToken", "userId", expires)
-        VALUES (${sessionToken}, ${options.userId}, ${expires})`,
-  );
+  await db.insert(schema.sessions).values({ sessionToken, userId, expires });
+
+  const baseUrl = options.baseUrl ?? process.env.TEST_BASE_URL ?? 'http://localhost:3000';
+  const parsed = new URL(baseUrl);
+  const isSecure = parsed.protocol === 'https:';
 
   return {
     sessionToken,
-    userId: options.userId,
+    userId,
+    email,
     cookie: {
-      name: 'authjs.session-token',
+      name: isSecure ? '__Secure-authjs.session-token' : 'authjs.session-token',
       value: sessionToken,
-      domain: options.domain ?? 'localhost',
+      domain: parsed.hostname,
       path: '/',
-      httpOnly: true,
-      secure: false,
-      sameSite: 'Lax',
       expires: Math.floor(expires.getTime() / 1000),
+      httpOnly: true,
+      secure: isSecure,
+      sameSite: 'Lax',
+    },
+    cleanup: async () => {
+      await db.delete(schema.sessions).where(eq(schema.sessions.sessionToken, sessionToken));
+      await db.delete(schema.users).where(eq(schema.users.id, userId));
     },
   };
 }
