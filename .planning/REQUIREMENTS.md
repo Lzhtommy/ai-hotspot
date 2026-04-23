@@ -220,7 +220,7 @@ Which phases cover which requirements.
 | AUTH-03 | Phase 5 | Complete |
 | AUTH-04 | Phase 5 | Complete |
 | AUTH-05 | Phase 5 | Complete |
-| AUTH-06 | Phase 5 | Pending |
+| AUTH-06 | Phase 5 | Complete |
 | AUTH-07 | Phase 5 | Complete |
 | AUTH-08 | Phase 5 | Complete |
 | FAV-01 | Phase 5 | Complete |
