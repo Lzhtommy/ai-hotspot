@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-02-PLAN.md
-last_updated: "2026-04-23T06:02:19.573Z"
+stopped_at: Completed 05-04-PLAN.md (LoginPromptModal provider wiring)
+last_updated: "2026-04-23T06:29:52.492Z"
 last_activity: 2026-04-23
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 33
-  completed_plans: 25
-  percent: 76
+  completed_plans: 28
+  percent: 85
 ---
 
 # Project State
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 ## Current Position
 
 Phase: 5 (auth-user-interactions) — EXECUTING
-Plan: 6 of 11 (05-00, 05-01, 05-02, 05-03, 05-06 complete; 05-04 next)
+Plan: 7 of 11 (05-00, 05-01, 05-02, 05-03, 05-06 complete; 05-04 next)
 Status: Ready to execute
-Last activity: 2026-04-23 Wave 3 merged
+Last activity: 2026-04-23
 
 Progress: [███░░░░░░░] 33%
 
@@ -78,6 +78,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 05-auth-user-interactions P00 | 5 min | 3 tasks | 28 files |
 | Phase 05-auth-user-interactions P01 | 22 min | 3 tasks | 6 files |
 | Phase 05-auth-user-interactions P02 | 5 | 3 tasks | 11 files |
+| Phase 05-auth-user-interactions P04 | 8 min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -140,6 +141,8 @@ Recent decisions affecting current work:
 - [Phase 05-auth-user-interactions]: Plan 05-02: vitest.config.ts inlines next-auth + @auth/core to resolve bare-subpath imports (next/server without .js extension) that Node's ESM resolver rejects; same class of fix as voyageai
 - [Phase 05-auth-user-interactions]: Plan 05-02: authConfig split (src/lib/auth/config.ts) from NextAuth() singleton (src/lib/auth/index.ts) — mirrors db/{schema,client}.ts split so tests can import raw authConfig for shape assertions without invoking NextAuth()
 - [Phase 05-auth-user-interactions]: Plan 05-02: Providers ship empty[] — Plan 02 isolates adapter+callback+route concerns; GitHub/Resend/Google wiring moved to Plan 03 per original plan split
+- [Phase 05-auth-user-interactions]: Use form onSubmit + FormData + server-action call instead of action={serverAction} prop — React 18.3 does not fire function-valued action outside Next.js compiler transform, and Vitest environment cannot test it.
+- [Phase 05-auth-user-interactions]: jsdom HTMLDialogElement.showModal polyfill in tests/setup.ts (Option B from Plan 05-00) — preserves production <dialog> semantics while unblocking tests.
 
 ### Pending Todos
 
@@ -168,8 +171,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-23T06:02:19.568Z
-Stopped at: Completed 05-02-PLAN.md
+Last session: 2026-04-23T06:29:52.488Z
+Stopped at: Completed 05-04-PLAN.md (LoginPromptModal provider wiring)
 Resume file: None
 
 **Planned Phase:** 05 (auth-user-interactions) — 11 plans — 2026-04-23T03:52:10.184Z

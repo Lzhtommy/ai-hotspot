@@ -73,9 +73,9 @@ Requirements for initial release. Each maps to a roadmap phase.
 ### Authentication
 
 - [x] **AUTH-01**: Auth.js v5 configured with Drizzle adapter
-- [ ] **AUTH-02**: GitHub OAuth login works end-to-end on production and preview URLs
-- [ ] **AUTH-03**: Email magic link login works via Resend (China-accessible email delivery)
-- [ ] **AUTH-04**: Google OAuth available as secondary option (not the default button)
+- [x] **AUTH-02**: GitHub OAuth login works end-to-end on production and preview URLs
+- [x] **AUTH-03**: Email magic link login works via Resend (China-accessible email delivery)
+- [x] **AUTH-04**: Google OAuth available as secondary option (not the default button)
 - [x] **AUTH-05**: `AUTH_REDIRECT_PROXY_URL` configured so OAuth callbacks work on Vercel preview deployments
 - [ ] **AUTH-06**: Anonymous read works for all feed pages; no login wall
 - [x] **AUTH-07**: User sessions persist across browser refresh
@@ -89,7 +89,7 @@ Requirements for initial release. Each maps to a roadmap phase.
 - [ ] **VOTE-01**: Authenticated user can like an item
 - [ ] **VOTE-02**: Authenticated user can dislike an item
 - [ ] **VOTE-03**: Like/dislike UI includes honest copy that personalization is forthcoming
-- [ ] **VOTE-04**: Favorite/like/dislike actions require login — anonymous click prompts sign-in modal
+- [x] **VOTE-04**: Favorite/like/dislike actions require login — anonymous click prompts sign-in modal
 
 ### Admin Backend
 
@@ -215,9 +215,9 @@ Which phases cover which requirements.
 | FEED-11 | Phase 4 | Complete |
 | FEED-12 | Phase 4 | Complete |
 | AUTH-01 | Phase 5 | Complete |
-| AUTH-02 | Phase 5 | Pending |
-| AUTH-03 | Phase 5 | Pending |
-| AUTH-04 | Phase 5 | Pending |
+| AUTH-02 | Phase 5 | Complete |
+| AUTH-03 | Phase 5 | Complete |
+| AUTH-04 | Phase 5 | Complete |
 | AUTH-05 | Phase 5 | Complete |
 | AUTH-06 | Phase 5 | Pending |
 | AUTH-07 | Phase 5 | Complete |
@@ -228,7 +228,7 @@ Which phases cover which requirements.
 | VOTE-01 | Phase 5 | Pending |
 | VOTE-02 | Phase 5 | Pending |
 | VOTE-03 | Phase 5 | Pending |
-| VOTE-04 | Phase 5 | Pending |
+| VOTE-04 | Phase 5 | Complete |
 | ADMIN-01 | Phase 6 | Pending |
 | ADMIN-02 | Phase 6 | Pending |
 | ADMIN-03 | Phase 6 | Pending |
