@@ -130,6 +130,9 @@ export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
   email: text('email').notNull().unique(),
   name: text('name'),
+  // Phase 5 D-02 — Auth.js adapter columns (nullable; filled by OAuth / magic-link flows)
+  emailVerified: timestamp('email_verified', { withTimezone: true }),
+  image: text('image'),
   avatarUrl: text('avatar_url'),
   role: text('role').notNull().default('user'), // 'user' | 'admin'
   isBanned: boolean('is_banned').notNull().default(false),
@@ -203,4 +206,47 @@ export const pipelineRuns = pgTable(
     itemIdx: index('pipeline_runs_item_id_idx').on(table.itemId),
     dateIdx: index('pipeline_runs_created_at_idx').on(table.createdAt.desc()),
   }),
+);
+
+// Phase 5 — Auth.js v5 adapter tables (D-01).
+// Column names MUST stay camelCase in SQL (quoted identifiers) — @auth/drizzle-adapter
+// reads/writes "userId", "providerAccountId", "sessionToken" verbatim. This is the ONE
+// place the project departs from snake_case SQL convention.
+// FKs are uuid → uuid to match existing users.id (RESEARCH §Pitfall 2).
+export const accounts = pgTable(
+  'accounts',
+  {
+    userId: uuid('userId')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    type: text('type').notNull(),
+    provider: text('provider').notNull(),
+    providerAccountId: text('providerAccountId').notNull(),
+    refresh_token: text('refresh_token'),
+    access_token: text('access_token'),
+    expires_at: integer('expires_at'),
+    token_type: text('token_type'),
+    scope: text('scope'),
+    id_token: text('id_token'),
+    session_state: text('session_state'),
+  },
+  (t) => ({ pk: primaryKey({ columns: [t.provider, t.providerAccountId] }) }),
+);
+
+export const sessions = pgTable('sessions', {
+  sessionToken: text('sessionToken').primaryKey(),
+  userId: uuid('userId')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  expires: timestamp('expires', { withTimezone: true, mode: 'date' }).notNull(),
+});
+
+export const verificationTokens = pgTable(
+  'verification_tokens',
+  {
+    identifier: text('identifier').notNull(),
+    token: text('token').notNull(),
+    expires: timestamp('expires', { withTimezone: true, mode: 'date' }).notNull(),
+  },
+  (t) => ({ pk: primaryKey({ columns: [t.identifier, t.token] }) }),
 );
