@@ -22,7 +22,11 @@
  */
 import { randomUUID } from 'node:crypto';
 import { eq } from 'drizzle-orm';
-import { makeTestDb } from './db';
+// Import directly from the Vitest-free module so Playwright specs can load
+// this helper without `tests/helpers/db.ts`'s `import { vi } from 'vitest'`
+// pulling the Vitest runtime into the Playwright worker (which fails with
+// "Vitest cannot be imported in a CommonJS module").
+import { makeTestDb } from './test-db';
 import * as schema from '@/lib/db/schema';
 
 export interface SeededSession {

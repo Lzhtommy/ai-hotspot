@@ -3,6 +3,8 @@
  *
  * Provides two factories:
  *   - makeTestDb():  real Drizzle+Neon HTTP connection (integration tests on a Neon branch)
+ *                    re-exported from `./test-db` so Playwright specs can import
+ *                    it without transitively pulling in Vitest.
  *   - makeMockDb():  typed stub with chainable vi.fn() for unit tests
  *
  * Threat-model guard (T-5-W0-01): `makeTestDb` fail-closes when DATABASE_URL
@@ -14,34 +16,9 @@
  *   - tests/integration/*.test.ts (real DB path)
  *   - tests/unit/*.test.ts (mock path)
  */
-import { drizzle } from 'drizzle-orm/neon-http';
-import { neon } from '@neondatabase/serverless';
 import { vi } from 'vitest';
-import * as schema from '@/lib/db/schema';
 
-/**
- * Returns a Drizzle client bound to the DATABASE_URL env var.
- *
- * Throws when:
- *   - DATABASE_URL is unset (integration tests require a branch DB)
- *   - DATABASE_URL looks like a production branch (fail-closed per T-5-W0-01)
- */
-export function makeTestDb() {
-  const url = process.env.DATABASE_URL;
-  if (!url) {
-    throw new Error(
-      'DATABASE_URL required for integration tests. Set it to a Neon branch connection string.',
-    );
-  }
-  // Fail-closed heuristic: reject obvious production-branch URLs.
-  const lowered = url.toLowerCase();
-  if (lowered.includes('prod') || /ep-[a-z0-9-]+-prod/.test(lowered)) {
-    throw new Error(
-      'DATABASE_URL appears to reference a production branch. Integration tests MUST run against a non-prod Neon branch.',
-    );
-  }
-  return drizzle(neon(url), { schema });
-}
+export { makeTestDb } from './test-db';
 
 /**
  * Minimal chainable Drizzle-like mock for unit tests. Each method returns
