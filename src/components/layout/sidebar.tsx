@@ -17,11 +17,12 @@
  *   - src/app/(reader)/layout.tsx
  */
 
+import type { Session } from 'next-auth';
 import { Icon } from './icon';
 import { NavRow } from './nav-row';
 import { SectionLabel } from './section-label';
 import { PipelineStatusCard } from './pipeline-status-card';
-import { UserChip } from './user-chip';
+import { UserChip, type UserChipSessionUser } from './user-chip';
 
 // Reader nav per CONTEXT D-09 / sidebar.jsx lines 5–10
 const NAV_READER = [
@@ -57,9 +58,30 @@ const NAV_ADMIN = [
 interface SidebarProps {
   /** Current pathname — used to derive active NavRow. Pass from layout RSC. */
   pathname: string;
+  /**
+   * Phase 5 Plan 05-05: pre-fetched Auth.js session from the RSC layout
+   * (`await auth()` in src/app/(reader)/layout.tsx). Forwarded to UserChip
+   * so it never needs useSession() (CLAUDE.md §11 + RESEARCH §Anti-Patterns).
+   */
+  session: Session | null;
 }
 
-export async function Sidebar({ pathname }: SidebarProps) {
+export function Sidebar({ pathname, session }: SidebarProps) {
+  // Map Auth.js Session.user (name/email/image optional) onto UserChip's
+  // stricter SessionUser (id + email required). When id/email are missing
+  // we treat the session as anonymous so UserChip renders the 登录 chip.
+  const userChipSession: { user: UserChipSessionUser } | null =
+    session?.user?.id && session.user.email
+      ? {
+          user: {
+            id: session.user.id,
+            email: session.user.email,
+            name: session.user.name ?? null,
+            image: session.user.image ?? null,
+            role: (session.user as { role?: string }).role,
+          },
+        }
+      : null;
   return (
     <aside
       style={{
@@ -217,7 +239,7 @@ export async function Sidebar({ pathname }: SidebarProps) {
       {/* Bottom section: PipelineStatusCard + UserChip — sidebar.jsx lines 227–300 */}
       <div style={{ marginTop: 'auto' }}>
         <PipelineStatusCard />
-        <UserChip />
+        <UserChip session={userChipSession} />
       </div>
     </aside>
   );

@@ -1,11 +1,15 @@
 /**
- * Route-group layout for the reader section — Phase 4 FEED-07.
+ * Route-group layout for the reader section — Phase 4 FEED-07 + Phase 5 Plan 05-05.
  *
  * Wraps all (reader) routes in the full shell:
  *   - ReaderShell (Client): two-column grid + SidebarMobileDrawer + Sidebar
  *   - LoginPromptModal (Client): mounted once; opened via custom event 'open-login-modal'
  *
  * This is an RSC layout. The client boundary is delegated to ReaderShell.
+ *
+ * Phase 5 Plan 05-05: calls `await auth()` at this RSC boundary and prop-drills
+ * the session through ReaderShell → Sidebar → UserChip. UserChip never calls
+ * useSession() (per CLAUDE.md §11 + RESEARCH §Anti-Patterns).
  *
  * Consumed by:
  *   - src/app/(reader)/page.tsx
@@ -16,10 +20,12 @@
 
 import { ReaderShell } from '@/components/layout/reader-shell';
 import { LoginPromptModal } from '@/components/feed/login-prompt-modal';
+import { auth } from '@/lib/auth';
 
-export default function ReaderLayout({ children }: { children: React.ReactNode }) {
+export default async function ReaderLayout({ children }: { children: React.ReactNode }) {
+  const session = await auth();
   return (
-    <ReaderShell>
+    <ReaderShell session={session}>
       {children}
       <LoginPromptModal />
     </ReaderShell>
