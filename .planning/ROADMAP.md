@@ -108,7 +108,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] 05-02-PLAN.md — Auth.js v5 config + session helpers + /api/auth/[...nextauth] route + ban callback (D-05 Layer 1) + .env.example
 - [x] 05-03-PLAN.md — Providers: GitHub + Resend (Chinese magic-link) + Google; next.config.ts remotePatterns allowlist
 - [x] 05-04-PLAN.md — LoginPromptModal: real provider buttons + email magic-link form + 检查邮箱 success state; fix favorites-empty dispatchEvent
-- [ ] 05-05-PLAN.md — UserChip three-state render (anonymous / auth+image / auth+monogram) + sign-out popover; icon union extension
+- [x] 05-05-PLAN.md — UserChip three-state render (anonymous / auth+image / auth+monogram) + sign-out popover; icon union extension
 - [x] 05-06-PLAN.md — Server actions: favoriteItem/unfavoriteItem/voteItem with D-05 Layer 2 ban guard + D-12 vote state machine
 - [ ] 05-07-PLAN.md — FeedCardActions useOptimistic wiring + IconButton active state + VOTE-03 PERSONALIZATION_COPY
 - [ ] 05-08-PLAN.md — /favorites authenticated RSC: redirect anon to /, query favorites JOIN items reverse-chrono, dynamic='force-dynamic'

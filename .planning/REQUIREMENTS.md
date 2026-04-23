@@ -77,7 +77,8 @@ Requirements for initial release. Each maps to a roadmap phase.
 - [x] **AUTH-03**: Email magic link login works via Resend (China-accessible email delivery)
 - [x] **AUTH-04**: Google OAuth available as secondary option (not the default button)
 - [x] **AUTH-05**: `AUTH_REDIRECT_PROXY_URL` configured so OAuth callbacks work on Vercel preview deployments
-- [ ] **AUTH-06**: Anonymous read works for all feed pages; no login wall
+- [x] **AUTH-06
+**: Anonymous read works for all feed pages; no login wall
 - [x] **AUTH-07**: User sessions persist across browser refresh
 - [x] **AUTH-08**: Sign out works from any page
 
