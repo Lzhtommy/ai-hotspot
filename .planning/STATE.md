@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Completed 06-07-PLAN.md (public sitemap + robots + Vercel Analytics — code complete; live E2E deferred to UAT). Wave 1 done; next up Wave 2 parallel: 06-02..06-05."
-last_updated: "2026-04-24T01:52:00.915Z"
+stopped_at: Completed 06-08-PLAN.md — Phase 6 runbooks + verify harness + UAT shipped; Phase 6 code-complete
+last_updated: "2026-04-24T02:22:09.907Z"
 last_activity: 2026-04-24
 progress:
   total_phases: 6
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 42
-  completed_plans: 37
-  percent: 88
+  completed_plans: 42
+  percent: 100
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 ## Current Position
 
 Phase: 06 (admin-operational-hardening) — EXECUTING
-Plan: 5 of 9
+Plan: 6 of 9
 Status: Ready to execute
 Last activity: 2026-04-24
 
@@ -88,6 +88,7 @@ Progress: [█████████░] 88%
 | Phase 06-admin-operational-hardening P01 | 15min | 3 tasks | 6 files |
 | Phase 06-admin-operational-hardening P06-06 | 25min | 2 tasks | 11 files |
 | Phase 06-admin-operational-hardening P06-07 | 4min | 2 tasks | 5 files |
+| Phase 06-admin-operational-hardening P08 | 9min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -176,6 +177,8 @@ Recent decisions affecting current work:
 - [Phase 06-admin-operational-hardening]: Plan 06-06: Task 3 live Sentry verification DEFERRED to 06-06-HUMAN-UAT.md pending user SENTRY_DSN provisioning — code-complete on branch (commits e713c7e + 36372d1); matches Plan 05-10 precedent of decoupling live smoke-test from code-complete
 - [Phase 06-admin-operational-hardening]: Plan 06-07: WARNING-8 honoured — sitemap-repo does NOT join sources.deleted_at; Wave 1 plan (depends_on: []) remains mergeable before Plan 06-01 0005_admin_ops migration lands. Ingestion poller enforces deleted_at skip on new items; historical published items remain valid for SEO.
 - [Phase 06-admin-operational-hardening]: Plan 06-07: Live E2E run of sitemap-and-analytics.spec.ts deferred to phase-close UAT (requires dev server) per Plan 05-10/06-06 precedent; build + unit tests + typecheck are the merge gate.
+- [Phase 06-admin-operational-hardening]: Plan 06-08: OPS-02 satisfied without code change — Phase 3 03-04 Langfuse OTel wiring canonical; runbook-only closure in docs/observability.md
+- [Phase 06-admin-operational-hardening]: Plan 06-08: verify-admin-ops SC#1 uses source-grep + DB-level cores (no HTTP probe) per WARNING-10; 18/18 PASS live on Neon dev with finally cleanup
 
 ### Pending Todos
 
@@ -204,8 +207,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-24T01:52:00.911Z
-Stopped at: Completed 06-07-PLAN.md (public sitemap + robots + Vercel Analytics — code complete; live E2E deferred to UAT). Wave 1 done; next up Wave 2 parallel: 06-02..06-05.
+Last session: 2026-04-24T02:22:09.903Z
+Stopped at: Completed 06-08-PLAN.md — Phase 6 runbooks + verify harness + UAT shipped; Phase 6 code-complete
 Resume file: None
 
 **Planned Phase:** 6 (Admin + Operational Hardening) — 9 plans — 2026-04-23T11:37:34.098Z
