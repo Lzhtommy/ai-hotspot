@@ -5,7 +5,8 @@
  *   - Brand chip (AI Hotspot flame SVG + title + subtitle)
  *   - Search stub (disabled input + ⌘K kbd — visual only)
  *   - Reader nav section (精选 / 全部 AI 动态 / 低粉爆文 V2 / 收藏)
- *   - Admin nav section (all disabled with 即将开放 tooltip)
+ *   - Admin nav section (role-gated on session.user.role === 'admin' — wires to
+ *     /admin/{sources,users,costs,dead-letter} per Phase 6)
  *   - PipelineStatusCard (live RSC DB query)
  *   - UserChip (opens login modal)
  *
@@ -39,20 +40,12 @@ const NAV_READER = [
   { id: 'favorites', icon: 'star' as const, label: '收藏', href: '/favorites' },
 ];
 
-// Admin nav per CONTEXT D-10 / sidebar.jsx lines 11–17 (all disabled in Phase 4)
+// Quick 260424-g2y: aligned with admin-nav.tsx; gated on role==='admin'.
 const NAV_ADMIN = [
-  { id: 'sources', icon: 'globe' as const, label: '信源', disabled: true, title: '即将开放' },
-  {
-    id: 'submissions',
-    icon: 'send' as const,
-    label: '信源提报',
-    disabled: true,
-    chip: 'V2' as const,
-    title: '即将开放',
-  },
-  { id: 'strategies', icon: 'filter' as const, label: '策略', disabled: true, title: '即将开放' },
-  { id: 'users', icon: 'users' as const, label: '用户', disabled: true, title: '即将开放' },
-  { id: 'backend', icon: 'settings' as const, label: '后台', disabled: true, title: '即将开放' },
+  { id: 'sources', icon: 'globe' as const, label: '信源', href: '/admin/sources' },
+  { id: 'users', icon: 'users' as const, label: '用户', href: '/admin/users' },
+  { id: 'costs', icon: 'settings' as const, label: '成本', href: '/admin/costs' },
+  { id: 'dead-letter', icon: 'alert-circle' as const, label: '死信', href: '/admin/dead-letter' },
 ];
 
 interface SidebarProps {
@@ -89,6 +82,8 @@ export function Sidebar({ pathname, session, pipelineStatus }: SidebarProps) {
           },
         }
       : null;
+  // Quick 260424-g2y: role-gate the 管理 section. Same cast pattern as line 88.
+  const isAdmin = (session?.user as { role?: string } | undefined)?.role === 'admin';
   return (
     <aside
       style={{
@@ -226,22 +221,28 @@ export function Sidebar({ pathname, session, pipelineStatus }: SidebarProps) {
         ))}
       </nav>
 
-      {/* Admin nav — sidebar.jsx lines 215–225 */}
+      {/* Admin nav — Quick 260424-g2y: role-gated, wires to real /admin routes (Phase 6) */}
       {/* UI-SPEC Copywriting: SectionLabel "管理" */}
-      <SectionLabel>管理</SectionLabel>
-      <nav style={{ display: 'flex', flexDirection: 'column', gap: 1 }} aria-label="管理导航">
-        {NAV_ADMIN.map((item) => (
-          <NavRow
-            key={item.id}
-            label={item.label}
-            icon={item.icon}
-            disabled={item.disabled}
-            chip={'chip' in item ? item.chip : undefined}
-            title={item.title}
-            active={false}
-          />
-        ))}
-      </nav>
+      {isAdmin && (
+        <>
+          <SectionLabel>管理</SectionLabel>
+          <nav style={{ display: 'flex', flexDirection: 'column', gap: 1 }} aria-label="管理导航">
+            {NAV_ADMIN.map((item) => {
+              // Active rule matches admin-nav.tsx — /admin/sources/123 still highlights 信源.
+              const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+              return (
+                <NavRow
+                  key={item.id}
+                  label={item.label}
+                  icon={item.icon}
+                  href={item.href}
+                  active={active}
+                />
+              );
+            })}
+          </nav>
+        </>
+      )}
 
       {/* Bottom section: PipelineStatusCard + UserChip — sidebar.jsx lines 227–300 */}
       <div style={{ marginTop: 'auto' }}>
