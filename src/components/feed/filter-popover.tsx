@@ -100,7 +100,7 @@ export function FilterPopover({ availableTags, availableSources }: FilterPopover
           aria-label="筛选"
           style={{
             position: 'absolute',
-            right: 0,
+            left: 0,
             marginTop: 8,
             zIndex: 20,
             width: 320,
