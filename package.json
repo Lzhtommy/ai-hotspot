@@ -45,6 +45,7 @@
     "@opentelemetry/sdk-node": "^0.215.0",
     "@sentry/nextjs": "^10.50.0",
     "@trigger.dev/sdk": "^4.4.4",
+    "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.37.0",
     "@vercel/analytics": "^2.0.1",
     "clsx": "^2.1.1",

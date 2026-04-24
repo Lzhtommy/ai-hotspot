@@ -36,10 +36,10 @@ Discovered during: Plan 06-06 Task 3 checkpoint (live Sentry dashboard verificat
 
 ## Deferred: `/sitemap.xml` prerender failure at build-time without live DATABASE_URL
 
-Discovered during: Plan 06-03 Task 3 and Plan 06-04 Task 2 `pnpm run build` verification (both observed the same failure independently).
+Discovered during: Plan 06-03 Task 3, Plan 06-04 Task 2, and Plan 06-05 Task 2 `pnpm run build` verification (all three observed the same failure independently).
 
 **Failure:**
-- `Error occurred prerendering page "/sitemap.xml"` → "No database host or connection string was set" — `src/app/sitemap.ts` (added by Plan 06-07, commit `228c421`) calls `getPublishedItemUrls()` at build time via the default-static prerender path, which fails when no real Neon database is reachable (CI / fresh worktree).
+- `Error occurred prerendering page "/sitemap.xml"` → "No database host or connection string was set" — `src/app/sitemap.ts` (added by Plan 06-07, commit `228c421`) calls `getPublishedItemUrls()` which runs `select "id", "published_at", "processed_at" from "items"...` at build time via the default-static prerender path. Fails when no real Neon database is reachable (CI / fresh worktree without `.env.local`).
 
 **Status:** Pre-existing on `gsd/phase-06-admin-operational-hardening` at commit `f816ef7` — introduced by Plan 06-07 OPS-04, not by any Wave 2 plan. Confirmed via baseline `pnpm run build` at `f816ef7` (identical error without any Wave 2 edits). Wave 2 routes (`/admin/users`, `/admin/costs`, `/admin/dead-letter`, `/admin/sources`) are all `force-dynamic` and do not prerender; their `tsc --noEmit` and unit tests pass. The failure is isolated to `/sitemap.xml`.
 
