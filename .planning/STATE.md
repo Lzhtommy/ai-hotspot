@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 06-00-PLAN.md (admin gate foundation — requireAdmin, middleware, /admin route group)
-last_updated: "2026-04-23T13:04:22.695Z"
-last_activity: 2026-04-23
+stopped_at: Completed 06-01-PLAN.md (admin schema migration — sources.deleted_at+category, users.banned_at+banned_by FK, applied to live Neon dev branch)
+last_updated: "2026-04-24T01:34:26.083Z"
+last_activity: 2026-04-24
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 42
-  completed_plans: 34
-  percent: 81
+  completed_plans: 35
+  percent: 83
 ---
 
 # Project State
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 ## Current Position
 
 Phase: 06 (admin-operational-hardening) — EXECUTING
-Plan: 2 of 9
+Plan: 3 of 9
 Status: Ready to execute
-Last activity: 2026-04-23
+Last activity: 2026-04-24
 
 Progress: [█████████░] 88%
 
@@ -85,6 +85,7 @@ Progress: [█████████░] 88%
 | Phase 05-auth-user-interactions P09 | 7 min | 3 tasks | 7 files |
 | Phase 05-auth-user-interactions P10 | 3 min | 3 tasks | 2 files |
 | Phase 06-admin-operational-hardening P00 | 7min | 3 tasks | 8 files |
+| Phase 06-admin-operational-hardening P01 | 15min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -164,6 +165,10 @@ Recent decisions affecting current work:
 - [Phase 06-admin-operational-hardening]: Plan 06-00: Three-layer admin gate — edge cookie filter (middleware) + RSC requireAdmin() + per-action assertAdmin(). Every Phase 6 admin plan inherits the gate via app/admin/layout.tsx without re-declaring.
 - [Phase 06-admin-operational-hardening]: Plan 06-00: Edge middleware sets x-pathname header so RSC layout can skip requireAdmin() on /admin/access-denied — fixes redirect loop where non-admin users bounce forever between layout and access-denied.
 - [Phase 06-admin-operational-hardening]: Plan 06-00: assertAdmin declared as 'asserts session is AdminSession' — Server Actions narrow the session type in one call without a cast.
+- [Phase 06-admin-operational-hardening]: Plan 06-01: Self-referencing FK for users.banned_by declared in raw SQL (not Drizzle DSL) via DO $$ IF NOT EXISTS constraint guard — sidesteps TS circularity; matches 0003/0004 hand-written precedent
+- [Phase 06-admin-operational-hardening]: Plan 06-01: Applier script doubles as verification harness — scripts/apply-0005-admin-ops.ts runs 6 post-apply assertions and exits non-zero on drift; eliminates a separate verify:admin-schema script
+- [Phase 06-admin-operational-hardening]: Plan 06-01: category stored as free-form TEXT (not pg enum) — UI layer enforces v1 value set; avoids ALTER TYPE migrations when taxonomy evolves
+- [Phase 06-admin-operational-hardening]: Plan 06-01: sources_deleted_at_idx btree index added proactively in 0005 migration — Plan 06-02 sources-list WHERE deleted_at IS NULL hot path does not need a follow-up push
 
 ### Pending Todos
 
@@ -192,8 +197,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-23T13:04:22.691Z
-Stopped at: Completed 06-00-PLAN.md (admin gate foundation — requireAdmin, middleware, /admin route group)
+Last session: 2026-04-24T01:34:26.079Z
+Stopped at: Completed 06-01-PLAN.md (admin schema migration — sources.deleted_at+category, users.banned_at+banned_by FK, applied to live Neon dev branch)
 Resume file: None
 
 **Planned Phase:** 6 (Admin + Operational Hardening) — 9 plans — 2026-04-23T11:37:34.098Z
