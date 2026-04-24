@@ -3,7 +3,7 @@
  *
  * 224px fixed desktop navigation sidebar (RSC). Contains:
  *   - Brand chip (AI Hotspot flame SVG + title + subtitle)
- *   - Search stub (disabled input + ⌘K kbd — visual only)
+ *   - SidebarSearch (client; ⌘K focus shortcut, debounced /api/search)
  *   - Reader nav section (精选 / 全部 AI 动态 / 低粉爆文 V2 / 收藏)
  *   - Admin nav section (role-gated on session.user.role === 'admin' — wires to
  *     /admin/{sources,users,costs,dead-letter} per Phase 6)
@@ -20,9 +20,9 @@
 
 import type { ReactNode } from 'react';
 import type { Session } from 'next-auth';
-import { Icon } from './icon';
 import { NavRow } from './nav-row';
 import { SectionLabel } from './section-label';
+import { SidebarSearch } from './sidebar-search';
 import { UserChip, type UserChipSessionUser } from './user-chip';
 
 // Reader nav per CONTEXT D-09 / sidebar.jsx lines 5–10
@@ -157,43 +157,12 @@ export function Sidebar({ pathname, session, pipelineStatus }: SidebarProps) {
         </div>
       </div>
 
-      {/* Search stub — sidebar.jsx lines 169–201 (visual only, no handler) */}
-      {/* T-04-02-03: disabled <input> — no form submission, no event handler */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-          height: 30, // sidebar.jsx line 176 — off 4pt scale
-          padding: '0 10px',
-          marginBottom: 4,
-          background: 'var(--surface-1)',
-          borderRadius: 6,
-          color: 'var(--fg-3)', // --fg-3 = --ink-600 (#5c584f) — meets WCAG AA 4.5:1 on --surface-1
-          fontSize: 12.5, // sidebar.jsx line 183 — fractional
-          cursor: 'text',
-        }}
-        role="search"
-        aria-label="搜索动态"
-      >
-        <Icon name="search" size={13} />
-        {/* UI-SPEC Copywriting: "搜索动态…" + "⌘K" — sidebar.jsx line 186 */}
-        <span style={{ flex: 1, color: 'var(--fg-3)' }}>搜索动态…</span>
-        <kbd
-          style={{
-            marginLeft: 'auto',
-            fontFamily: 'var(--font-mono)',
-            fontSize: 10,
-            padding: '0 4px',
-            background: 'var(--surface-0)',
-            border: '1px solid var(--line-weak)',
-            borderRadius: 3,
-            color: 'var(--fg-3)',
-          }}
-        >
-          ⌘K
-        </kbd>
-      </div>
+      {/* Search — Quick 260424-ogp. Client component replaces the previous
+          disabled stub; keeps geometry/colors identical and adds:
+            - ⌘K focus shortcut (global keydown)
+            - 250ms-debounced fetch to /api/search
+            - Absolute-positioned dropdown with up to 10 hits */}
+      <SidebarSearch />
 
       {/* Reader nav — sidebar.jsx lines 203–213 */}
       {/* UI-SPEC Copywriting: SectionLabel "动态" */}
