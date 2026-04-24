@@ -204,6 +204,7 @@ None yet.
 | 260424-ney | feed 列表页聚类展开按钮点击渲染 siblings — getFeed 批量返回 clusterSiblings + / 和 /all 页面传参（favorites 留作边界） | 2026-04-24 | ecf89ec | [260424-ney-feed-siblings](./quick/260424-ney-feed-siblings/) |
 | 260424-o34 | fetch-source-core 按 URL 前缀分流：原生 http(s):// 走裸 fetch，/ 开头走 fetchRSSHub；新增 nativeFetch 可注入 + 5 条测试覆盖分流 | 2026-04-24 | 5a07ce7 | [260424-o34-fetch-source-native-rss-rsshub](./quick/260424-o34-fetch-source-native-rss-rsshub/) |
 | 260424-ogp | 左上角搜索：SidebarSearch 客户端组件 + ⌘K/Ctrl+K 全局快捷键 + /api/search (ILIKE title/title_zh/summary_zh, Upstash 30/60s 速率限制, Zod 校验) + 10 单测 | 2026-04-24 | 144c805 | [260424-ogp-implement-sidebar-search-with-api-and-ke](./quick/260424-ogp-implement-sidebar-search-with-api-and-ke/) |
+| 260424-oyc | 右上角「手动同步」按钮接通 Trigger.dev：POST /api/admin/sync（assertAdmin + Upstash slidingWindow 1/120s + tasks.trigger('ingest-hourly')）+ ManualSyncButton 客户端小岛（in-flight/成功/失败内联状态）+ FeedTopBar canSync 透传 + 6 单测 | 2026-04-24 | 4f8f918 | [260424-oyc-wire-manual-sync-button-to-trigger-dev-i](./quick/260424-oyc-wire-manual-sync-button-to-trigger-dev-i/) |
 
 ## Deferred Items
 
