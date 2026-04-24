@@ -45,6 +45,23 @@ function rssResponse(xml: string): Response {
   });
 }
 
+function makeFetchSpies(
+  rssHubResponse: Response | (() => Promise<Response>),
+  nativeResponse: Response | (() => Promise<Response>),
+) {
+  const rssHubCalls: string[] = [];
+  const nativeCalls: Array<{ url: string; init?: RequestInit }> = [];
+  const fetchRSSHub = async (url: string) => {
+    rssHubCalls.push(url);
+    return typeof rssHubResponse === 'function' ? rssHubResponse() : rssHubResponse.clone();
+  };
+  const nativeFetch = (async (url: string | URL | Request, init?: RequestInit) => {
+    nativeCalls.push({ url: String(url), init });
+    return typeof nativeResponse === 'function' ? nativeResponse() : nativeResponse.clone();
+  }) as unknown as typeof fetch;
+  return { fetchRSSHub, nativeFetch, rssHubCalls, nativeCalls };
+}
+
 const sampleFeedXml = `<?xml version="1.0"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel><title>t</title><link>https://x.com/</link><description>d</description>
   <item><title>A</title><link>https://x.com/a</link><pubDate>Mon, 20 Apr 2026 01:00:00 GMT</pubDate><content:encoded><![CDATA[body a]]></content:encoded></item>
@@ -193,6 +210,29 @@ describe('runFetchSource', () => {
       // publishedAt must be a Date; publishedAtSourceTz may be null or string
       expect(row.publishedAt).toBeInstanceOf(Date);
     }
+  });
+
+  it('dispatches to nativeFetch when rssUrl starts with https://', async () => {
+    const { db } = makeDbMock('new');
+    const { fetchRSSHub, nativeFetch, rssHubCalls, nativeCalls } = makeFetchSpies(
+      rssResponse(sampleFeedXml),
+      rssResponse(sampleFeedXml),
+    );
+    const res = await runFetchSource({
+      sourceId: 42,
+      rssUrl: 'https://huggingface.co/blog/feed.xml',
+      deps: {
+        db: db as never,
+        fetchRSSHub,
+        nativeFetch,
+        now: () => new Date('2026-04-20T12:00:00Z'),
+      },
+    });
+    expect(nativeCalls).toHaveLength(1);
+    expect(nativeCalls[0].url).toBe('https://huggingface.co/blog/feed.xml');
+    expect(rssHubCalls).toHaveLength(0);
+    expect(res.status).toBe('ok');
+    expect(res.newCount).toBe(2);
   });
 
   it('url stored is the normalized form (not the raw RSS link)', async () => {
