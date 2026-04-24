@@ -201,6 +201,7 @@ None yet.
 | 260423-e6n | enrich.ts: expose real Anthropic error detail (name+message 300 chars, APIError status/type) in EnrichError without leaking keys | 2026-04-23 | a2afa86 | [260423-e6n-enrich-ts-expose-real-anthropic-error-de](./quick/260423-e6n-enrich-ts-expose-real-anthropic-error-de/) |
 | 260424-g2y | Wire sidebar 管理 section to real /admin routes (Phase 6) + role-gate on session.user.role==='admin' | 2026-04-24 | 4b4fd9a | [260424-g2y-wire-sidebar-admin-nav-to-real-admin-rou](./quick/260424-g2y-wire-sidebar-admin-nav-to-real-admin-rou/) |
 | 260424-mjc | admin 新建信源表单接受 RSSHub 路由路径（/ 开头）与完整 URL 两种格式 | 2026-04-24 | 690ae1a | [260424-mjc-admin-rsshub](./quick/260424-mjc-admin-rsshub/) |
+| 260424-ney | feed 列表页聚类展开按钮点击渲染 siblings — getFeed 批量返回 clusterSiblings + / 和 /all 页面传参（favorites 留作边界） | 2026-04-24 | ecf89ec | [260424-ney-feed-siblings](./quick/260424-ney-feed-siblings/) |
 
 ## Deferred Items
 
