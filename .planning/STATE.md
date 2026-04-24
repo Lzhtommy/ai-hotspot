@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 06-01-PLAN.md (admin schema migration — sources.deleted_at+category, users.banned_at+banned_by FK, applied to live Neon dev branch)
-last_updated: "2026-04-24T01:34:26.083Z"
+stopped_at: Completed 06-06-PLAN.md (Sentry integration — code complete; live verification deferred to 06-06-HUMAN-UAT)
+last_updated: "2026-04-24T01:45:12.440Z"
 last_activity: 2026-04-24
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 42
-  completed_plans: 35
-  percent: 83
+  completed_plans: 36
+  percent: 86
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 ## Current Position
 
 Phase: 06 (admin-operational-hardening) — EXECUTING
-Plan: 3 of 9
+Plan: 4 of 9
 Status: Ready to execute
 Last activity: 2026-04-24
 
@@ -86,6 +86,7 @@ Progress: [█████████░] 88%
 | Phase 05-auth-user-interactions P10 | 3 min | 3 tasks | 2 files |
 | Phase 06-admin-operational-hardening P00 | 7min | 3 tasks | 8 files |
 | Phase 06-admin-operational-hardening P01 | 15min | 3 tasks | 6 files |
+| Phase 06-admin-operational-hardening P06-06 | 25min | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -169,6 +170,9 @@ Recent decisions affecting current work:
 - [Phase 06-admin-operational-hardening]: Plan 06-01: Applier script doubles as verification harness — scripts/apply-0005-admin-ops.ts runs 6 post-apply assertions and exits non-zero on drift; eliminates a separate verify:admin-schema script
 - [Phase 06-admin-operational-hardening]: Plan 06-01: category stored as free-form TEXT (not pg enum) — UI layer enforces v1 value set; avoids ALTER TYPE migrations when taxonomy evolves
 - [Phase 06-admin-operational-hardening]: Plan 06-01: sources_deleted_at_idx btree index added proactively in 0005 migration — Plan 06-02 sources-list WHERE deleted_at IS NULL hot path does not need a follow-up push
+- [Phase 06-admin-operational-hardening]: Plan 06-06: Sentry beforeSend scrubs PII in place (cookies, auth headers, user.email, secret-field regex) and forwards — redact-not-drop preserves error signal; Sentry relay scrubbing remains defense-in-depth
+- [Phase 06-admin-operational-hardening]: Plan 06-06: Trigger.dev worker Sentry init is lazy inside withSentry wrapper (not module-scope) — matches Phase 01 db/redis singleton pattern; safe when SENTRY_DSN absent
+- [Phase 06-admin-operational-hardening]: Plan 06-06: Task 3 live Sentry verification DEFERRED to 06-06-HUMAN-UAT.md pending user SENTRY_DSN provisioning — code-complete on branch (commits e713c7e + 36372d1); matches Plan 05-10 precedent of decoupling live smoke-test from code-complete
 
 ### Pending Todos
 
@@ -197,8 +201,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-24T01:34:26.079Z
-Stopped at: Completed 06-01-PLAN.md (admin schema migration — sources.deleted_at+category, users.banned_at+banned_by FK, applied to live Neon dev branch)
+Last session: 2026-04-24T01:45:12.436Z
+Stopped at: Completed 06-06-PLAN.md (Sentry integration — code complete; live verification deferred to 06-06-HUMAN-UAT)
 Resume file: None
 
 **Planned Phase:** 6 (Admin + Operational Hardening) — 9 plans — 2026-04-23T11:37:34.098Z

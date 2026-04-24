@@ -106,7 +106,7 @@ Requirements for initial release. Each maps to a roadmap phase.
 
 ### Operational
 
-- [ ] **OPS-01**: Sentry integrated for Next.js + Trigger.dev error capture
+- [x] **OPS-01**: Sentry integrated for Next.js + Trigger.dev error capture
 - [ ] **OPS-02**: Langfuse dashboard shows per-item LLM cost and cache hit rate
 - [ ] **OPS-03**: Admin UI exposes dead-letter items with retry action
 - [ ] **OPS-04**: Basic sitemap.xml generated from published items
@@ -239,7 +239,7 @@ Which phases cover which requirements.
 | ADMIN-07 | Phase 6 | Pending |
 | ADMIN-08 | Phase 6 | Pending |
 | ADMIN-09 | Phase 6 | Pending |
-| OPS-01 | Phase 6 | Pending |
+| OPS-01 | Phase 6 | Complete |
 | OPS-02 | Phase 6 | Pending |
 | OPS-03 | Phase 6 | Pending |
 | OPS-04 | Phase 6 | Pending |

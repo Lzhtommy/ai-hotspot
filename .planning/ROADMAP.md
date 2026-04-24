@@ -133,7 +133,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] 06-03-PLAN.md — User management + atomic ban with session revocation (UPDATE users + DELETE sessions in one transaction) (ADMIN-07, ADMIN-08)
 - [ ] 06-04-PLAN.md — Daily LLM cost dashboard from pipeline_runs aggregation (ADMIN-09)
 - [ ] 06-05-PLAN.md — Dead-letter retry UI with Upstash-backed per-admin rate limit (OPS-03)
-- [ ] 06-06-PLAN.md — Sentry integration (Next.js + Trigger.dev) with beforeSend PII scrub (OPS-01)
+- [x] 06-06-PLAN.md — Sentry integration (Next.js + Trigger.dev) with beforeSend PII scrub (OPS-01)
 - [ ] 06-07-PLAN.md — Sitemap.xml + robots.ts + Vercel Analytics in root layout (OPS-04, OPS-05)
 - [ ] 06-08-PLAN.md — Phase 6 runbooks (docs/admin.md + docs/observability.md) + verify-admin-ops.ts harness + 06-UAT.md (OPS-02)
 **UI hint**: yes
