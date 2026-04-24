@@ -107,14 +107,27 @@ function isUniqueViolation(e: unknown): boolean {
 }
 
 /**
- * Read a FormData field as an optional trimmed string. Missing / empty
- * fields return `undefined` so zod's `.optional()` correctly applies.
+ * Read a FormData field as an optional trimmed string. Missing fields (or
+ * non-string values such as File entries) always return `undefined`.
+ *
+ * By default, an empty-string value also collapses to `undefined` so zod's
+ * `.optional()` treats it as "field absent" for create flows. When the caller
+ * needs to distinguish "admin cleared the field" from "field absent" (e.g. a
+ * `<select>` whose "未分类" option has `value=""`, used on the edit form to
+ * clear a previously-set `category`), pass `{ preserveEmpty: true }` — the
+ * empty string is then returned verbatim so the caller can map it to `null`
+ * for an explicit clear. See 06-REVIEW WR-07.
  */
-function readString(fd: FormData, key: string): string | undefined {
+function readString(
+  fd: FormData,
+  key: string,
+  opts: { preserveEmpty?: boolean } = {},
+): string | undefined {
   const v = fd.get(key);
   if (typeof v !== 'string') return undefined;
   const trimmed = v.trim();
-  return trimmed === '' ? undefined : trimmed;
+  if (trimmed === '' && !opts.preserveEmpty) return undefined;
+  return trimmed;
 }
 
 /**
@@ -189,13 +202,20 @@ export async function updateSourceAction(formData: FormData): Promise<AdminActio
   try {
     assertAdmin(await auth());
 
-    const categoryRaw = readString(formData, 'category');
+    // `preserveEmpty: true` so the category <select>'s "未分类" option
+    // (value="") surfaces as an empty string rather than collapsing to
+    // undefined. We then map: missing field → undefined (no change),
+    // empty string → null (explicit clear), non-empty → the value.
+    // See 06-REVIEW WR-07.
+    const categoryRaw = formData.has('category')
+      ? readString(formData, 'category', { preserveEmpty: true })
+      : undefined;
     const parsed = SourceUpdateSchema.safeParse({
       id: formData.get('id'),
       name: readString(formData, 'name'),
       weight: readString(formData, 'weight'),
       isActive: formData.has('isActive') ? readBool(formData, 'isActive') : undefined,
-      category: categoryRaw === undefined ? undefined : (categoryRaw as string | null),
+      category: categoryRaw === undefined ? undefined : categoryRaw === '' ? null : categoryRaw,
     });
     if (!parsed.success) return { ok: false, error: 'VALIDATION' };
 
