@@ -28,6 +28,7 @@
  *   - src/server/actions/admin/**                    (future Server Actions → assertAdmin)
  *   - tests/unit/admin-gate.test.ts
  */
+import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import type { Session } from 'next-auth';
 import { auth } from './index';
@@ -55,7 +56,18 @@ function roleOf(user: unknown): string | undefined {
  */
 export async function requireAdmin(): Promise<AdminSession> {
   const session = await auth();
-  if (!session?.user?.id) redirect('/');
+  if (!session?.user?.id) {
+    // Preserve the originally-requested admin path so the post-login flow can
+    // bounce the user back after authenticating — mirrors the middleware's
+    // `?next=${pathname}` hint at src/middleware.ts:72. The middleware sets
+    // the `x-pathname` header on every /admin/* request (see middleware:80-82);
+    // we read it here so the two gate layers stay in lockstep. See 06-REVIEW
+    // WR-06. `headers()` is safe to call from an RSC/Server Action context.
+    const h = await headers();
+    const next = h.get('x-pathname') ?? '';
+    if (next) redirect(`/?next=${encodeURIComponent(next)}`);
+    redirect('/');
+  }
   if (roleOf(session.user) !== 'admin') redirect('/admin/access-denied');
   return session as AdminSession;
 }

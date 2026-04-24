@@ -22,6 +22,13 @@ const redirectMock = vi.fn((path: string) => {
   // Match the behaviour of real Next.js redirect(): it never returns.
   throw new Error(`__REDIRECT__:${path}`);
 });
+// Mock next/headers so requireAdmin's new x-pathname read (06-REVIEW WR-06)
+// works under vitest. Individual tests can override the header shape by
+// assigning to `pathHeader` before importing the module-under-test.
+let pathHeader: string | null = null;
+const headersMock = vi.fn(async () => ({
+  get: (name: string) => (name === 'x-pathname' ? pathHeader : null),
+}));
 
 vi.mock('@/lib/auth', () => ({
   auth: authMock,
@@ -31,12 +38,18 @@ vi.mock('next/navigation', () => ({
   redirect: redirectMock,
 }));
 
+vi.mock('next/headers', () => ({
+  headers: headersMock,
+}));
+
 import { fakeSession } from '../helpers/auth';
 
 describe('Plan 06-00 Task 1 — requireAdmin()', () => {
   beforeEach(() => {
     authMock.mockReset();
     redirectMock.mockClear();
+    headersMock.mockClear();
+    pathHeader = null;
   });
 
   it('returns the session when user.role === "admin"', async () => {
@@ -59,7 +72,7 @@ describe('Plan 06-00 Task 1 — requireAdmin()', () => {
     expect(redirectMock).toHaveBeenCalledWith('/admin/access-denied');
   });
 
-  it('redirects to / when the session is null (anonymous)', async () => {
+  it('redirects to / when the session is null (anonymous) and no x-pathname is set', async () => {
     const { requireAdmin } = await import('@/lib/auth/admin');
     authMock.mockResolvedValue(null);
 
@@ -75,6 +88,19 @@ describe('Plan 06-00 Task 1 — requireAdmin()', () => {
 
     await expect(requireAdmin()).rejects.toThrow('__REDIRECT__:/');
     expect(redirectMock).toHaveBeenCalledWith('/');
+  });
+
+  it('preserves the originally-requested admin path via ?next=… on anonymous redirect (WR-06)', async () => {
+    const { requireAdmin } = await import('@/lib/auth/admin');
+    authMock.mockResolvedValue(null);
+    // The middleware at src/middleware.ts:80-82 sets x-pathname for every
+    // /admin/* request — we read it here so both gate layers stay in lockstep.
+    pathHeader = '/admin/users';
+
+    await expect(requireAdmin()).rejects.toThrow(
+      `__REDIRECT__:/?next=${encodeURIComponent('/admin/users')}`,
+    );
+    expect(redirectMock).toHaveBeenCalledWith('/?next=%2Fadmin%2Fusers');
   });
 });
 
