@@ -58,7 +58,15 @@ const WEIGHT_RE = /^\d+(\.\d)?$/;
 
 const SourceCreateSchema = z.object({
   name: z.string().trim().min(1).max(200),
-  rssUrl: z.string().trim().url().max(2000),
+  rssUrl: z
+    .string()
+    .trim()
+    .min(1)
+    .max(2000)
+    .refine(
+      (v) => /^https?:\/\//.test(v) || (v.startsWith('/') && !v.startsWith('//') && v.length >= 2),
+      { message: '请输入完整 URL（http:// 或 https:// 开头）或以 / 开头的 RSSHub 路由' },
+    ),
   language: z.enum(['zh', 'en']).default('zh'),
   weight: z.string().regex(WEIGHT_RE).default('1.0'),
   category: z.string().trim().max(40).nullable().optional(),

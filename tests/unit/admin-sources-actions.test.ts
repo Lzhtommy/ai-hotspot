@@ -47,7 +47,7 @@ vi.mock('@/lib/admin/sources-repo', () => ({
   softDeleteSourceCore: softDeleteSourceCoreMock,
 }));
 
-import { updateSourceAction } from '@/server/actions/admin-sources';
+import { createSourceAction, updateSourceAction } from '@/server/actions/admin-sources';
 
 describe('updateSourceAction — WR-07 category-clear semantics', () => {
   beforeEach(() => {
@@ -120,5 +120,85 @@ describe('updateSourceAction — WR-07 category-clear semantics', () => {
     // for the key-present case. The action layer currently does NOT insert
     // the key when the field is absent.
     expect((patch as { category?: unknown }).category).toBeUndefined();
+  });
+});
+
+describe('createSourceAction — rssUrl format acceptance', () => {
+  beforeEach(() => {
+    authMock.mockClear();
+    createSourceCoreMock.mockClear();
+    updateSourceCoreMock.mockClear();
+    revalidatePathMock.mockClear();
+  });
+
+  function buildFormData(rssUrl: string, name = 'Test Source'): FormData {
+    const fd = new FormData();
+    fd.set('name', name);
+    fd.set('rssUrl', rssUrl);
+    fd.set('language', 'zh');
+    fd.set('weight', '1.0');
+    fd.append('isActive', 'false');
+    fd.append('isActive', 'true');
+    return fd;
+  }
+
+  it('accepts an RSSHub route path (e.g. /hackernews/newest/ai)', async () => {
+    const fd = buildFormData('/hackernews/newest/ai');
+    const result = await createSourceAction(fd);
+    expect(result).toEqual({ ok: true, id: 1 });
+    expect(createSourceCoreMock).toHaveBeenCalledTimes(1);
+    const call = createSourceCoreMock.mock.calls[0] as unknown as [Record<string, unknown>];
+    expect((call[0] as { rssUrl: string }).rssUrl).toBe('/hackernews/newest/ai');
+  });
+
+  it('accepts a full https URL (e.g. native RSS feed)', async () => {
+    const fd = buildFormData('https://huggingface.co/blog/feed.xml');
+    const result = await createSourceAction(fd);
+    expect(result).toEqual({ ok: true, id: 1 });
+    expect(createSourceCoreMock).toHaveBeenCalledTimes(1);
+    const call = createSourceCoreMock.mock.calls[0] as unknown as [Record<string, unknown>];
+    expect((call[0] as { rssUrl: string }).rssUrl).toBe('https://huggingface.co/blog/feed.xml');
+  });
+
+  it('accepts a full http URL (non-https still valid at refine layer)', async () => {
+    const fd = buildFormData('http://example.com/feed.xml');
+    const result = await createSourceAction(fd);
+    expect(result).toEqual({ ok: true, id: 1 });
+    expect(createSourceCoreMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('rejects a plain text value lacking the leading slash or protocol', async () => {
+    const fd = buildFormData('hackernews/newest/ai');
+    const result = await createSourceAction(fd);
+    expect(result).toEqual({ ok: false, error: 'VALIDATION' });
+    expect(createSourceCoreMock).not.toHaveBeenCalled();
+  });
+
+  it('rejects a bare slash (path length < 2)', async () => {
+    const fd = buildFormData('/');
+    const result = await createSourceAction(fd);
+    expect(result).toEqual({ ok: false, error: 'VALIDATION' });
+    expect(createSourceCoreMock).not.toHaveBeenCalled();
+  });
+
+  it('rejects an empty rssUrl', async () => {
+    const fd = buildFormData('');
+    const result = await createSourceAction(fd);
+    expect(result).toEqual({ ok: false, error: 'VALIDATION' });
+    expect(createSourceCoreMock).not.toHaveBeenCalled();
+  });
+
+  it('rejects a protocol-relative URL (// prefix)', async () => {
+    const fd = buildFormData('//evil.com/rss');
+    const result = await createSourceAction(fd);
+    expect(result).toEqual({ ok: false, error: 'VALIDATION' });
+    expect(createSourceCoreMock).not.toHaveBeenCalled();
+  });
+
+  it('rejects an overlong rssUrl (> 2000 chars)', async () => {
+    const fd = buildFormData('/' + 'a'.repeat(2001));
+    const result = await createSourceAction(fd);
+    expect(result).toEqual({ ok: false, error: 'VALIDATION' });
+    expect(createSourceCoreMock).not.toHaveBeenCalled();
   });
 });
