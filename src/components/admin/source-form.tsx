@@ -62,6 +62,7 @@ const ERROR_COPY: Record<string, string> = {
   VALIDATION: '表单填写有误,请检查各字段。',
   UNAUTHENTICATED: '会话已失效,请重新登录。',
   FORBIDDEN: '当前账号无管理员权限。',
+  URL_EXISTS: '该 RSS 地址已存在(可能在软删除的信源中)。',
   INTERNAL: '服务器出错,请稍后再试。',
 };
 

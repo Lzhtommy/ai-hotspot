@@ -42,7 +42,7 @@ import { createSourceCore, softDeleteSourceCore, updateSourceCore } from '@/lib/
 // Result shapes
 // ────────────────────────────────────────────────────────────────────────
 
-type ErrorCode = 'VALIDATION' | 'UNAUTHENTICATED' | 'FORBIDDEN' | 'INTERNAL';
+type ErrorCode = 'VALIDATION' | 'UNAUTHENTICATED' | 'FORBIDDEN' | 'URL_EXISTS' | 'INTERNAL';
 export type AdminActionResult<T = void> =
   | (T extends void ? { ok: true } : { ok: true } & T)
   | { ok: false; error: ErrorCode };
@@ -85,6 +85,25 @@ const SourceUpdateSchema = z.object({
 function toErrorCode(e: unknown): ErrorCode {
   if (e instanceof AdminAuthError) return e.code;
   return 'INTERNAL';
+}
+
+/**
+ * Detect Postgres unique_violation (23505). The sources.rss_url column has a
+ * UNIQUE constraint, and the soft-delete pattern leaves the row in place with
+ * `deleted_at` set — so re-creating under the same URL trips the constraint.
+ * We catch this specifically so the admin sees "URL 已存在(可能在软删除的信源
+ * 中)" rather than the opaque "服务器出错" (see 06-REVIEW WR-03).
+ *
+ * Drizzle + neon-serverless re-raises driver errors with `.code` on the error
+ * object. A best-effort string match on `.message` is the fallback for
+ * non-PG drivers used in tests.
+ */
+function isUniqueViolation(e: unknown): boolean {
+  if (!e || typeof e !== 'object') return false;
+  const code = (e as { code?: unknown }).code;
+  if (code === '23505') return true;
+  const msg = (e as { message?: unknown }).message;
+  return typeof msg === 'string' && /duplicate key|unique constraint|23505/i.test(msg);
 }
 
 /**
@@ -143,9 +162,17 @@ export async function createSourceAction(
     });
     if (!parsed.success) return { ok: false, error: 'VALIDATION' };
 
-    const { id } = await createSourceCore(parsed.data);
-    revalidatePath('/admin/sources');
-    return { ok: true, id };
+    try {
+      const { id } = await createSourceCore(parsed.data);
+      revalidatePath('/admin/sources');
+      return { ok: true, id };
+    } catch (e) {
+      // A soft-deleted source still holds the UNIQUE constraint on rss_url;
+      // attempting to recreate it under the same URL would otherwise surface
+      // as the generic 'INTERNAL' error (see 06-REVIEW WR-03).
+      if (isUniqueViolation(e)) return { ok: false, error: 'URL_EXISTS' };
+      throw e;
+    }
   } catch (e) {
     return { ok: false, error: toErrorCode(e) };
   }
