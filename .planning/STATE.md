@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 06-06-PLAN.md (Sentry integration — code complete; live verification deferred to 06-06-HUMAN-UAT)
-last_updated: "2026-04-24T01:45:12.440Z"
+stopped_at: "Completed 06-07-PLAN.md (public sitemap + robots + Vercel Analytics — code complete; live E2E deferred to UAT). Wave 1 done; next up Wave 2 parallel: 06-02..06-05."
+last_updated: "2026-04-24T01:52:00.915Z"
 last_activity: 2026-04-24
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 42
-  completed_plans: 36
-  percent: 86
+  completed_plans: 37
+  percent: 88
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-17)
 ## Current Position
 
 Phase: 06 (admin-operational-hardening) — EXECUTING
-Plan: 4 of 9
+Plan: 5 of 9
 Status: Ready to execute
 Last activity: 2026-04-24
 
@@ -87,6 +87,7 @@ Progress: [█████████░] 88%
 | Phase 06-admin-operational-hardening P00 | 7min | 3 tasks | 8 files |
 | Phase 06-admin-operational-hardening P01 | 15min | 3 tasks | 6 files |
 | Phase 06-admin-operational-hardening P06-06 | 25min | 2 tasks | 11 files |
+| Phase 06-admin-operational-hardening P06-07 | 4min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -173,6 +174,8 @@ Recent decisions affecting current work:
 - [Phase 06-admin-operational-hardening]: Plan 06-06: Sentry beforeSend scrubs PII in place (cookies, auth headers, user.email, secret-field regex) and forwards — redact-not-drop preserves error signal; Sentry relay scrubbing remains defense-in-depth
 - [Phase 06-admin-operational-hardening]: Plan 06-06: Trigger.dev worker Sentry init is lazy inside withSentry wrapper (not module-scope) — matches Phase 01 db/redis singleton pattern; safe when SENTRY_DSN absent
 - [Phase 06-admin-operational-hardening]: Plan 06-06: Task 3 live Sentry verification DEFERRED to 06-06-HUMAN-UAT.md pending user SENTRY_DSN provisioning — code-complete on branch (commits e713c7e + 36372d1); matches Plan 05-10 precedent of decoupling live smoke-test from code-complete
+- [Phase 06-admin-operational-hardening]: Plan 06-07: WARNING-8 honoured — sitemap-repo does NOT join sources.deleted_at; Wave 1 plan (depends_on: []) remains mergeable before Plan 06-01 0005_admin_ops migration lands. Ingestion poller enforces deleted_at skip on new items; historical published items remain valid for SEO.
+- [Phase 06-admin-operational-hardening]: Plan 06-07: Live E2E run of sitemap-and-analytics.spec.ts deferred to phase-close UAT (requires dev server) per Plan 05-10/06-06 precedent; build + unit tests + typecheck are the merge gate.
 
 ### Pending Todos
 
@@ -201,8 +204,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-24T01:45:12.436Z
-Stopped at: Completed 06-06-PLAN.md (Sentry integration — code complete; live verification deferred to 06-06-HUMAN-UAT)
+Last session: 2026-04-24T01:52:00.911Z
+Stopped at: Completed 06-07-PLAN.md (public sitemap + robots + Vercel Analytics — code complete; live E2E deferred to UAT). Wave 1 done; next up Wave 2 parallel: 06-02..06-05.
 Resume file: None
 
 **Planned Phase:** 6 (Admin + Operational Hardening) — 9 plans — 2026-04-23T11:37:34.098Z

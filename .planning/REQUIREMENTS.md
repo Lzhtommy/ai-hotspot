@@ -109,8 +109,8 @@ Requirements for initial release. Each maps to a roadmap phase.
 - [x] **OPS-01**: Sentry integrated for Next.js + Trigger.dev error capture
 - [ ] **OPS-02**: Langfuse dashboard shows per-item LLM cost and cache hit rate
 - [ ] **OPS-03**: Admin UI exposes dead-letter items with retry action
-- [ ] **OPS-04**: Basic sitemap.xml generated from published items
-- [ ] **OPS-05**: Vercel Analytics enabled (no Google Analytics due to GFW)
+- [x] **OPS-04**: Basic sitemap.xml generated from published items
+- [x] **OPS-05**: Vercel Analytics enabled (no Google Analytics due to GFW)
 
 ## v2 Requirements
 
@@ -242,8 +242,8 @@ Which phases cover which requirements.
 | OPS-01 | Phase 6 | Complete |
 | OPS-02 | Phase 6 | Pending |
 | OPS-03 | Phase 6 | Pending |
-| OPS-04 | Phase 6 | Pending |
-| OPS-05 | Phase 6 | Pending |
+| OPS-04 | Phase 6 | Complete |
+| OPS-05 | Phase 6 | Complete |
 
 **Coverage:**
 - v1 requirements: 75 total
