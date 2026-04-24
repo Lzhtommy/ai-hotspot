@@ -19,11 +19,12 @@ export function HamburgerButton() {
       aria-label="打开菜单"
       title="打开菜单"
       onClick={toggle}
-      className="lg:hidden"
+      // Inline `display` would beat a Tailwind `lg:hidden` utility (inline styles
+      // win over class rules), so keep the responsive visibility *and* the
+      // flexbox layout in classNames. `max-lg:inline-flex` applies below lg,
+      // `lg:hidden` hides on desktop where the sidebar is always visible.
+      className="max-lg:inline-flex lg:hidden items-center justify-center"
       style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
         width: 36,
         height: 36,
         borderRadius: 6,
