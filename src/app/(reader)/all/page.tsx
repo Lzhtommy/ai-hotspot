@@ -42,6 +42,8 @@ export default async function AllFeedPage({
   // Phase 5 Plan 05-07: thread session + initial interactions into every FeedCard.
   const session = await auth();
   const isAuthenticated = !!session?.user?.id;
+  // Quick 260424-oyc: role-gate the 手动同步 button (server-authoritative on POST).
+  const canSync = (session?.user as { role?: string } | undefined)?.role === 'admin';
   const interactionMap = isAuthenticated
     ? await getUserInteractions(
         session!.user!.id!,
@@ -64,6 +66,7 @@ export default async function AllFeedPage({
         count={items.length}
         lastSyncMinutes={lastSyncMinutes}
         pathname="/all"
+        canSync={canSync}
       />
       <div className="px-[32px] pt-[8px] max-sm:px-[16px]">
         <FilterPopover availableTags={availableTags} availableSources={availableSources} />

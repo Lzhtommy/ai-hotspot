@@ -49,6 +49,8 @@ export default async function FavoritesPage() {
     redirect('/');
   }
   const userId = session.user.id;
+  // Quick 260424-oyc: role-gate the 手动同步 button (server-authoritative on POST).
+  const canSync = (session.user as { role?: string }).role === 'admin';
 
   // Reverse-chronological by favorites.createdAt (most recently favorited first).
   // innerJoin items so unpublished / dropped items never leak through favorites
@@ -123,6 +125,7 @@ export default async function FavoritesPage() {
         pathname="/favorites"
         count={feedItems.length}
         subtitle={subtitle}
+        canSync={canSync}
       />
       {feedItems.length === 0 ? (
         <FavoritesEmpty authenticated />
