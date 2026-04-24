@@ -94,7 +94,7 @@ Requirements for initial release. Each maps to a roadmap phase.
 
 ### Admin Backend
 
-- [ ] **ADMIN-01**: Admin-only route `/admin` protected by role check
+- [x] **ADMIN-01**: Admin-only route `/admin` protected by role check
 - [ ] **ADMIN-02**: 信源 list view with source name, URL, weight, active toggle, last-fetched, consecutive errors
 - [ ] **ADMIN-03**: Admin can create a new source (RSSHub route or raw RSS URL) with weight and category
 - [ ] **ADMIN-04**: Admin can edit source weight, name, active state
@@ -106,11 +106,11 @@ Requirements for initial release. Each maps to a roadmap phase.
 
 ### Operational
 
-- [ ] **OPS-01**: Sentry integrated for Next.js + Trigger.dev error capture
-- [ ] **OPS-02**: Langfuse dashboard shows per-item LLM cost and cache hit rate
+- [x] **OPS-01**: Sentry integrated for Next.js + Trigger.dev error capture
+- [x] **OPS-02**: Langfuse dashboard shows per-item LLM cost and cache hit rate
 - [ ] **OPS-03**: Admin UI exposes dead-letter items with retry action
-- [ ] **OPS-04**: Basic sitemap.xml generated from published items
-- [ ] **OPS-05**: Vercel Analytics enabled (no Google Analytics due to GFW)
+- [x] **OPS-04**: Basic sitemap.xml generated from published items
+- [x] **OPS-05**: Vercel Analytics enabled (no Google Analytics due to GFW)
 
 ## v2 Requirements
 
@@ -230,7 +230,7 @@ Which phases cover which requirements.
 | VOTE-02 | Phase 5 | Complete |
 | VOTE-03 | Phase 5 | Complete |
 | VOTE-04 | Phase 5 | Complete |
-| ADMIN-01 | Phase 6 | Pending |
+| ADMIN-01 | Phase 6 | Complete |
 | ADMIN-02 | Phase 6 | Pending |
 | ADMIN-03 | Phase 6 | Pending |
 | ADMIN-04 | Phase 6 | Pending |
@@ -239,11 +239,11 @@ Which phases cover which requirements.
 | ADMIN-07 | Phase 6 | Pending |
 | ADMIN-08 | Phase 6 | Pending |
 | ADMIN-09 | Phase 6 | Pending |
-| OPS-01 | Phase 6 | Pending |
-| OPS-02 | Phase 6 | Pending |
+| OPS-01 | Phase 6 | Complete |
+| OPS-02 | Phase 6 | Complete |
 | OPS-03 | Phase 6 | Pending |
-| OPS-04 | Phase 6 | Pending |
-| OPS-05 | Phase 6 | Pending |
+| OPS-04 | Phase 6 | Complete |
+| OPS-05 | Phase 6 | Complete |
 
 **Coverage:**
 - v1 requirements: 75 total

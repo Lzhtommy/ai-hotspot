@@ -126,7 +126,16 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. An admin can view the user list, ban a user (which revokes their session), and see the daily Claude token cost breakdown from the pipeline_runs table
   4. A deliberate runtime error in a Trigger.dev task appears in the Sentry dashboard within minutes
   5. Dead-letter items are visible in the admin UI with a retry button that re-enqueues them through the LLM pipeline; sitemap.xml is publicly accessible and contains published item URLs
-**Plans**: TBD
+**Plans:** 9 plans
+- [x] 06-00-PLAN.md — Admin route gating foundation: middleware matcher + RSC layout requireAdmin() + admin shell nav + access-denied page (ADMIN-01)
+- [x] 06-01-PLAN.md — Schema extensions [BLOCKING drizzle push]: sources.deleted_at + category; users.banned_at + banned_by FK (ADMIN-03, ADMIN-05, ADMIN-08)
+- [x] 06-02-PLAN.md — Sources management: list + health + create/edit/soft-delete Server Actions + ingest poller filter (ADMIN-02, ADMIN-03, ADMIN-04, ADMIN-05, ADMIN-06)
+- [x] 06-03-PLAN.md — User management + atomic ban with session revocation (UPDATE users + DELETE sessions in one transaction) (ADMIN-07, ADMIN-08)
+- [x] 06-04-PLAN.md — Daily LLM cost dashboard from pipeline_runs aggregation (ADMIN-09)
+- [x] 06-05-PLAN.md — Dead-letter retry UI with Upstash-backed per-admin rate limit (OPS-03)
+- [x] 06-06-PLAN.md — Sentry integration (Next.js + Trigger.dev) with beforeSend PII scrub (OPS-01)
+- [x] 06-07-PLAN.md — Sitemap.xml + robots.ts + Vercel Analytics in root layout (OPS-04, OPS-05)
+- [x] 06-08-PLAN.md — Phase 6 runbooks (docs/admin.md + docs/observability.md) + verify-admin-ops.ts harness + 06-UAT.md (OPS-02)
 **UI hint**: yes
 
 ## Progress
@@ -141,4 +150,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. LLM Pipeline + Clustering | 5/5 | Complete   | 2026-04-21 |
 | 4. Feed UI | 6/6 | Complete   | 2026-04-22 |
 | 5. Auth + User Interactions | 0/TBD | Not started | - |
-| 6. Admin + Operational Hardening | 0/TBD | Not started | - |
+| 6. Admin + Operational Hardening | 0/9 | Planned | - |

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
+import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
 
 const siteUrl =
@@ -26,6 +27,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       </head>
       <body className="min-h-full flex flex-col bg-paper text-ink-900 font-sans">
         <NuqsAdapter>{children}</NuqsAdapter>
+        {/* Vercel Analytics (OPS-05) — first-party, cookie-less, GFW-safe.
+            Replaces Google Analytics which is blocked in mainland China. */}
+        <Analytics />
       </body>
     </html>
   );

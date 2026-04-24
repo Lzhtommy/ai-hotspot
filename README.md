@@ -76,6 +76,8 @@ docs/                  # Runbooks — rsshub, health, ci, vercel, database
 - `docs/ci.md` — GitHub Actions + secrets
 - `docs/vercel.md` — Vercel env vars + project settings
 - `docs/auth-providers.md` — Auth.js v5 provider setup, Vercel env scope matrix, admin promotion SQL, preview OAuth smoke test
+- `docs/admin.md` — Admin operations runbook: `/admin` routes, source CRUD + health, user ban/unban, dead-letter retry, cost dashboard
+- `docs/observability.md` — Sentry (OPS-01), Langfuse (OPS-02), Vercel Analytics (OPS-05), `/api/health`, and `pipeline_runs` SQL fallbacks
 
 ## License
 
