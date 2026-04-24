@@ -64,17 +64,20 @@ function makeChainable(rows: Row[]) {
 
 const PUBLISHED_ROWS: Row[] = [
   {
-    id: 3n,
+    // BigInt() constructor (not literal) — tsconfig target is ES2017 which
+    // forbids the `3n` literal form. Drizzle returns bigserial columns as
+    // native bigint at runtime, so BigInt() matches the real row shape.
+    id: BigInt(3),
     publishedAt: new Date('2026-04-22T12:00:00Z'),
     processedAt: new Date('2026-04-22T12:05:00Z'),
   },
   {
-    id: 2n,
+    id: BigInt(2),
     publishedAt: new Date('2026-04-21T12:00:00Z'),
     processedAt: new Date('2026-04-21T12:05:00Z'),
   },
   {
-    id: 1n,
+    id: BigInt(1),
     publishedAt: new Date('2026-04-20T12:00:00Z'),
     processedAt: null,
   },
