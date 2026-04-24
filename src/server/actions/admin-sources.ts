@@ -76,6 +76,7 @@ const SourceCreateSchema = z.object({
 const SourceUpdateSchema = z.object({
   id: z.coerce.number().int().positive(),
   name: z.string().trim().min(1).max(200).optional(),
+  language: z.enum(['zh', 'en']).optional(),
   weight: z.string().regex(WEIGHT_RE).optional(),
   isActive: z.boolean().optional(),
   category: z.string().trim().max(40).nullable().optional(),
@@ -221,6 +222,7 @@ export async function updateSourceAction(formData: FormData): Promise<AdminActio
     const parsed = SourceUpdateSchema.safeParse({
       id: formData.get('id'),
       name: readString(formData, 'name'),
+      language: readString(formData, 'language'),
       weight: readString(formData, 'weight'),
       isActive: formData.has('isActive') ? readBool(formData, 'isActive') : undefined,
       category: categoryRaw === undefined ? undefined : categoryRaw === '' ? null : categoryRaw,

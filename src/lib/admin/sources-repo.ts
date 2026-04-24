@@ -150,11 +150,12 @@ export async function createSourceCore(
  */
 export async function updateSourceCore(
   id: number,
-  patch: Partial<Pick<SourceAdminRow, 'name' | 'weight' | 'isActive' | 'category'>>,
+  patch: Partial<Pick<SourceAdminRow, 'name' | 'language' | 'weight' | 'isActive' | 'category'>>,
   deps: Deps = {},
 ): Promise<void> {
   const set: Record<string, unknown> = {};
   if (patch.name !== undefined) set.name = patch.name;
+  if (patch.language !== undefined) set.language = patch.language;
   if (patch.weight !== undefined) set.weight = patch.weight;
   if (patch.isActive !== undefined) set.isActive = patch.isActive;
   // category is nullable — explicitly accept null as a meaningful value
