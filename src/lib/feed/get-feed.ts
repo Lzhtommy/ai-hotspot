@@ -9,7 +9,7 @@
  *   - src/app/(reader)/page.tsx (view: 'featured')
  *   - src/app/(reader)/all/page.tsx (view: 'all')
  */
-import { and, desc, eq, gte, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, inArray, not, sql } from 'drizzle-orm';
 import { db as realDb } from '@/lib/db/client';
 import { redis as realRedis } from '@/lib/redis/client';
 import { items, clusters, sources } from '@/lib/db/schema';
@@ -46,6 +46,7 @@ export type GetFeedResult = {
   page: number;
   totalPages: number;
   lastSyncMinutes: number | null;
+  clusterSiblings: Record<string, FeedListItem[]>;
 };
 
 export interface GetFeedDeps {
@@ -62,10 +63,10 @@ export interface GetFeedDeps {
  * Tags are sorted alphabetically (case-sensitive) and empty strings filtered out.
  */
 export function buildFeedKey(p: GetFeedParams): string {
-  if (p.view === 'featured') return `feed:featured:page:${p.page}`;
+  if (p.view === 'featured') return `feed:v2:featured:page:${p.page}`;
   const tags = (p.tags ?? []).filter(Boolean).sort().join(',');
   const source = p.sourceId != null ? String(p.sourceId) : 'all';
-  return `feed:all:page:${p.page}:tags:${tags}:source:${source}`;
+  return `feed:v2:all:page:${p.page}:tags:${tags}:source:${source}`;
 }
 
 export async function getFeed(params: GetFeedParams, deps?: GetFeedDeps): Promise<GetFeedResult> {
@@ -149,6 +150,66 @@ export async function getFeed(params: GetFeedParams, deps?: GetFeedDeps): Promis
     ? Math.floor((now().getTime() - new Date(lastFetched).getTime()) / 60_000)
     : null;
 
+  // batch siblings for cluster primaries on this page
+  const primaryIds = rows.filter((r) => r.clusterId != null).map((r) => r.id);
+  const clusterIds = Array.from(
+    new Set(rows.filter((r) => r.clusterId != null).map((r) => r.clusterId as bigint)),
+  );
+
+  const clusterSiblings: Record<string, FeedListItem[]> = {};
+
+  if (clusterIds.length > 0) {
+    const siblingRows = await db
+      .select({
+        id: items.id,
+        title: items.title,
+        titleZh: items.titleZh,
+        summaryZh: items.summaryZh,
+        recommendation: items.recommendation,
+        score: items.score,
+        tags: items.tags,
+        sourceId: items.sourceId,
+        sourceName: sources.name,
+        sourceKind: sources.language,
+        publishedAt: items.publishedAt,
+        clusterId: items.clusterId,
+        url: items.url,
+      })
+      .from(items)
+      .leftJoin(sources, eq(sources.id, items.sourceId))
+      .where(
+        and(
+          inArray(items.clusterId, clusterIds),
+          not(inArray(items.id, primaryIds)),
+          eq(items.status, 'published'),
+        ),
+      )
+      .orderBy(asc(items.publishedAt));
+
+    for (const s of siblingRows) {
+      if (s.clusterId == null) continue;
+      const key = String(s.clusterId);
+      const mapped: FeedListItem = {
+        id: String(s.id),
+        title: s.title,
+        titleZh: s.titleZh ?? null,
+        summaryZh: s.summaryZh ?? null,
+        recommendation: s.recommendation ?? null,
+        score: s.score ?? 0,
+        tags: s.tags ?? null,
+        sourceId: s.sourceId,
+        sourceName: s.sourceName ?? '',
+        sourceKind: s.sourceKind ?? null,
+        publishedAt:
+          s.publishedAt instanceof Date ? s.publishedAt.toISOString() : String(s.publishedAt),
+        clusterId: String(s.clusterId),
+        clusterMemberCount: 1,
+        url: s.url,
+      };
+      (clusterSiblings[key] ??= []).push(mapped);
+    }
+  }
+
   const result: GetFeedResult = {
     items: rows.map((r) => ({
       id: String(r.id),
@@ -170,6 +231,7 @@ export async function getFeed(params: GetFeedParams, deps?: GetFeedDeps): Promis
     page: params.page,
     totalPages,
     lastSyncMinutes,
+    clusterSiblings,
   };
 
   await redis.set(key, result, { ex: TTL });
