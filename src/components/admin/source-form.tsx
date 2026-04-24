@@ -59,7 +59,8 @@ interface SourceFormProps {
 // Only codes a real admin can hit appear here; 'UNAUTHENTICATED' / 'FORBIDDEN'
 // should be impossible after the layout gate but are included defensively.
 const ERROR_COPY: Record<string, string> = {
-  VALIDATION: '表单填写有误,请检查各字段。',
+  VALIDATION:
+    '表单填写有误:RSS 地址需为完整 URL(http:// 或 https://) 或以 / 开头的 RSSHub 路由,请检查各字段。',
   UNAUTHENTICATED: '会话已失效,请重新登录。',
   FORBIDDEN: '当前账号无管理员权限。',
   URL_EXISTS: '该 RSS 地址已存在(可能在软删除的信源中)。',
@@ -126,12 +127,12 @@ export function SourceForm({ mode, source }: SourceFormProps) {
         <input
           id="source-rssUrl"
           name="rssUrl"
-          type="url"
+          type="text"
           required={!isEdit}
           disabled={isEdit}
           maxLength={2000}
           defaultValue={prefill?.rssUrl ?? ''}
-          placeholder="https://rsshub.example.com/anthropic/news"
+          placeholder="/anthropic/news 或 https://example.com/feed.xml"
           style={{
             ...inputStyle,
             background: isEdit ? 'var(--surface-1)' : 'var(--paper)',
@@ -141,7 +142,11 @@ export function SourceForm({ mode, source }: SourceFormProps) {
         />
         {isEdit ? (
           <p style={hintStyle}>RSS 地址创建后不可修改,如需替换请软删除后重新创建。</p>
-        ) : null}
+        ) : (
+          <p style={hintStyle}>
+            可填写完整 URL(http:// 或 https:// 开头),或以 / 开头的 RSSHub 路由路径。
+          </p>
+        )}
       </Field>
 
       <Field label="语言" htmlFor="source-language">
