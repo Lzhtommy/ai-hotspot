@@ -34,13 +34,18 @@ Discovered during: Plan 06-06 Task 3 checkpoint (live Sentry dashboard verificat
 
 ---
 
-## Deferred: /sitemap.xml prerender requires DATABASE_URL at build time
+## Deferred: `/sitemap.xml` prerender failure at build-time without live DATABASE_URL
 
-Discovered during: Plan 06-03 Task 3 `pnpm run build` verification
+Discovered during: Plan 06-03 Task 3 and Plan 06-04 Task 2 `pnpm run build` verification (both observed the same failure independently).
 
 **Failure:**
-- `Error occurred prerendering page "/sitemap.xml"` → "No database host or connection string was set" — because `src/app/sitemap.ts` (added by Plan 06-07, commit 228c421) calls `getPublishedItemUrls()` at build time with a default-static route.
+- `Error occurred prerendering page "/sitemap.xml"` → "No database host or connection string was set" — `src/app/sitemap.ts` (added by Plan 06-07, commit `228c421`) calls `getPublishedItemUrls()` at build time via the default-static prerender path, which fails when no real Neon database is reachable (CI / fresh worktree).
 
-**Status:** Pre-existing on `gsd/phase-06-admin-operational-hardening` before Plan 06-03 edits — `src/app/sitemap.ts` was introduced in commit 228c421 (Plan 06-07 OPS-04), well before wave 2. Plan 06-03 only adds `/admin/users` route, server actions, and repo — none of which touch the sitemap pipeline. `pnpm exec tsc --noEmit` is green for all 06-03 files; the build-time failure is an orthogonal sitemap prerender configuration issue.
+**Status:** Pre-existing on `gsd/phase-06-admin-operational-hardening` at commit `f816ef7` — introduced by Plan 06-07 OPS-04, not by any Wave 2 plan. Confirmed via baseline `pnpm run build` at `f816ef7` (identical error without any Wave 2 edits). Wave 2 routes (`/admin/users`, `/admin/costs`, `/admin/dead-letter`, `/admin/sources`) are all `force-dynamic` and do not prerender; their `tsc --noEmit` and unit tests pass. The failure is isolated to `/sitemap.xml`.
 
-**Scope boundary:** Out of scope for Plan 06-03 (ADMIN-07/ADMIN-08 user management). Fix options: mark sitemap route `export const dynamic = 'force-dynamic'`, OR gate the DB call behind a build-time check that returns `[]` when DATABASE_URL is a placeholder, OR supply a branch DATABASE_URL to the Vercel build environment. Candidate fix plan: Phase 6 closure pass.
+**Scope boundary:** Out of scope for all Wave 2 plans (06-02..06-05). Fix options:
+1. Mark sitemap route `export const dynamic = 'force-dynamic'` + `runtime = 'nodejs'` — simplest.
+2. Gate the DB query behind `if (!process.env.DATABASE_URL || isPlaceholder) return []` — returns empty sitemap at build-time when DB is unreachable.
+3. Supply a branch `DATABASE_URL` to the Vercel build environment.
+
+Candidate fix plan: Phase 6 closure pass (06-08) or a dedicated quick task.
