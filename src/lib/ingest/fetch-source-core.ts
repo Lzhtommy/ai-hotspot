@@ -24,7 +24,29 @@ import { urlFingerprint, contentHash } from '@/lib/ingest/fingerprint';
 export interface FetchSourceDeps {
   db?: typeof realDb;
   fetchRSSHub?: typeof realFetchRSSHub;
+  nativeFetch?: typeof fetch;
   now?: () => Date;
+}
+
+const HTTP_URL_RE = /^https?:\/\//i;
+
+async function fetchBySource(
+  rssUrl: string,
+  deps: { fetchRSSHub: typeof realFetchRSSHub; nativeFetch: typeof fetch },
+): Promise<Response> {
+  if (HTTP_URL_RE.test(rssUrl)) {
+    const res = await deps.nativeFetch(rssUrl, {
+      signal: AbortSignal.timeout(30_000),
+      headers: { 'User-Agent': 'ai-hotspot/1.0 (+https://github.com/)' },
+    });
+    if (!res.ok) {
+      const err = new Error(`Native fetch returned HTTP ${res.status}`);
+      err.name = 'NativeFetchError';
+      throw err;
+    }
+    return res;
+  }
+  return deps.fetchRSSHub(rssUrl);
 }
 
 export interface FetchSourceResult {
@@ -41,12 +63,19 @@ export async function runFetchSource(params: {
   deps?: FetchSourceDeps;
 }): Promise<FetchSourceResult> {
   const db = params.deps?.db ?? realDb;
-  const fetchFn = params.deps?.fetchRSSHub ?? realFetchRSSHub;
+  const fetchRSSHubFn = params.deps?.fetchRSSHub ?? realFetchRSSHub;
+  const nativeFetchFn =
+    params.deps?.nativeFetch ??
+    ((url: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1]) =>
+      globalThis.fetch(url, init));
   const now = params.deps?.now ?? (() => new Date());
 
   let entries;
   try {
-    const res = await fetchFn(params.rssUrl);
+    const res = await fetchBySource(params.rssUrl, {
+      fetchRSSHub: fetchRSSHubFn,
+      nativeFetch: nativeFetchFn,
+    });
     entries = await parseRSS(res);
   } catch (err) {
     // D-08: on error, increment error counter only; do NOT touch last_fetched_at or empty counter.

@@ -45,6 +45,23 @@ function rssResponse(xml: string): Response {
   });
 }
 
+function makeFetchSpies(
+  rssHubResponse: Response | (() => Promise<Response>),
+  nativeResponse: Response | (() => Promise<Response>),
+) {
+  const rssHubCalls: string[] = [];
+  const nativeCalls: Array<{ url: string; init?: RequestInit }> = [];
+  const fetchRSSHub = async (url: string) => {
+    rssHubCalls.push(url);
+    return typeof rssHubResponse === 'function' ? rssHubResponse() : rssHubResponse.clone();
+  };
+  const nativeFetch = (async (url: string | URL | Request, init?: RequestInit) => {
+    nativeCalls.push({ url: String(url), init });
+    return typeof nativeResponse === 'function' ? nativeResponse() : nativeResponse.clone();
+  }) as unknown as typeof fetch;
+  return { fetchRSSHub, nativeFetch, rssHubCalls, nativeCalls };
+}
+
 const sampleFeedXml = `<?xml version="1.0"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel><title>t</title><link>https://x.com/</link><description>d</description>
   <item><title>A</title><link>https://x.com/a</link><pubDate>Mon, 20 Apr 2026 01:00:00 GMT</pubDate><content:encoded><![CDATA[body a]]></content:encoded></item>
@@ -195,6 +212,29 @@ describe('runFetchSource', () => {
     }
   });
 
+  it('dispatches to nativeFetch when rssUrl starts with https://', async () => {
+    const { db } = makeDbMock('new');
+    const { fetchRSSHub, nativeFetch, rssHubCalls, nativeCalls } = makeFetchSpies(
+      rssResponse(sampleFeedXml),
+      rssResponse(sampleFeedXml),
+    );
+    const res = await runFetchSource({
+      sourceId: 42,
+      rssUrl: 'https://huggingface.co/blog/feed.xml',
+      deps: {
+        db: db as never,
+        fetchRSSHub,
+        nativeFetch,
+        now: () => new Date('2026-04-20T12:00:00Z'),
+      },
+    });
+    expect(nativeCalls).toHaveLength(1);
+    expect(nativeCalls[0].url).toBe('https://huggingface.co/blog/feed.xml');
+    expect(rssHubCalls).toHaveLength(0);
+    expect(res.status).toBe('ok');
+    expect(res.newCount).toBe(2);
+  });
+
   it('url stored is the normalized form (not the raw RSS link)', async () => {
     const feed = `<?xml version="1.0"?><rss version="2.0"><channel><title>t</title><link>https://x.com/</link><description>d</description>
       <item><title>A</title><link>HTTP://Example.COM/a/?utm_source=rss#hash</link><pubDate>Mon, 20 Apr 2026 01:00:00 GMT</pubDate><description>x</description></item>
@@ -210,5 +250,94 @@ describe('runFetchSource', () => {
       },
     });
     expect(inserts[0].url).toBe('https://example.com/a');
+  });
+
+  it('dispatches to nativeFetch when rssUrl starts with http:// (any case)', async () => {
+    const { db } = makeDbMock('new');
+    const { fetchRSSHub, nativeFetch, rssHubCalls, nativeCalls } = makeFetchSpies(
+      rssResponse(sampleFeedXml),
+      rssResponse(sampleFeedXml),
+    );
+    const res = await runFetchSource({
+      sourceId: 42,
+      rssUrl: 'HTTP://example.com/feed',
+      deps: {
+        db: db as never,
+        fetchRSSHub,
+        nativeFetch,
+        now: () => new Date('2026-04-20T12:00:00Z'),
+      },
+    });
+    expect(nativeCalls).toHaveLength(1);
+    expect(nativeCalls[0].url).toBe('HTTP://example.com/feed');
+    expect(rssHubCalls).toHaveLength(0);
+    expect(res.status).toBe('ok');
+  });
+
+  it('dispatches to fetchRSSHub when rssUrl starts with /', async () => {
+    const { db } = makeDbMock('new');
+    const { fetchRSSHub, nativeFetch, rssHubCalls, nativeCalls } = makeFetchSpies(
+      rssResponse(sampleFeedXml),
+      rssResponse(sampleFeedXml),
+    );
+    const res = await runFetchSource({
+      sourceId: 42,
+      rssUrl: '/anthropic/news',
+      deps: {
+        db: db as never,
+        fetchRSSHub,
+        nativeFetch,
+        now: () => new Date('2026-04-20T12:00:00Z'),
+      },
+    });
+    expect(rssHubCalls).toHaveLength(1);
+    expect(rssHubCalls[0]).toBe('/anthropic/news');
+    expect(nativeCalls).toHaveLength(0);
+    expect(res.status).toBe('ok');
+  });
+
+  it('native fetch error increments consecutiveErrorCount without updating lastFetchedAt', async () => {
+    const { db, updates } = makeDbMock('new');
+    const { fetchRSSHub } = makeFetchSpies(rssResponse(sampleFeedXml), rssResponse(sampleFeedXml));
+    const nativeFetch = (async () => {
+      throw new Error('ENOTFOUND');
+    }) as unknown as typeof fetch;
+    const res = await runFetchSource({
+      sourceId: 42,
+      rssUrl: 'https://unreachable.example/feed.xml',
+      deps: {
+        db: db as never,
+        fetchRSSHub,
+        nativeFetch,
+        now: () => new Date('2026-04-20T12:00:00Z'),
+      },
+    });
+    expect(res.status).toBe('error');
+    expect(res.errorKind).toBeDefined();
+    expect(updates).toHaveLength(1);
+    expect(Object.keys(updates[0])).not.toContain('lastFetchedAt');
+    expect(Object.keys(updates[0])).toContain('consecutiveErrorCount');
+    expect(Object.keys(updates[0])).not.toContain('consecutiveEmptyCount');
+  });
+
+  it('native fetch non-ok response is treated as error', async () => {
+    const { db, updates } = makeDbMock('new');
+    const { fetchRSSHub, nativeFetch } = makeFetchSpies(
+      rssResponse(sampleFeedXml),
+      new Response('', { status: 404 }),
+    );
+    const res = await runFetchSource({
+      sourceId: 42,
+      rssUrl: 'https://example.com/missing.xml',
+      deps: {
+        db: db as never,
+        fetchRSSHub,
+        nativeFetch,
+        now: () => new Date('2026-04-20T12:00:00Z'),
+      },
+    });
+    expect(res.status).toBe('error');
+    expect(res.errorKind).toBe('NativeFetchError');
+    expect(Object.keys(updates[0])).not.toContain('lastFetchedAt');
   });
 });
