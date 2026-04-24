@@ -73,7 +73,8 @@ describe('updateSourceAction — WR-07 category-clear semantics', () => {
 
     expect(result).toEqual({ ok: true });
     expect(updateSourceCoreMock).toHaveBeenCalledTimes(1);
-    const [id, patch] = updateSourceCoreMock.mock.calls[0]!;
+    const call = updateSourceCoreMock.mock.calls[0] as unknown as [number, Record<string, unknown>];
+    const [id, patch] = call;
     expect(id).toBe(7);
     // The `category` key MUST be present in the patch (so sources-repo's
     // `'category' in patch` check triggers the SET clause) AND its value
@@ -93,7 +94,8 @@ describe('updateSourceAction — WR-07 category-clear semantics', () => {
 
     const result = await updateSourceAction(fd);
     expect(result).toEqual({ ok: true });
-    const [, patch] = updateSourceCoreMock.mock.calls[0]!;
+    const call = updateSourceCoreMock.mock.calls[0] as unknown as [number, Record<string, unknown>];
+    const [, patch] = call;
     expect((patch as { category: unknown }).category).toBe('lab');
   });
 
@@ -110,7 +112,8 @@ describe('updateSourceAction — WR-07 category-clear semantics', () => {
 
     const result = await updateSourceAction(fd);
     expect(result).toEqual({ ok: true });
-    const [, patch] = updateSourceCoreMock.mock.calls[0]!;
+    const call = updateSourceCoreMock.mock.calls[0] as unknown as [number, Record<string, unknown>];
+    const [, patch] = call;
     // Either the key is absent or its value is undefined — both shapes are
     // acceptable because `'category' in patch` is the repo-layer discriminant
     // when the key is absent, and `patch.category !== undefined` is the test
