@@ -202,6 +202,7 @@ None yet.
 | 260424-g2y | Wire sidebar 管理 section to real /admin routes (Phase 6) + role-gate on session.user.role==='admin' | 2026-04-24 | 4b4fd9a | [260424-g2y-wire-sidebar-admin-nav-to-real-admin-rou](./quick/260424-g2y-wire-sidebar-admin-nav-to-real-admin-rou/) |
 | 260424-mjc | admin 新建信源表单接受 RSSHub 路由路径（/ 开头）与完整 URL 两种格式 | 2026-04-24 | 690ae1a | [260424-mjc-admin-rsshub](./quick/260424-mjc-admin-rsshub/) |
 | 260424-ney | feed 列表页聚类展开按钮点击渲染 siblings — getFeed 批量返回 clusterSiblings + / 和 /all 页面传参（favorites 留作边界） | 2026-04-24 | ecf89ec | [260424-ney-feed-siblings](./quick/260424-ney-feed-siblings/) |
+| 260424-o34 | fetch-source-core 按 URL 前缀分流：原生 http(s):// 走裸 fetch，/ 开头走 fetchRSSHub；新增 nativeFetch 可注入 + 5 条测试覆盖分流 | 2026-04-24 | 5a07ce7 | [260424-o34-fetch-source-native-rss-rsshub](./quick/260424-o34-fetch-source-native-rss-rsshub/) |
 
 ## Deferred Items
 
