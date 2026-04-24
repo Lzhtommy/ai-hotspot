@@ -11,6 +11,15 @@ Discovered during: Plan 06-06 Task 2 verification (pnpm test --run)
 
 **Scope boundary:** Out of scope for Plan 06-06 (OPS-01 Sentry integration). Deferred to future quick task or Phase 6 closure pass. Related files are all in src/lib/llm/ (Phase 3 LLM pipeline), not the files modified by this plan.
 
+**Re-confirmed during Plan 06-02:** 5 test files fail on full `pnpm test --run` — all transitive imports of `@/lib/llm/client.ts`:
+- src/trigger/process-pending.test.ts
+- src/lib/llm/enrich.test.ts
+- src/lib/llm/process-item-core.test.ts
+- src/lib/llm/embed.test.ts
+- src/lib/llm/client.test.ts (the 3 voyage cases above)
+
+Root cause: `@/lib/llm/client.ts` instantiates `new Anthropic(...)` at module scope; in a `jsdom` test environment the SDK's browser-safety guard trips because `window` is defined. Fix is either `dangerouslyAllowBrowser: true`, lazy-init inside a getter, or a per-file environment pragma. Out of scope for Plan 06-02 (admin sources). Plan 06-02's new tests (18) all pass.
+
 ---
 
 ## Deferred: Plan 06-06 live Sentry verification (Task 3)
