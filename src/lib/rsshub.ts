@@ -12,6 +12,7 @@
  *   - Phase 2 Trigger.dev ingestion tasks
  *
  * Env vars (D-07): RSSHUB_BASE_URL, RSSHUB_ACCESS_KEY
+ * Contract: `path` is a RSSHub path beginning with "/" (e.g. "/anthropic/news"). Full http(s):// URLs are routed by the upstream dispatcher in fetch-source-core — do not pass a full URL here.
  */
 
 export class RSSHubError extends Error {
@@ -33,7 +34,9 @@ interface FetchOpts {
 
 /**
  * Fetch a path against the RSSHub HF Space with ACCESS_KEY auth.
- * Path should begin with "/" (e.g., "/" for root, "/rsshub/routes" for a specific route).
+ * Path MUST begin with "/" (e.g., "/" for root, "/anthropic/news" for a route).
+ * Full http(s):// URLs are NOT supported — upstream callers must dispatch those
+ * via native fetch. See src/lib/ingest/fetch-source-core.ts::fetchBySource.
  */
 export async function fetchRSSHub(path: string, opts: FetchOpts = {}): Promise<Response> {
   // Default timeout 60_000ms (D-05 cold-start budget). Warmup default on.

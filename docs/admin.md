@@ -81,14 +81,14 @@ Source code: `src/lib/admin/sources-repo.ts` (data layer), `src/server/actions/a
 
 Click **新建信源** (or go to `/admin/sources/new`) and fill in:
 
-| Field    | Meaning                                                          | Notes                                                                                                                  |
-| -------- | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| name     | Display name shown on feed cards                                 | 1..200 chars, any language                                                                                             |
-| rssUrl   | Either a full RSS URL or an RSSHub route path beginning with `/` | RSSHub routes (e.g. `/anthropic/news`) are preferred because they do not embed the `ACCESS_KEY` — see `docs/rsshub.md` |
-| language | `zh` or `en`                                                     | Controls whether the enrichment pipeline translates before scoring                                                     |
-| weight   | numeric(3,1), `0.0..99.9`                                        | Source-level score multiplier. Default `1.0`. Raise to boost a high-signal source; lower to demote a noisy one         |
-| category | Free-form TEXT, ≤40 chars (nullable)                             | Used for admin filtering only; not rendered on the public feed in v1                                                   |
-| isActive | boolean                                                          | Unchecked = the ingestion poller skips this source                                                                     |
+| Field    | Meaning                                                                                     | Notes                                                                                                                                                                                    |
+| -------- | ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| name     | Display name shown on feed cards                                                            | 1..200 chars, any language                                                                                                                                                               |
+| rssUrl   | Either a full RSS URL (`http://…` / `https://…`) or an RSSHub route path beginning with `/` | Dispatch is prefix-based: `http(s)://` → direct fetch (30s timeout, no ACCESS_KEY); `/…` → RSSHub (60s budget + key). RSSHub routes are preferred when available — see `docs/rsshub.md`. |
+| language | `zh` or `en`                                                                                | Controls whether the enrichment pipeline translates before scoring                                                                                                                       |
+| weight   | numeric(3,1), `0.0..99.9`                                                                   | Source-level score multiplier. Default `1.0`. Raise to boost a high-signal source; lower to demote a noisy one                                                                           |
+| category | Free-form TEXT, ≤40 chars (nullable)                                                        | Used for admin filtering only; not rendered on the public feed in v1                                                                                                                     |
+| isActive | boolean                                                                                     | Unchecked = the ingestion poller skips this source                                                                                                                                       |
 
 The form is a standard HTML `<form action={createSourceAction}>`. Validation is done server-side via zod; a malformed input returns `{ ok: false, error: 'VALIDATION' }` and the form shows the generic `输入无效` error. We intentionally do NOT echo the raw zod error back to the client — that would leak schema details (threat T-6-24).
 
