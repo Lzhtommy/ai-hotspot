@@ -1,6 +1,7 @@
 import { task } from '@trigger.dev/sdk';
 import { runProcessItem, type ProcessItemResult } from '@/lib/llm/process-item-core';
 import { startOtel, flushOtel } from '@/lib/llm/otel';
+import { withSentry } from './sentry-wrapper';
 
 // OTel bootstrap at module load — idempotent (RESEARCH.md §Pitfall 6).
 // Must occur before any Anthropic client instantiation in this process.
@@ -39,10 +40,18 @@ export const processItem = task({
   maxDuration: 120,
   queue: { name: 'llm-pipeline', concurrencyLimit: 4 }, // W4 — locked per LLM-01 contract
   run: async (payload: { itemId: string }): Promise<ProcessItemResult> => {
-    try {
-      return await runProcessItem({ itemId: BigInt(payload.itemId) });
-    } finally {
-      await flushOtel();
-    }
+    // Phase 6 OPS-01 — withSentry wraps the run body so any exception that
+    // escapes runProcessItem is captured to Sentry (tagged task=process-item)
+    // BEFORE the throw propagates back to Trigger.dev's retry machinery.
+    // Sentry.flush(2000) inside the wrapper guarantees the event reaches the
+    // collector before the worker recycles. OTel flush still runs in finally{}
+    // — Sentry (error capture) and Langfuse/OTel (LLM traces) are orthogonal.
+    return await withSentry('process-item', async () => {
+      try {
+        return await runProcessItem({ itemId: BigInt(payload.itemId) });
+      } finally {
+        await flushOtel();
+      }
+    });
   },
 });
