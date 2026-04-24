@@ -1,5 +1,5 @@
 import { schedules, batch } from '@trigger.dev/sdk';
-import { eq } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 import { db } from '@/lib/db/client';
 import { sources } from '@/lib/db/schema';
 import { fetchSource } from './fetch-source';
@@ -38,10 +38,16 @@ export const ingestHourly = schedules.task({
   id: 'ingest-hourly',
   cron: '0 * * * *',
   run: async (payload) => {
+    // Phase 6 Plan 06-02 (ADMIN-05): skip soft-deleted sources. A source
+    // with `deleted_at IS NOT NULL` is removed from the admin UI and MUST
+    // NOT be polled — items previously ingested from it remain in the feed
+    // but no new fetches occur. `is_active = false` is the admin's manual
+    // disable toggle (per-source pause without loss of data); both filters
+    // coexist so either channel independently takes a source out of rotation.
     const active = await db
       .select({ id: sources.id, rssUrl: sources.rssUrl })
       .from(sources)
-      .where(eq(sources.isActive, true));
+      .where(and(eq(sources.isActive, true), isNull(sources.deletedAt)));
 
     if (active.length === 0) {
       return {
