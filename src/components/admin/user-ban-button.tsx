@@ -10,15 +10,23 @@
  *
  * Error handling:
  *   - { ok: false, error: 'SELF_BAN' }             → alert("不能封禁自己")
+ *   - { ok: false, error: 'ALREADY_BANNED' }       → alert("该用户已被封禁,请刷新列表。")
+ *                                                    + router.refresh() so the
+ *                                                    stale row re-renders with
+ *                                                    the 解封 button
  *   - { ok: false, error: 'UNAUTHENTICATED' }      → alert("请重新登录")
  *   - { ok: false, error: 'FORBIDDEN' | 'VALIDATION' | 'NOT_FOUND' | 'INTERNAL' }
  *                                                  → alert("操作失败,请重试")
  *
  * The parent UsersTable hides this button for admin-on-admin rows, so the
  * SELF_BAN case is the only UI path where a self-targeted click could reach
- * the server; the core still guards it server-side.
+ * the server; the core still guards it server-side. The ALREADY_BANNED path
+ * is reachable only via a stale tab (admin A bans user X; admin B's open
+ * /admin/users tab hasn't re-rendered yet and admin B clicks 封禁 on X) —
+ * see 06-REVIEW WR-08.
  */
 import { useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { banUserAction, unbanUserAction } from '@/server/actions/admin-users';
 
 interface UserBanButtonProps {
@@ -28,6 +36,7 @@ interface UserBanButtonProps {
 
 export function UserBanButton({ userId, isBanned }: UserBanButtonProps) {
   const [pending, startTransition] = useTransition();
+  const router = useRouter();
 
   const handleClick = () => {
     const confirmCopy = isBanned
@@ -41,6 +50,12 @@ export function UserBanButton({ userId, isBanned }: UserBanButtonProps) {
       if (!result.ok) {
         if (result.error === 'SELF_BAN') {
           window.alert('不能封禁自己');
+        } else if (result.error === 'ALREADY_BANNED') {
+          // Stale UI: user was already banned by another admin. Surface the
+          // real state and re-fetch the row so the 解封 button replaces this
+          // 封禁 one on the next paint.
+          window.alert('该用户已被封禁,请刷新列表。');
+          router.refresh();
         } else if (result.error === 'UNAUTHENTICATED') {
           window.alert('请重新登录');
         } else {
