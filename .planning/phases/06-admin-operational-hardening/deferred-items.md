@@ -22,3 +22,16 @@ Discovered during: Plan 06-06 Task 3 checkpoint (live Sentry dashboard verificat
 **Tracking:** `.planning/phases/06-admin-operational-hardening/06-06-HUMAN-UAT.md` (status `partial`, 2 pending tests).
 
 **Scope boundary:** Not a blocker for Plan 06-06 metadata close (code-complete) or for Phase 6 execution continuation (Wave 2+ plans do not depend on Sentry being live). Must be resolved before Phase 6 production sign-off / `VERIFICATION.md` green status.
+
+---
+
+## Deferred: `/sitemap.xml` prerender failure at build-time without live DATABASE_URL
+
+Discovered during: Plan 06-04 Task 2 verification (`pnpm run build`).
+
+**Failure:**
+- `app/sitemap.xml/route.ts` runs a `SELECT id, published_at, processed_at FROM items WHERE status='published' ORDER BY published_at DESC LIMIT 5000` during `next build` (Generating static pages), which fails when no real Neon database is reachable (CI / fresh worktree).
+
+**Status:** Pre-existing on branch at commit `f816ef7` BEFORE any 06-04 edits. Confirmed by running `pnpm run build` at `f816ef7` (baseline) — fails with the identical error, proving the regression is not caused by Plan 06-04. Plan 06-07 landed the sitemap route; it should either force `dynamic='force-dynamic'` + `runtime='nodejs'` OR gate the DB query behind an env check (return an empty sitemap when DATABASE_URL is absent at build time).
+
+**Scope boundary:** Out of scope for Plan 06-04 (ADMIN-09 LLM cost dashboard). Plan 06-04's own route (`/admin/costs`) is `force-dynamic` with `revalidate=0` and does not prerender. TypeScript (`pnpm exec tsc --noEmit`) passes and unit tests pass — the failure is isolated to `/sitemap.xml`'s build-time prerender, which is a 06-07 concern. Deferred to a quick task or Phase 6 closure pass.
