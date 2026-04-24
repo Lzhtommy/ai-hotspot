@@ -1,6 +1,6 @@
 ---
 phase: 06-admin-operational-hardening
-reviewed: 2026-04-23T00:00:00Z
+reviewed: 2026-04-24T00:00:00Z
 depth: standard
 files_reviewed: 58
 files_reviewed_list:
@@ -63,227 +63,169 @@ files_reviewed_list:
   - tests/unit/sitemap-repo.test.ts
   - tests/unit/source-health.test.ts
 findings:
-  critical: 1
-  warning: 6
+  critical: 0
+  warning: 2
   info: 5
-  total: 12
+  total: 7
 status: issues_found
 ---
 
-# Phase 6: Code Review Report
+# Phase 6: Code Review Report (Iteration 2)
 
-**Reviewed:** 2026-04-23T00:00:00Z
+**Reviewed:** 2026-04-24T00:00:00Z
 **Depth:** standard
-**Files Reviewed:** 58 (of 62 in scope; 4 config/generated artifacts excluded per workflow: `.env.example`, `package.json`, `pnpm-lock.yaml`, `drizzle/meta/_journal.json`)
-**Status:** issues_found
+**Files Reviewed:** 58
+**Status:** issues_found (warnings only — no criticals, no security blockers)
 
 ## Summary
 
-Phase 6 lands a substantial admin and operational-hardening surface: a three-layer admin gate (edge middleware → RSC `requireAdmin()` → per-action `assertAdmin()`), four admin routes (sources, users, costs, dead-letter), Sentry + Langfuse wiring, a soft-delete schema migration, and public SEO surfaces.
+This is the second review pass on Phase 6 after the `06-REVIEW-FIX.md` iteration landed commits `56e82cf` (CR-01), `9fe8bc6` (WR-01), `50f7b9d` (WR-02), `a7c2e1c` (WR-03), `8f847aa` (WR-04), `6d8e317` (WR-05), and `40e1c1d` (WR-06).
 
-**Security posture is strong overall.** The defense-in-depth admin gate is correctly layered, Server Actions uniformly re-verify the session via `assertAdmin()` before any DB work, `zod` validation rejects malformed input before it touches Neon, errors are mapped to opaque `{ ok: false, error: CODE }` shapes so DB schema hints do not leak across the client boundary, `banUserCore` runs the `is_banned` flip and session-revocation DELETE in a single transaction, the dead-letter retry action is sliding-window rate-limited per admin, and Sentry `beforeSend` scrubs cookies/authorization/email plus top-level token-like keys.
+**All seven prior in-scope findings are cleanly resolved.** Spot-verification:
 
-**One critical correctness bug** exists in `retryAllCore` — the `sql\`... WHERE id IN ${ids}\`` raw-SQL fragment embeds a JS array as a single bound parameter, producing `WHERE id IN $1` which Postgres rejects. The unit test only inspects the rendered fragment and never executes against a real driver, so the bug is undetected by the harness. This will fail at runtime the first time an admin clicks **批量重试**.
+- **CR-01** — `retryAllCore` now uses `and(inArray(items.id, ids), eq(items.status, 'dead_letter'))` (dead-letter-repo.ts:123). The `void inArray` escape hatch is gone. The new integration test at `tests/integration/dead-letter-retry-all.test.ts` is referenced in the unit test comment (admin-dead-letter.test.ts:163) as the end-to-end proof.
+- **WR-01** — Both `sentry.server.config.ts` and `sentry.edge.config.ts` carry independent copies of `scrubNested(v, seen: WeakSet)` with recursive walk over `request.data`, `extra`, `contexts`, and `breadcrumbs[].data`. Cycle guard present. Regex expanded to include `bearer`.
+- **WR-02** — SourceForm now pairs a hidden `<input type="hidden" name="isActive" value="false">` sentinel with the checkbox (source-form.tsx:197-206). `readBool` reads `fd.getAll(key)` and treats the LAST value as authoritative (admin-sources.ts:133-139) — correct because `FormData.get()` returns the FIRST occurrence.
+- **WR-03** — `isUniqueViolation` catches `.code === '23505'` with a `.message` regex fallback; `createSourceAction` maps to `'URL_EXISTS'`; Chinese copy is in `ERROR_COPY` (source-form.tsx:65).
+- **WR-04** — Route is `POST`, Origin/host equality check present with fail-closed on missing Origin/Host, runbook updated.
+- **WR-05** — `banUserCore` UPDATE carries `and(eq(users.id), eq(users.isBanned, false))`; zero-row UPDATE triggers a disambiguation SELECT that distinguishes `UserNotFoundError` from `AlreadyBannedError`. Both errors abort the transaction so the DELETE never runs.
+- **WR-06** — `requireAdmin()` reads `x-pathname` from `next/headers` and emits `redirect('/?next=…')` when present, falling through to the literal `redirect('/')` otherwise. The static grep in `scripts/verify-admin-ops.ts:185` still matches.
 
-Several warnings concern edge cases rather than exploitable flaws: the Sentry `beforeSend` regex only traverses top-level keys (nested secrets pass through), the edit-source form cannot deactivate a source because HTML unchecked checkboxes are omitted from FormData (the `updateSourceAction` treats missing `isActive` as "no change"), soft-deleted sources still hold the `rss_url` UNIQUE constraint so recreating under the same URL fails, and the `/api/admin/sentry-test` GET route is reachable from a CSRF-authenticated `<img>` tag (admin-only log-spam, not privilege escalation).
+**Security posture remains strong.** Three-layer gate is intact (edge middleware → RSC `requireAdmin()` → per-action `assertAdmin()`), Server Actions uniformly map caught exceptions to opaque `{ ok: false, error: CODE }` shapes, zod runs before DB, the bulk-retry rate limit stayed at 20/60s sliding-window, `banUserCore` is transactional, Sentry scrub now traverses nested shapes with cycle detection.
 
-## Critical Issues
+**New findings this pass (fresh look):**
 
-### CR-01: retryAllCore raw-SQL `IN ${ids}` binds array as single parameter → runtime failure
+- **One new warning (WR-07)** — `updateSourceAction` cannot clear a `category` once it's set. Root cause is the same `readString`-empty-string-collapse pattern that caused the original WR-02 checkbox bug, applied to a `<select>` whose "未分类" option has `value=""`.
+- **One warning revisited (WR-08)** — UserBanButton does not handle the newly-introduced `'ALREADY_BANNED'` error code; the `else` fallback shows the generic "操作失败,请重试" alert which is wrong copy for this case.
+- **Five Info items** — four carried forward from iteration 1 (IN-02..IN-05 were deliberately out of scope per `fix_scope=critical_warning`), plus one new minor issue around the AdminShell rendering the admin nav on `/admin/access-denied`.
 
-**File:** `src/lib/admin/dead-letter-repo.ts:114-121`
-**Issue:** The bulk UPDATE uses Drizzle's `sql` template tag with `WHERE id IN ${ids}` where `ids` is a JS array of `bigint` values. Drizzle's `sql` tag wraps non-SQL interpolated values as `Param` objects — a plain JS array becomes a single bound parameter, not an expanded `IN (1, 2, 3)` list. The rendered SQL is effectively `WHERE id IN $1` with `$1` bound to an array, which Postgres rejects (`IN` requires a parenthesized scalar list or a subquery; `= ANY($1::bigint[])` is the array-bind idiom).
-
-The existing unit test (`tests/unit/admin-dead-letter.test.ts:158-172`) only walks the rendered `queryChunks` and asserts the literals `status = 'pending'`, `status = 'dead_letter'`, `retry_count = retry_count + 1` are present — it never executes the SQL against a real driver. `scripts/verify-admin-ops.ts` exercises `retryItemCore` (single-item), not `retryAllCore`. The bug will therefore first surface in production the first time an admin clicks **批量重试** on `/admin/dead-letter`.
-
-**Fix:** Use Drizzle's `sql.join` helper (already the project precedent — see `src/lib/feed/get-feed.ts:98`) or the query builder's `inArray()` helper. The comment at lines 107-112 rejects `inArray()` because it claims the race-guard cannot be composed atomically, but `inArray` composes fine with `.where(and(...))`:
-
-```ts
-// Option A — query builder (cleanest, type-safe):
-await d
-  .update(items)
-  .set({
-    status: 'pending',
-    failureReason: null,
-    processedAt: null,
-    retryCount: dsql`${items.retryCount} + 1`,
-  })
-  .where(and(inArray(items.id, ids), eq(items.status, 'dead_letter')));
-
-// Option B — raw SQL with sql.join (keep this shape if the race-guard comment is load-bearing):
-await d.execute(dsql`
-  UPDATE items
-  SET status = 'pending',
-      failure_reason = NULL,
-      processed_at = NULL,
-      retry_count = retry_count + 1
-  WHERE id IN (${dsql.join(ids, dsql`, `)}) AND status = 'dead_letter'
-`);
-```
-
-Also remove the `void inArray;` defensive no-op on line 126 once `inArray` is actually used — it becomes genuine dead-code-silencing after the fix.
-
-**Add an integration test** (pattern: `tests/integration/ban-revokes-sessions.test.ts`) that seeds two `status='dead_letter'` items and asserts both flip to `pending` after `retryAllCore({ limit: 2 })`. The unit-test-only coverage is what let this slip through RED→GREEN.
+The codebase is in a shippable state — no critical or security-grade issues remain.
 
 ## Warnings
 
-### WR-01: Sentry beforeSend scrubs only top-level keys — nested secrets pass through
+### WR-07: updateSourceAction cannot clear a category once set — same root-cause class as the fixed WR-02
 
-**File:** `sentry.server.config.ts:41-48` (and mirrored at `sentry.edge.config.ts:30-37`)
-**Issue:** The secret-scrub regex `/token|secret|key|password|authorization/i` only walks `Object.keys(event.request.data)` — one level deep. A request body like `{ auth: { bearer_token: 'sk-...' } }` or `{ user: { apiKey: '...' } }` leaves the inner key untouched. Similarly, `event.extra`, `event.contexts`, and `event.breadcrumbs[].data` are never traversed — breadcrumbs often carry the outbound fetch URL + headers that originally contained the secret.
+**File:** `src/server/actions/admin-sources.ts:113-118,192-199` + `src/components/admin/source-form.tsx:173-186`
+**Issue:** `readString(fd, key)` deliberately collapses an empty string to `undefined` (line 117: `return trimmed === '' ? undefined : trimmed`). The category `<select>` always submits a value — including `category=""` when the admin selects "未分类". But `readString` then returns `undefined`, and the ternary on line 198 (`categoryRaw === undefined ? undefined : …`) maps `undefined` to `undefined` in the parsed payload, which `updateSourceCore` treats as "no change" (sources-repo.ts:161 uses `'category' in patch`, and a `category: undefined` key IS present in the object but `patch.category ?? null` would evaluate to `null` — except the key `'category'` is not actually added to the parsed object by zod when the schema field is `optional()` and the input is `undefined`).
 
-**Fix:** Either recurse, or rely on Sentry's built-in denyUrls/scrubbing. Recommended: add Sentry's built-in `RequestData` integration with `include.ip: false` plus a recursive walk:
+Consequence: an admin who had previously set a source's category to `lab` and wants to clear it back to NULL cannot do so from the edit form. They would need a direct SQL UPDATE. This is the exact UX regression that was fixed for `isActive` in WR-02 — the same `readString`-strips-empty-string pattern just needs to be applied consistently to `category`.
 
-```ts
-function scrubNested(v: unknown): unknown {
-  if (v === null || typeof v !== 'object') return v;
-  if (Array.isArray(v)) return v.map(scrubNested);
-  const out: Record<string, unknown> = {};
-  for (const [k, val] of Object.entries(v)) {
-    out[k] = /token|secret|key|password|authorization|bearer/i.test(k)
-      ? '[redacted]'
-      : scrubNested(val);
-  }
-  return out;
-}
-if (event.request?.data && typeof event.request.data === 'object') {
-  event.request.data = scrubNested(event.request.data);
-}
-if (event.extra) event.extra = scrubNested(event.extra) as typeof event.extra;
-if (event.breadcrumbs) {
-  for (const b of event.breadcrumbs) if (b.data) b.data = scrubNested(b.data) as typeof b.data;
-}
-```
+**Fix:** Two options; option A is tighter.
 
-### WR-02: updateSourceAction cannot deactivate a source — unchecked checkbox is omitted from FormData
-
-**File:** `src/server/actions/admin-sources.ts:167` + `src/components/admin/source-form.tsx:194-201`
-**Issue:** HTML does not submit unchecked checkboxes, so `formData.has('isActive')` is `false` when the admin unchecks the **启用** box and submits the edit form. The server action then sets `isActive: undefined` (the ternary on line 167), which `updateSourceCore` treats as "no change" and skips the update. Consequence: the **edit form** cannot deactivate a source. The admin workaround (the row-level **停用** toggle in `source-row-actions.tsx`) works because it sends an explicit `toggleActiveAction(id, false)` call, but this is a surprise for anyone reaching for the form.
-
-**Fix:** Add a hidden `isActive=false` sentinel ahead of the checkbox so the checkbox-present case overrides it. Standard HTML form trick:
-
-```tsx
-{/* Always post something for isActive so unchecked state is distinguishable from "field absent" */}
-<input type="hidden" name="isActive" value="false" />
-<label style={checkboxLabelStyle}>
-  <input type="checkbox" name="isActive" value="true"
-         defaultChecked={prefill ? prefill.isActive : true} />
-  <span>启用(取消勾选则加入后不轮询)</span>
-</label>
-```
-
-Then in `readBool`, treat the last value wins (`FormData.get` already returns the last occurrence for duplicate keys; `FormData.getAll` if you want to be explicit).
-
-### WR-03: Soft-deleted source blocks re-creation under the same rss_url
-
-**File:** `src/lib/admin/sources-repo.ts:177-183` + `src/lib/db/schema.ts:25`
-**Issue:** `sources.rssUrl` is declared `.notNull().unique()`. `softDeleteSourceCore` sets `deleted_at = now()` but leaves `rss_url` untouched. If an admin soft-deletes a source and then tries to recreate it under the same URL (e.g., after a misconfiguration), `createSourceCore` fails with a Postgres `unique_violation (23505)`, which `toErrorCode()` maps to `'INTERNAL'` — the admin sees "服务器出错,请稍后再试" with no hint that the URL is in soft-delete limbo. This is the direct consequence of the "soft-delete preserves history" D-unwind rationale colliding with URL uniqueness.
-
-**Fix:** Either
-1. Catch the `23505` pg error code explicitly in `createSourceAction` and return a dedicated `'URL_EXISTS'` error code with Chinese copy "该 RSS 地址已存在(可能在软删除的信源中)", or
-2. Make the unique constraint partial: `CREATE UNIQUE INDEX sources_rss_url_live ON sources (rss_url) WHERE deleted_at IS NULL;` (migration change). Option 2 is cleaner but requires another schema migration; option 1 is sufficient for v1.
-
-### WR-04: /api/admin/sentry-test is reachable via CSRF (admin log-spam only)
-
-**File:** `src/app/api/admin/sentry-test/route.ts:25-32`
-**Issue:** The route is a GET handler, `dynamic = 'force-dynamic'`, gated by `requireAdmin()`. A malicious site the admin visits while logged in can trigger a Sentry event via `<img src="https://aihotspot.example/api/admin/sentry-test">` — the redirect for non-admins returns 3xx so no body is embeddable, but an authenticated admin's browser will dutifully burn a Sentry event on every such `<img>` load. The plan explicitly accepts T-6-63 (log-noise DoS) for first-party admins, but CSRF amplifies: a cross-site `<img>` burns events without the admin's awareness.
-
-**Fix:** Change to `POST` and require a matching SameSite cookie (Auth.js session cookie is `SameSite=Lax` by default, which blocks `<img>` triggers) or add a custom header check the `fetch()` caller must supply:
+Option A — teach `readString` to preserve empty strings when the caller asks for them:
 
 ```ts
-// Change to POST; browsers do not send cross-origin POST preflight-free with custom
-// headers, and Auth.js's SameSite=Lax cookie already blocks top-level POST from
-// cross-site forms.
-export async function POST(req: Request) {
-  await requireAdmin();
-  // optional belt-and-suspenders: require Origin header matches host
-  const origin = req.headers.get('origin') ?? '';
-  const host = req.headers.get('host') ?? '';
-  if (!origin.endsWith(host)) return new Response('forbidden', { status: 403 });
-  throw new Error(`Sentry integration test — ${new Date().toISOString()}`);
+function readString(fd: FormData, key: string, opts: { preserveEmpty?: boolean } = {}): string | undefined {
+  const v = fd.get(key);
+  if (typeof v !== 'string') return undefined;
+  const trimmed = v.trim();
+  if (trimmed === '' && !opts.preserveEmpty) return undefined;
+  return trimmed;
 }
+
+// in updateSourceAction:
+const categoryRaw = readString(formData, 'category', { preserveEmpty: true });
+const parsed = SourceUpdateSchema.safeParse({
+  // …
+  // Empty string → null (explicit clear); missing field → undefined (no change).
+  category:
+    categoryRaw === undefined
+      ? undefined
+      : categoryRaw === ''
+        ? null
+        : categoryRaw,
+});
 ```
 
-And update the UAT script that probes it to send POST.
+Option B — a hidden sentinel pair like the `isActive` fix, but for a `<select>` you cannot send two values, so the sentinel approach doesn't carry over cleanly. Option A is the right precedent.
 
-### WR-05: banUserCore does not preserve prior ban audit on re-ban — overwrites bannedAt/bannedBy
+Note that CREATE is unaffected — line 160 is `readString(formData, 'category') ?? null`, which coerces undefined to null for a brand-new row. The asymmetry is the bug: CREATE treats empty-string as null, UPDATE treats it as no-change.
 
-**File:** `src/lib/admin/users-repo.ts:141-160`
-**Issue:** If admin A bans user X at T1, admin B unbans X at T2, admin C re-bans X at T3, the `banned_at = now()` + `banned_by = C.id` writes on T3 overwrite any prior audit. The `users` row carries only a single audit slot. The UsersTable UI hides the ban button on already-banned rows (showing **解封** instead), so the direct re-ban case is blocked by UI, but the `banUserAction` Server Action itself has no "is already banned" guard and could be invoked by a hand-crafted POST. The lost audit only matters if the operator later asks "who banned X the first time?" — material for post-incident review only.
+Add a unit test covering: edit an existing source with `category='lab'` → submit form with "未分类" selected → assert the UPDATE's SET clause contains `{ category: null }`.
 
-**Fix:** Either
-1. Add an `is_banned` guard at the top of `banUserCore`: `SELECT is_banned FROM users WHERE id = $target` — if already true, throw `AlreadyBannedError` and short-circuit the UPDATE, or
-2. Introduce a dedicated `ban_events` audit table (id, target_user_id, admin_user_id, action enum('ban' | 'unban'), at timestamptz) and append on every ban/unban — future-proof.
+### WR-08: UserBanButton surfaces generic "操作失败,请重试" for the new ALREADY_BANNED code
 
-Option 1 is the one-line v1 fix.
+**File:** `src/components/admin/user-ban-button.tsx:41-49`
+**Issue:** WR-05's fix introduced a new error code `'ALREADY_BANNED'` (admin-users.ts:48,71). `UserBanButton.handleClick` only branches on `SELF_BAN` and `UNAUTHENTICATED`; every other code — including `ALREADY_BANNED`, `NOT_FOUND`, `FORBIDDEN`, `VALIDATION`, `INTERNAL` — falls through to `window.alert('操作失败,请重试')`.
 
-### WR-06: requireAdmin() redirect('/') drops the originally-requested path
+The UsersTable hides the ban button for rows where `isBanned === true`, so this path is reachable only via stale UI (admin A bans user X, admin B's open /admin/users tab hasn't re-rendered, admin B clicks ban). Admin B sees "操作失败,请重试" with no indication the user is actually already banned and the list is stale. Low impact but confusing in a two-admin team.
 
-**File:** `src/lib/auth/admin.ts:58`
-**Issue:** The edge middleware at `src/middleware.ts:67-74` deliberately preserves the attempted admin path via `?next=${pathname}` on its redirect for anonymous traffic. But `requireAdmin()` in the RSC layer at `src/lib/auth/admin.ts:58` just calls `redirect('/')` with no `next` hint — so any admin path that slips past middleware (e.g., if middleware were ever scoped narrower) loses the user's intended destination. The two layers should stay in lockstep.
-
-**Fix:** Read the current pathname via `headers().get('x-pathname')` (middleware already sets this for every `/admin/*` request, see `src/middleware.ts:80-82`) and preserve it:
+**Fix:**
 
 ```ts
-export async function requireAdmin(): Promise<AdminSession> {
-  const session = await auth();
-  if (!session?.user?.id) {
-    const h = await headers();
-    const next = h.get('x-pathname') ?? '';
-    redirect(next ? `/?next=${encodeURIComponent(next)}` : '/');
-  }
-  if (roleOf(session.user) !== 'admin') redirect('/admin/access-denied');
-  return session as AdminSession;
+if (result.error === 'SELF_BAN') {
+  window.alert('不能封禁自己');
+} else if (result.error === 'ALREADY_BANNED') {
+  window.alert('该用户已被封禁,请刷新列表。');
+} else if (result.error === 'UNAUTHENTICATED') {
+  window.alert('请重新登录');
+} else {
+  window.alert('操作失败,请重试');
 }
 ```
+
+Also consider emitting `router.refresh()` on `ALREADY_BANNED` so the stale row re-renders with the 解封 button.
 
 ## Info
 
-### IN-01: Unused `inArray` import with `void inArray` escape hatch
+### IN-01: AdminShell renders AdminNav on /admin/access-denied for non-admin authenticated users
 
-**File:** `src/lib/admin/dead-letter-repo.ts:30,126`
-**Issue:** Line 30 imports `inArray` from drizzle-orm; line 126 contains `void inArray;` with the comment "Silence unused-import warnings when tree-shaking picks only part of the file." This is a code smell pointing at the root-cause of CR-01 — the author reached for `inArray` but gave up and used raw SQL. Once CR-01 is fixed by switching to `inArray`, both the import and the `void` line become genuine usage.
+**File:** `src/app/admin/layout.tsx:47-57` + `src/components/admin/admin-shell.tsx:131-144`
+**Issue:** When a non-admin authenticated user lands on `/admin/access-denied`, the layout short-circuits `requireAdmin()` (correct — avoids redirect loop) and still renders `<AdminShell>` with the full sidebar nav (信源 / 用户 / 成本 / 死信). A non-admin clicking any of those links immediately gets re-redirected to `/admin/access-denied`, so there is no data leak — but the nav appearing creates a misleading impression that these are reachable surfaces, and it's an awkward welcome-mat for a user who was just told "无权访问".
 
-**Fix:** Use `inArray` in `retryAllCore` per CR-01 recommendation, remove the `void` line.
+**Fix:** Render a minimal shell (no `<AdminNav>`) for the access-denied branch, or hide nav items when the session's role is not 'admin':
 
-### IN-02: CostSummary totalUsd uses JS float summation (precision drift at scale)
+```tsx
+if (isAccessDenied) {
+  const session = await auth();
+  const userName = session?.user?.name ?? session?.user?.email ?? '访客';
+  const isAdmin = roleOf(session?.user) === 'admin';
+  return <AdminShell userName={userName} showNav={isAdmin}>{children}</AdminShell>;
+}
+```
 
-**File:** `src/lib/admin/costs-repo.ts:120-121`
-**Issue:** `totalUsd += r.estimatedCostUsd` accumulates JS doubles. At v1 scale (<~30 days × ~10 models = 300 rows, dollar amounts at 6 decimal precision) the relative drift is <1e-9 — well under the 4-decimal display rounding — but if the admin page is ever extended to multi-month windows, consider switching to integer cents aggregation or `SUM(estimated_cost_usd)` pushed server-side into a single query.
+The `showNav` prop is a one-line change in AdminShell. No behavior change for admins.
 
-**Fix:** Replace the JS loop with a second `SELECT SUM(...) GROUP BY model` aggregated server-side if/when windows grow. No immediate action required.
+### IN-02: CostSummary totalUsd uses JS float summation (carried from iteration 1 — still out of scope)
 
-### IN-03: instrumentation.ts inline `import('./sentry.server.config')` pattern
+**File:** `src/lib/admin/costs-repo.ts:120-131`
+**Issue:** `totalUsd += r.estimatedCostUsd` accumulates JS doubles. Relative drift is <1e-9 at current scale (<~300 rows × 4-decimal display). No action required; track for re-evaluation if cost windows grow past 30 days.
+
+**Fix:** Push `SUM(estimated_cost_usd)` server-side when window growth exceeds ~365 days, or switch to integer cents aggregation.
+
+### IN-03: instrumentation.ts inline dynamic import pattern (carried from iteration 1)
 
 **File:** `instrumentation.ts:17-22`
-**Issue:** The dynamic `await import('./sentry.server.config')` is correct for Next.js's `instrumentation.ts` special-casing, but the imported module does its side-effect (`Sentry.init(...)`) at top level. If Next.js ever invokes `register()` twice in dev (historically the case during HMR), `Sentry.init()` is called twice — it's idempotent in current Sentry SDKs, but the pattern is fragile. The `src/trigger/sentry-wrapper.ts:31-46` `initialized` flag guard is the robust version.
+**Issue:** `await import('./sentry.server.config')` runs the module's top-level `Sentry.init(...)` side-effect. `register()` is called once per cold-start in current Next.js; if HMR or future Next changes call it twice, `Sentry.init()` runs twice (currently idempotent but fragile).
 
-**Fix:** No action required today (Sentry.init is idempotent). If HMR double-init becomes a problem, move the `Sentry.init` call into an `ensureInit()`-style lazy function mirroring `sentry-wrapper.ts`.
+**Fix:** No action today; if/when flakes appear, mirror `src/trigger/sentry-wrapper.ts`'s `ensureInit()` lazy-init guard in the Next.js bootstrap.
 
-### IN-04: DeadLetterTable uses row.url in <a href> without scheme check
+### IN-04: DeadLetterTable anchor has no scheme whitelist (carried from iteration 1)
 
 **File:** `src/components/admin/dead-letter-table.tsx:166-173`
-**Issue:** `href={row.url}` embeds the ingested item URL directly. Items are ingested through `src/lib/ingest/normalize-url.ts`, which forces https, so `javascript:` URLs cannot reach the admin table — but the defense is at a distance. A defense-in-depth scheme whitelist in the render path would harden against future ingestion regressions.
+**Issue:** `href={row.url}` is unguarded. `src/lib/ingest/normalize-url.ts` forces https, so `javascript:` URLs cannot reach this row in practice — defense-in-depth wants a scheme-whitelist at the render path.
 
-**Fix:** Add a trivial guard:
+**Fix:** Tiny helper in this file:
 
-```ts
+```tsx
 function safeHref(u: string): string {
   try { const url = new URL(u); return url.protocol === 'https:' || url.protocol === 'http:' ? u : '#'; }
   catch { return '#'; }
 }
-// <a href={safeHref(row.url)} ...>
+// …
+<a href={safeHref(row.url)} target="_blank" rel="noreferrer" …>
 ```
 
-### IN-05: Sitemap has no total-URL cap guard beyond limit=5000
+### IN-05: Sitemap has a silent 5000-URL ceiling (carried from iteration 1)
 
 **File:** `src/app/sitemap.ts:27` + `src/lib/feed/sitemap-repo.ts:31`
-**Issue:** `getPublishedItemUrls({ limit: 5000 })` caps hard at 5000, which stays well under the sitemap protocol's 50,000-URL / 50MB limit. When the corpus exceeds 5000 items, the sitemap silently drops older items with no paginated `<sitemapindex>` mechanism. At current traffic (projected 200 items/hr × 24 × 30 = 144k/month), the 5000-cap will be hit within ~1 day of ingestion and historical URLs will drop out of the sitemap thereafter.
+**Issue:** `getPublishedItemUrls({ limit: 5000 })` caps hard; older items silently drop from the sitemap once the corpus exceeds 5000. At projected v1 scale (144k items/month) this threshold is crossed within ~1 day of steady ingestion.
 
-**Fix:** Move to a paginated sitemap index (`/sitemap.xml` → references `/sitemap/page/[n].xml`) once the corpus passes ~5000 published items. Track as a follow-up; do not block Phase 6.
+**Fix:** Introduce a paginated `<sitemapindex>` at `/sitemap.xml` referencing `/sitemap/page/[n].xml` when corpus >5000. Not a Phase 6 blocker — track as a follow-up under the OPS-04 surface.
 
 ---
 
-_Reviewed: 2026-04-23T00:00:00Z_
+_Reviewed: 2026-04-24T00:00:00Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
+_Iteration: 2 (follow-up to 06-REVIEW-FIX.md iteration 1)_
