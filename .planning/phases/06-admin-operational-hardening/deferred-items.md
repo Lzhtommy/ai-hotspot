@@ -22,3 +22,16 @@ Discovered during: Plan 06-06 Task 3 checkpoint (live Sentry dashboard verificat
 **Tracking:** `.planning/phases/06-admin-operational-hardening/06-06-HUMAN-UAT.md` (status `partial`, 2 pending tests).
 
 **Scope boundary:** Not a blocker for Plan 06-06 metadata close (code-complete) or for Phase 6 execution continuation (Wave 2+ plans do not depend on Sentry being live). Must be resolved before Phase 6 production sign-off / `VERIFICATION.md` green status.
+
+---
+
+## Deferred: sitemap.xml build failure without DATABASE_URL
+
+Discovered during: Plan 06-05 Task 2 verification (`pnpm run build`)
+
+**Failure:**
+- `/sitemap.xml/route` prerender error — `Failed query: select "id", "published_at", "processed_at" from "items"...` with `Error: No database host or connection string was set`
+
+**Status:** Pre-existing on branch `gsd/phase-06-admin-operational-hardening` (introduced by Plan 06-07 commit `228c421`). Sitemap route is statically rendered at build time and queries Neon, which requires `DATABASE_URL` at build — this worktree's build environment has no `.env.local`.
+
+**Scope boundary:** Out of scope for Plan 06-05 (OPS-03). The build succeeds for every route modified by this plan (`/admin/dead-letter` compiles — see `.next/server/app/admin/dead-letter/page.js`). Resolution will be either (a) provide `DATABASE_URL` in the build environment, or (b) convert sitemap.xml to `export const dynamic = 'force-dynamic'` / runtime-only so build-time DB access is not required. Either resolution belongs to a separate operations task, not a Wave-2 Plan 06-05 change.
