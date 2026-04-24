@@ -1,34 +1,35 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.0
-milestone_name: milestone
-status: "Phase 6 shipped — PR #6"
-stopped_at: Completed 06-08-PLAN.md — Phase 6 runbooks + verify harness + UAT shipped; Phase 6 code-complete
-last_updated: "2026-04-24T03:13:09.050Z"
+milestone_name: "v1.0 MVP"
+status: "v1.0 shipped and archived — planning v1.1"
+stopped_at: v1.0 milestone closed 2026-04-24; audit status tech_debt; 74/75 requirements satisfied; next step /gsd-new-milestone
+last_updated: "2026-04-24T06:20:00.000Z"
 last_activity: 2026-04-24
 progress:
-  total_phases: 6
-  completed_phases: 6
-  total_plans: 42
-  completed_plans: 42
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-17)
+See: .planning/PROJECT.md (updated 2026-04-24 after v1.0 milestone)
 
 **Core value:** A single Chinese-language timeline where AI practitioners never miss a significant AI event, because the system hears it from every source, clusters duplicates, and ranks by LLM-judged importance — not chronology.
-**Current focus:** Phase 06 — admin-operational-hardening
+**Current focus:** Planning v1.1 milestone (v1.0 shipped 2026-04-24 — archived to `.planning/milestones/`)
 
 ## Current Position
 
-Phase: 06 (admin-operational-hardening) — EXECUTING
-Plan: 6 of 9
-Status: Phase 6 shipped — PR #6
-Last activity: 2026-04-24 - Completed quick task 260424-g2y: Wire sidebar admin nav to real /admin routes + role-gate
+Milestone: v1.0 complete and archived
+Last shipped: Phase 6 (Admin + Operational Hardening) on 2026-04-23
+Next step: `/gsd-new-milestone` to scope v1.1
+
+Progress: [██████████] 100% of v1.0
 
 Progress: [█████████░] 88%
 
@@ -202,14 +203,70 @@ None yet.
 
 ## Deferred Items
 
-| Category | Item | Status | Deferred At |
-|----------|------|--------|-------------|
-| *(none)* | | | |
+Items acknowledged at v1.0 milestone close on 2026-04-24. All are non-blocking and tracked for v1.1 consideration. Full detail in `.planning/milestones/v1.0-MILESTONE-AUDIT.md`.
+
+### Live-Environment UAT (require user action)
+
+| Category | Item | Phase | Blocker For |
+|----------|------|-------|-------------|
+| uat_live | CI live PR run + Neon branch lifecycle | 01 | Needs GitHub remote + repo secrets (NEON_API_KEY, TRIGGER_ACCESS_TOKEN, DATABASE_URL_MAIN, NEON_PROJECT_ID) |
+| uat_live | Vercel preview /api/health 200 | 01 | Needs Vercel GitHub App install + env vars |
+| uat_live | Trigger.dev dashboard manual trigger of health-probe | 01 | Needs interactive OAuth login |
+| uat_live | WeChat share card rendering | 04 | Needs live deploy + WeChat client |
+| uat_live | Full FeedCard anatomy with real published data | 04 | Needs ingested items in DB |
+| uat_live | Paper+amber palette browser inspection | 04 | Visual check |
+| uat_live | Live GitHub OAuth round-trip on Vercel preview | 05 | Needs real GitHub OAuth app + preview deploy |
+| uat_live | Magic-link deliverability from CN mailbox (QQ/163) | 05 | Needs Resend domain verification |
+| uat_live | Session persistence across real browser close/reopen | 05 | Browser UAT |
+| uat_live | Google OAuth from non-CN network | 05 | Needs non-CN network |
+| uat_live | Resend SPF/DKIM/DMARC verification | 05 | DNS-level check |
+| uat_live | Playwright E2E against live dev server + seeded DB | 05 | CI wiring |
+| uat_live | Live Sentry verification — Next.js path | 06 | Needs SENTRY_DSN in Vercel + .env.local |
+| uat_live | Live Sentry verification — Trigger.dev path | 06 | Needs SENTRY_DSN in Trigger.dev project env |
+| uat_live | Cross-tab session revocation UX | 06 | Two-profile browser UAT |
+| uat_live | Red health badge visual render | 06 | SQL-driven error count ≥3 + browser |
+| uat_live | Dead-letter retry rate limit at 20+ clicks/60s | 06 | Live Redis + real-time interaction |
+
+### Doc/Tooling Debt
+
+| Category | Item | Notes |
+|----------|------|-------|
+| doc_debt | Phase 06 VERIFICATION.md status stale (CR-01 fixed in 56e82cf) | Runtime resolved; doc needs status: passed |
+| doc_debt | 03-UAT.md sign-off block placeholder | Live run PASSED; admin update needed |
+| doc_debt | VALIDATION.md missing for Phases 02, 04, 06 | Test coverage adequate; Nyquist documentation gap |
+| doc_debt | VALIDATION.md Phase 05 status: draft | nyquist_compliant: false, wave_0_complete: false |
+| tooling_debt | Drizzle snapshots 0004_auth + 0005_admin_ops absent from drizzle/meta/ | Runtime unaffected; drizzle-kit generate would misdiff on next migration |
+| doc_debt | REQUIREMENTS.md traceability table stale pre-close — fixed in archive | 10 items flipped at milestone close per VERIFICATION.md evidence |
+| doc_debt | Quick-task markers missing close-out (260422-ogt/rax, 260423-e6n, 260424-g2y) | .planning/quick/*/ SUMMARY.md front-matter |
+
+### Code-Review Warnings (v1.1 hardening candidates)
+
+| Category | Item | Phase | Severity |
+|----------|------|-------|----------|
+| code_review | WR-01 Sentry beforeSend walks top-level keys only; nested secrets may leak | 06 | Warning |
+| code_review | WR-02 Edit source form silently ignores unchecked 'active' checkbox (ADMIN-04 partial — row toggle is workaround) | 06 | Warning |
+| code_review | WR-03 Soft-delete holds rss_url UNIQUE; recreating same URL fails with generic error | 06 | Warning |
+| code_review | WR-04 /api/admin/sentry-test GET reachable via CSRF <img> (admin log-spam only) | 06 | Warning |
+| code_review | WR-05 Re-ban overwrites prior banned_at/banned_by (audit-trail loss) | 06 | Warning |
+| code_review | WR-06 Anonymous /admin redirect drops ?next= param (inconsistent with middleware) | 06 | Warning |
+| code_review | parse-rss publishedAtSourceTz format inconsistency (UTC .000Z vs numeric offset seconds precision) | 02 | Warning |
+| code_review | parse-rss unanchored timezone regex (can false-match "GMTnotes") | 02 | Warning |
+| code_review | fetch-source-core normalizeUrl silent catch | 02 | Warning |
+| code_review | ingest-hourly no explicit maxDuration on scheduler task | 02 | Info |
+| code_review | opengraph-image.tsx params not await'ed (Next.js 15 Edge) | 04 | Warning |
+| code_review | IN-02..IN-05 cost float drift; HMR double-init; dead-letter href scheme check; sitemap 5000 cap | 06 | Info |
+
+### Operational Notes (require runbook addition, not code)
+
+| Category | Item | Note |
+|----------|------|------|
+| ops_note | FEED-10 ISR invalidation requires REVALIDATE_SECRET + NEXT_PUBLIC_SITE_URL in Trigger.dev vault | Silent skip if absent; Redis flush always runs — document in docs/observability.md |
+| ops_note | buzzing.cc RSSHub route (/buzzing/whatsnew) upstream errors | Candidate for source substitution in v1.1 |
 
 ## Session Continuity
 
-Last session: 2026-04-24T02:22:09.903Z
-Stopped at: Completed 06-08-PLAN.md — Phase 6 runbooks + verify harness + UAT shipped; Phase 6 code-complete
+Last session: 2026-04-24T06:20:00Z
+Stopped at: v1.0 milestone closed, archived, and tagged
 Resume file: None
 
-**Planned Phase:** 6 (Admin + Operational Hardening) — 9 plans — 2026-04-23T11:37:34.098Z
+**Next milestone:** v1.1 — scope undefined. Start with `/gsd-new-milestone`.
