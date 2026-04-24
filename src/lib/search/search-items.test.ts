@@ -16,7 +16,10 @@ import { searchItems } from './search-items';
 
 function makeDb(rows: Record<string, unknown>[]) {
   const execute = vi.fn().mockResolvedValue({ rows });
-  return { db: { execute } as unknown as Parameters<typeof searchItems>[1]['db'], execute };
+  return {
+    db: { execute } as unknown as NonNullable<Parameters<typeof searchItems>[1]>['db'],
+    execute,
+  };
 }
 
 describe('searchItems — query guards', () => {
@@ -113,7 +116,7 @@ describe('searchItems — row mapping', () => {
     const now = new Date('2026-04-20T10:30:00Z');
     const { db } = makeDb([
       {
-        id: 42n,
+        id: BigInt(42),
         title: 'Anthropic releases Claude Haiku 4.5',
         title_zh: 'Anthropic 发布 Claude Haiku 4.5',
         summary_zh: '快速且便宜的模型',
@@ -136,7 +139,7 @@ describe('searchItems — row mapping', () => {
   it('tolerates nullable title_zh / summary_zh / source_name', async () => {
     const { db } = makeDb([
       {
-        id: 7n,
+        id: BigInt(7),
         title: 'Plain English title only',
         title_zh: null,
         summary_zh: null,
