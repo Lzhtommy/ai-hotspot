@@ -21,7 +21,7 @@ import { getUserInteractions } from '@/lib/user-actions/get-interactions';
 export const revalidate = 300;
 
 export default async function FeaturedPage() {
-  const { items, lastSyncMinutes } = await getFeed({ view: 'featured', page: 1 });
+  const { items, lastSyncMinutes, clusterSiblings } = await getFeed({ view: 'featured', page: 1 });
 
   // Phase 5 Plan 05-07: thread session + initial interactions into every FeedCard.
   const session = await auth();
@@ -50,6 +50,7 @@ export default async function FeaturedPage() {
       ) : (
         <Timeline
           items={items}
+          clusterSiblings={clusterSiblings}
           isAuthenticated={isAuthenticated}
           interactionMap={interactionMap}
           initial={{ favorited: false, vote: 0 }}

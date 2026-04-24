@@ -17,6 +17,9 @@
  *   - T-5-03: session callback (Plan 05-02) returns null for banned users → falls
  *     into the same redirect branch
  *
+ * Note: 列表聚类展开 (clusterSiblings) 暂不在 favorites 页启用。若后续需要,需
+ *       为此页添加与 get-feed.ts 类似的批量 sibling 取;favorites 不经 getFeed。
+ *
  * Consumed by: Next.js routing (resolves `/favorites`)
  */
 

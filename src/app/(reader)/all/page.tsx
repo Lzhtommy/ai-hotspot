@@ -32,7 +32,7 @@ export default async function AllFeedPage({
   searchParams: Promise<Record<string, string | string[]>>;
 }) {
   const { page, tags, source } = feedParamsCache.parse(await searchParams);
-  const { items, totalPages, lastSyncMinutes } = await getFeed({
+  const { items, totalPages, lastSyncMinutes, clusterSiblings } = await getFeed({
     view: 'all',
     page,
     tags,
@@ -82,6 +82,7 @@ export default async function AllFeedPage({
         <>
           <Timeline
             items={items}
+            clusterSiblings={clusterSiblings}
             isAuthenticated={isAuthenticated}
             interactionMap={interactionMap}
             initial={{ favorited: false, vote: 0 }}
