@@ -68,7 +68,7 @@ Sentry's built-in relay-side scrubbing is **defense in depth** — the `beforeSe
 ### How to verify new errors land within 5 minutes
 
 1. Sign in as an admin.
-2. Hit `GET /api/admin/sentry-test` (exists in dev; this route is admin-gated). This throws a labelled `Sentry integration test — <ISO timestamp>` error on purpose.
+2. Hit `POST /api/admin/sentry-test` (exists in dev; this route is admin-gated). Example: `curl -X POST -b "$ADMIN_COOKIE" -H "Origin: https://aihotspot.example" https://aihotspot.example/api/admin/sentry-test` — the handler verifies the Origin header matches the host before throwing. This throws a labelled `Sentry integration test — <ISO timestamp>` error on purpose. (Changed from GET to POST per 06-REVIEW WR-04 — a cross-site `<img>` tag can no longer trigger the endpoint.)
 3. Within 5 minutes, the error should appear in **Sentry → Issues** with the matching title. Inspect the event payload:
    - `request.cookies` is `{}`
    - `request.headers.cookie` and `authorization` are absent

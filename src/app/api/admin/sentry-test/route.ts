@@ -14,17 +14,43 @@
  *   - `dynamic = 'force-dynamic'` ensures the handler runs per-request so the
  *     admin session check is always evaluated (no stale cached 500).
  *
- * T-6-63 (log-noise DoS) is accepted: admin-only gate + no automation point
- * means a malicious flooder would first need an admin session, and then each
- * call produces exactly one Sentry event.
+ * CSRF hardening (06-REVIEW WR-04):
+ *   - Changed from GET to POST so a cross-site `<img src="...">` can no
+ *     longer trigger the endpoint (images are GET-only).
+ *   - Origin/host check rejects cross-origin POSTs even if an attacker finds
+ *     a way to issue one — belt-and-suspenders behind Auth.js's default
+ *     `SameSite=Lax` session cookie, which already blocks cross-site form
+ *     POSTs from delivering the session cookie.
+ *
+ * T-6-63 (log-noise DoS) is still accepted for first-party admins, but
+ * cross-site amplification (an attacker burning an admin's budget via an
+ * `<img>` tag) is no longer possible.
  */
 import { requireAdmin } from '@/lib/auth/admin';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function POST(req: Request) {
   // Gate — redirects non-admins before we reach the deliberate throw.
   await requireAdmin();
+
+  // Belt-and-suspenders CSRF check: require the Origin header host to match
+  // the request's own host. Browsers attach Origin to all cross-site POSTs
+  // (and same-origin POSTs). A missing Origin header on a POST is itself
+  // suspicious and we fail closed.
+  const origin = req.headers.get('origin');
+  const host = req.headers.get('host');
+  if (!origin || !host) {
+    return new Response('forbidden', { status: 403 });
+  }
+  try {
+    const originHost = new URL(origin).host;
+    if (originHost !== host) {
+      return new Response('forbidden', { status: 403 });
+    }
+  } catch {
+    return new Response('forbidden', { status: 403 });
+  }
 
   // Deliberate error. This reaches Sentry via the instrumentation.ts
   // `onRequestError` hook for Next.js App Router runtime errors.
