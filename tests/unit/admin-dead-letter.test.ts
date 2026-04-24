@@ -17,11 +17,7 @@
  */
 import { describe, it, expect, vi } from 'vitest';
 
-import {
-  listDeadLetterItems,
-  retryItemCore,
-  retryAllCore,
-} from '@/lib/admin/dead-letter-repo';
+import { listDeadLetterItems, retryItemCore, retryAllCore } from '@/lib/admin/dead-letter-repo';
 
 /**
  * Flatten an arbitrary Drizzle SQL template value into the string literals it
@@ -57,7 +53,11 @@ function flattenSql(node: unknown, out: string[] = [], seen = new WeakSet<object
 // itself so .from().leftJoin().where().orderBy().limit() works. The chain
 // is also thenable so `await` on any intermediate resolves to `resolveWith`.
 function makeChainable(resolveWith: unknown): {
-  db: { select: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; execute: ReturnType<typeof vi.fn> };
+  db: {
+    select: ReturnType<typeof vi.fn>;
+    update: ReturnType<typeof vi.fn>;
+    execute: ReturnType<typeof vi.fn>;
+  };
   chain: Record<string, ReturnType<typeof vi.fn>>;
   execute: ReturnType<typeof vi.fn>;
 } {
@@ -105,10 +105,7 @@ describe('listDeadLetterItems', () => {
       },
     ];
     const { db } = makeChainable(mockRows);
-    const rows = await listDeadLetterItems(
-      { limit: 25 },
-      { db: db as never },
-    );
+    const rows = await listDeadLetterItems({ limit: 25 }, { db: db as never });
     expect(db.select).toHaveBeenCalledOnce();
     expect(rows).toHaveLength(2);
     // bigints serialised to strings for RSC → client transport.
@@ -152,22 +149,47 @@ describe('retryAllCore', () => {
     const { db } = makeChainable([]); // empty select
     const res = await retryAllCore({ limit: 20 }, { db: db as never });
     expect(res.count).toBe(0);
+    // With empty candidates the builder-based UPDATE path is skipped entirely.
+    expect(db.update).not.toHaveBeenCalled();
     expect(db.execute).not.toHaveBeenCalled();
   });
 
   it('bulk-updates up to N most-recent dead-letter rows and returns the count', async () => {
-    const { db } = makeChainable([{ id: BigInt(1) }, { id: BigInt(2) }, { id: BigInt(3) }]);
+    // The chainable mock resolves both the SELECT (step 1) and the UPDATE
+    // (step 2) to the same list; retryAllCore only reads `.length` off the
+    // update call, so reusing the id list is harmless and keeps the mock
+    // simple. The real SQL path is the query builder (inArray + eq) — the
+    // previous raw-SQL `WHERE id IN ${ids}` form crashed at runtime because
+    // Drizzle's sql tag binds a JS array as one parameter (see REVIEW CR-01).
+    const { db, chain } = makeChainable([{ id: BigInt(1) }, { id: BigInt(2) }, { id: BigInt(3) }]);
     const res = await retryAllCore({ limit: 3 }, { db: db as never });
     expect(res.count).toBe(3);
-    expect(db.execute).toHaveBeenCalledOnce();
-    // Assert the bulk UPDATE SQL contains both the new-status transition and the
-    // race guard. JSON.stringify is used because Drizzle's sql template returns
-    // an object with queryChunks; literal strings embedded in chunks round-trip
-    // through the serialiser.
-    const sqlArg = db.execute.mock.calls[0][0];
-    const rendered = flattenSql(sqlArg).join(' ');
-    expect(rendered).toContain("status = 'pending'");
-    expect(rendered).toContain("status = 'dead_letter'");
-    expect(rendered).toContain('retry_count = retry_count + 1');
+    // Raw execute() must NOT be used for the bulk UPDATE — this is the guard
+    // that re-asserts the CR-01 fix: no raw sql`WHERE id IN ${ids}` path.
+    expect(db.execute).not.toHaveBeenCalled();
+    // db.update() is invoked exactly once (step 2) with the `items` table.
+    expect(db.update).toHaveBeenCalledOnce();
+    // The SET clause carries the SQL retry_count + 1 expression (not a JS
+    // integer) so the increment happens atomically in the DB.
+    const setArg = chain.set.mock.calls[0][0] as Record<string, unknown>;
+    const setFragments = flattenSql(setArg.retryCount).join(' ');
+    expect(setFragments).toContain('+ 1');
+    expect(setArg.status).toBe('pending');
+    expect(setArg.failureReason).toBeNull();
+    expect(setArg.processedAt).toBeNull();
+    // The WHERE clause is the `and(inArray(items.id, ids), eq(items.status,
+    // 'dead_letter'))` composition. We assert the dead_letter race guard is
+    // present in the rendered fragments. (Drizzle's inArray emits its "in"
+    // operator via a non-string SQL token that the flattenSql walker does not
+    // surface, so we cannot grep for " in " reliably; the integration test at
+    // tests/integration/dead-letter-retry-all.test.ts executes the query
+    // against real Postgres to prove the inArray path works end-to-end.)
+    // `chain.where` is called twice (once by the SELECT in step 1, once by
+    // the UPDATE in step 2) because the mock shares the single chain object.
+    expect(chain.where).toHaveBeenCalledTimes(2);
+    // Assert that the UPDATE WHERE (second call) carries the race guard.
+    const updateWhereArg = chain.where.mock.calls[1][0];
+    const updateWhereFragments = flattenSql(updateWhereArg).join(' ').toLowerCase();
+    expect(updateWhereFragments).toContain('dead_letter');
   });
 });

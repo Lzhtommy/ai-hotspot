@@ -104,23 +104,22 @@ export async function retryAllCore(
     .limit(input.limit);
   if (targets.length === 0) return { count: 0 };
 
-  // Step 2 — bulk UPDATE via raw SQL. We use raw SQL (not the query builder)
-  // because Drizzle's .update().set({retryCount: sql`... + 1`}) + inArray()
-  // composition does not reliably include the `AND status = 'dead_letter'`
-  // race guard in a single atomic UPDATE once the id list is already known
-  // (the SELECT ran one roundtrip earlier). Raw SQL keeps the race guard
-  // explicit and exact.
+  // Step 2 — bulk UPDATE via the query builder. We use `inArray(items.id, ids)`
+  // composed with `eq(items.status, 'dead_letter')` so the race guard stays
+  // part of the single atomic UPDATE. An earlier implementation used raw SQL
+  // with `sql\`WHERE id IN ${ids}\``, but Drizzle's sql template wraps a JS
+  // array as a single bound parameter (`WHERE id IN $1`) which Postgres
+  // rejects — see 06-REVIEW CR-01. `inArray` expands the array into a
+  // parenthesized scalar list at render time and is the project precedent.
   const ids = targets.map((t) => t.id);
-  await d.execute(dsql`
-    UPDATE items
-    SET status = 'pending',
-        failure_reason = NULL,
-        processed_at = NULL,
-        retry_count = retry_count + 1
-    WHERE id IN ${ids} AND status = 'dead_letter'
-  `);
+  await d
+    .update(items)
+    .set({
+      status: 'pending',
+      failureReason: null,
+      processedAt: null,
+      retryCount: dsql`${items.retryCount} + 1`,
+    })
+    .where(and(inArray(items.id, ids), eq(items.status, 'dead_letter')));
   return { count: ids.length };
 }
-
-// Silence unused-import warnings when tree-shaking picks only part of the file.
-void inArray;
