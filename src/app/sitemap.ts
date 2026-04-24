@@ -24,12 +24,25 @@ function getSiteUrl(): string {
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = getSiteUrl();
   const now = new Date();
-  const rows = await getPublishedItemUrls({ limit: 5000 });
 
   const staticEntries: MetadataRoute.Sitemap = [
     { url: `${siteUrl}/`, lastModified: now, changeFrequency: 'hourly', priority: 1.0 },
     { url: `${siteUrl}/all`, lastModified: now, changeFrequency: 'hourly', priority: 0.8 },
   ];
+
+  // Soft-fail DB read: CI builds run with a stub DATABASE_URL and must not block
+  // the build on prerender. ISR revalidation on the live deploy populates item
+  // entries once the real DB is reachable.
+  let rows: Awaited<ReturnType<typeof getPublishedItemUrls>> = [];
+  try {
+    rows = await getPublishedItemUrls({ limit: 5000 });
+  } catch (err) {
+    console.warn(
+      '[sitemap] skipping item entries — DB unreachable:',
+      err instanceof Error ? err.message : err,
+    );
+    return staticEntries;
+  }
 
   const itemEntries: MetadataRoute.Sitemap = rows.map((r) => ({
     url: `${siteUrl}/items/${r.id}`,
