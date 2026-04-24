@@ -2,6 +2,7 @@
 // The scaffold defaults to Next 16.x; we explicitly pin to ^15 in package.json
 // so all Phase 1 plans and downstream phases target the documented App Router 15 surface.
 import type { NextConfig } from 'next';
+import { withSentryConfig } from '@sentry/nextjs';
 
 const nextConfig: NextConfig = {
   // Neon serverless opens a WebSocket via `ws`, which relies on a native
@@ -27,4 +28,22 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// Phase 6 OPS-01 — Sentry wrap.
+// withSentryConfig augments the build with sourcemap upload (gated on
+// SENTRY_AUTH_TOKEN — silent-skipped if absent) and auto-instruments API
+// routes for error capture. Options:
+//   - silent: !process.env.CI  → quiet local builds, verbose in CI
+//   - widenClientFileUpload: true → upload sourcemaps for additional client
+//     bundles so stacktraces from dynamically loaded chunks symbolicate
+//   - disableLogger: true → strip Sentry's console.log wrapper from prod
+//     bundle (shaves bundle size)
+//   - automaticVercelMonitors: false → we do not use Sentry cron monitors;
+//     Vercel cron is only a trigger into Inngest/Trigger.dev
+export default withSentryConfig(nextConfig, {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  silent: !process.env.CI,
+  widenClientFileUpload: true,
+  disableLogger: true,
+  automaticVercelMonitors: false,
+});

@@ -43,6 +43,7 @@
     "@mozilla/readability": "^0.6.0",
     "@neondatabase/serverless": "^1.0.2",
     "@opentelemetry/sdk-node": "^0.215.0",
+    "@sentry/nextjs": "^10.50.0",
     "@trigger.dev/sdk": "^4.4.4",
     "@upstash/redis": "^1.37.0",
     "clsx": "^2.1.1",
