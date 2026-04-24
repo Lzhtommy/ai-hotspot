@@ -31,3 +31,16 @@ Discovered during: Plan 06-06 Task 3 checkpoint (live Sentry dashboard verificat
 **Tracking:** `.planning/phases/06-admin-operational-hardening/06-06-HUMAN-UAT.md` (status `partial`, 2 pending tests).
 
 **Scope boundary:** Not a blocker for Plan 06-06 metadata close (code-complete) or for Phase 6 execution continuation (Wave 2+ plans do not depend on Sentry being live). Must be resolved before Phase 6 production sign-off / `VERIFICATION.md` green status.
+
+---
+
+## Deferred: /sitemap.xml prerender requires DATABASE_URL at build time
+
+Discovered during: Plan 06-03 Task 3 `pnpm run build` verification
+
+**Failure:**
+- `Error occurred prerendering page "/sitemap.xml"` → "No database host or connection string was set" — because `src/app/sitemap.ts` (added by Plan 06-07, commit 228c421) calls `getPublishedItemUrls()` at build time with a default-static route.
+
+**Status:** Pre-existing on `gsd/phase-06-admin-operational-hardening` before Plan 06-03 edits — `src/app/sitemap.ts` was introduced in commit 228c421 (Plan 06-07 OPS-04), well before wave 2. Plan 06-03 only adds `/admin/users` route, server actions, and repo — none of which touch the sitemap pipeline. `pnpm exec tsc --noEmit` is green for all 06-03 files; the build-time failure is an orthogonal sitemap prerender configuration issue.
+
+**Scope boundary:** Out of scope for Plan 06-03 (ADMIN-07/ADMIN-08 user management). Fix options: mark sitemap route `export const dynamic = 'force-dynamic'`, OR gate the DB call behind a build-time check that returns `[]` when DATABASE_URL is a placeholder, OR supply a branch DATABASE_URL to the Vercel build environment. Candidate fix plan: Phase 6 closure pass.
