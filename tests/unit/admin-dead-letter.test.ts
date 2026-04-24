@@ -23,40 +23,68 @@ import {
   retryAllCore,
 } from '@/lib/admin/dead-letter-repo';
 
-// Minimal chainable mock factory — every builder method returns the same
-// object so .from().leftJoin().where().orderBy().limit() resolves against a
-// single spy that we control via mockResolvedValue[Once].
+/**
+ * Flatten an arbitrary Drizzle SQL template value into the string literals it
+ * embeds. Drizzle builds a tree of queryChunks with embedded Column objects
+ * that reference their PgTable (circular); JSON.stringify can't serialise
+ * either the circular structure or BigInt ids. This walker returns just the
+ * string fragments, which is what the tests assert against (e.g., the literal
+ * "status = 'pending'" embedded between parameter placeholders).
+ */
+function flattenSql(node: unknown, out: string[] = [], seen = new WeakSet<object>()): string[] {
+  if (typeof node === 'string') {
+    out.push(node);
+    return out;
+  }
+  if (node && typeof node === 'object') {
+    if (seen.has(node as object)) return out;
+    seen.add(node as object);
+    if (Array.isArray(node)) {
+      for (const el of node) flattenSql(el, out, seen);
+      return out;
+    }
+    // SQL / StringChunk values carry their literal under .value or .sql.
+    for (const key of ['value', 'sql', 'queryChunks']) {
+      if (key in (node as Record<string, unknown>)) {
+        flattenSql((node as Record<string, unknown>)[key], out, seen);
+      }
+    }
+  }
+  return out;
+}
+
+// Minimal chainable mock factory — every builder method returns the chain
+// itself so .from().leftJoin().where().orderBy().limit() works. The chain
+// is also thenable so `await` on any intermediate resolves to `resolveWith`.
 function makeChainable(resolveWith: unknown): {
-  db: Record<string, ReturnType<typeof vi.fn>>;
+  db: { select: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn>; execute: ReturnType<typeof vi.fn> };
   chain: Record<string, ReturnType<typeof vi.fn>>;
   execute: ReturnType<typeof vi.fn>;
 } {
   const chain: Record<string, ReturnType<typeof vi.fn>> = {};
-  // The terminal awaitable promise. Drizzle's query builder returns a thenable,
-  // so we attach `then` so `await d.select()...` resolves to the configured value.
-  const thenable = {
-    then: (onFulfilled: (v: unknown) => unknown) =>
-      Promise.resolve(resolveWith).then(onFulfilled),
-  };
   for (const m of ['from', 'leftJoin', 'where', 'orderBy', 'limit', 'set', 'returning']) {
-    chain[m] = vi.fn().mockReturnValue({ ...chain, ...thenable });
+    chain[m] = vi.fn().mockReturnValue(chain);
   }
-  // Wire the chain object itself to contain the then() so awaiting it works.
-  Object.assign(chain, thenable);
+  // Drizzle's query builder is thenable — awaiting it resolves to the query
+  // result. Expose `then` on the same chain object so any `await` during the
+  // builder walk collapses to `resolveWith`.
+  (chain as unknown as { then: (r: (v: unknown) => unknown) => Promise<unknown> }).then = (
+    onFulfilled,
+  ) => Promise.resolve(resolveWith).then(onFulfilled);
   const execute = vi.fn();
   const db = {
     select: vi.fn().mockReturnValue(chain),
     update: vi.fn().mockReturnValue(chain),
     execute,
   };
-  return { db: db as unknown as Record<string, ReturnType<typeof vi.fn>>, chain, execute };
+  return { db, chain, execute };
 }
 
 describe('listDeadLetterItems', () => {
   it('queries items with WHERE status=dead_letter, ORDER BY processedAt DESC, LIMIT n', async () => {
     const mockRows = [
       {
-        id: 101n,
+        id: BigInt(101),
         title: 'Alpha',
         sourceName: 'Anthropic',
         failureReason: 'ZodError',
@@ -66,7 +94,7 @@ describe('listDeadLetterItems', () => {
         url: 'https://a.example/1',
       },
       {
-        id: 102n,
+        id: BigInt(102),
         title: 'Beta',
         sourceName: 'DeepMind',
         failureReason: 'APIError',
@@ -92,27 +120,27 @@ describe('listDeadLetterItems', () => {
 
 describe('retryItemCore', () => {
   it('returns {retried: true} when the UPDATE ... WHERE status=dead_letter matched a row', async () => {
-    const { db } = makeChainable([{ id: 101n }]);
-    const res = await retryItemCore({ itemId: 101n }, { db: db as never });
+    const { db } = makeChainable([{ id: BigInt(101) }]);
+    const res = await retryItemCore({ itemId: BigInt(101) }, { db: db as never });
     expect(res.retried).toBe(true);
     expect(db.update).toHaveBeenCalledOnce();
   });
 
   it('returns {retried: false} when the WHERE status=dead_letter guard matched 0 rows (race)', async () => {
     const { db } = makeChainable([]); // no rows returned → already retried by another admin
-    const res = await retryItemCore({ itemId: 999n }, { db: db as never });
+    const res = await retryItemCore({ itemId: BigInt(999) }, { db: db as never });
     expect(res.retried).toBe(false);
   });
 
   it('increments retry_count via a SQL expression (retry_count + 1) rather than a JS value', async () => {
-    const { db, chain } = makeChainable([{ id: 1n }]);
-    await retryItemCore({ itemId: 1n }, { db: db as never });
+    const { db, chain } = makeChainable([{ id: BigInt(1) }]);
+    await retryItemCore({ itemId: BigInt(1) }, { db: db as never });
     // The SET clause is passed to .set(); assert the shape carries a Drizzle SQL token,
     // not a number (which would race under concurrent retries).
     const setArg = chain.set.mock.calls[0][0] as Record<string, unknown>;
-    const rendered = JSON.stringify(setArg.retryCount);
+    const fragments = flattenSql(setArg.retryCount).join(' ');
     // Drizzle sql`${items.retryCount} + 1` embeds the literal " + 1" in its queryChunks.
-    expect(rendered).toContain('+ 1');
+    expect(fragments).toContain('+ 1');
     expect(setArg.status).toBe('pending');
     expect(setArg.failureReason).toBeNull();
     expect(setArg.processedAt).toBeNull();
@@ -128,7 +156,7 @@ describe('retryAllCore', () => {
   });
 
   it('bulk-updates up to N most-recent dead-letter rows and returns the count', async () => {
-    const { db } = makeChainable([{ id: 1n }, { id: 2n }, { id: 3n }]);
+    const { db } = makeChainable([{ id: BigInt(1) }, { id: BigInt(2) }, { id: BigInt(3) }]);
     const res = await retryAllCore({ limit: 3 }, { db: db as never });
     expect(res.count).toBe(3);
     expect(db.execute).toHaveBeenCalledOnce();
@@ -137,9 +165,9 @@ describe('retryAllCore', () => {
     // an object with queryChunks; literal strings embedded in chunks round-trip
     // through the serialiser.
     const sqlArg = db.execute.mock.calls[0][0];
-    const rendered = JSON.stringify(sqlArg);
+    const rendered = flattenSql(sqlArg).join(' ');
     expect(rendered).toContain("status = 'pending'");
     expect(rendered).toContain("status = 'dead_letter'");
-    expect(rendered).toContain('retry_count + 1');
+    expect(rendered).toContain('retry_count = retry_count + 1');
   });
 });
