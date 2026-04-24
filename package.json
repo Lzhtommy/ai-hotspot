@@ -29,6 +29,7 @@
     "db:apply:0005": "tsx --env-file=.env.local scripts/apply-0005-admin-ops.ts",
     "verify:ingest": "tsx --env-file=.env.local scripts/verify-ingest.ts",
     "verify:llm": "tsx --env-file=.env.local scripts/verify-llm.ts",
+    "verify:admin-ops": "tsx --env-file=.env.local scripts/verify-admin-ops.ts",
     "check:hnsw": "tsx --env-file=.env.local scripts/check-hnsw.ts",
     "verify:hnsw": "tsx --env-file=.env.local scripts/check-hnsw.ts",
     "trigger:dev": "pnpm dlx trigger.dev@latest dev",
