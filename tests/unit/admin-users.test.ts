@@ -25,6 +25,10 @@ import {
   SelfBanError,
   UserNotFoundError,
 } from '@/lib/admin/users-repo';
+import type { db as realDb } from '@/lib/db/client';
+
+/** Structural alias for the injected `db` — matches the repo's DbLike. */
+type MockDb = typeof realDb;
 
 /** Construct a fake Drizzle-shaped tx that records which ops were invoked. */
 function makeTxSpy(options: { updateReturning?: Array<{ id: string }> } = {}) {
@@ -81,7 +85,7 @@ describe('listUsersForAdmin', () => {
     ];
 
     const execute = vi.fn(async () => ({ rows: rowsFromDb }));
-    const db = { execute } as unknown as Parameters<typeof listUsersForAdmin>[0]['db'];
+    const db = { execute } as unknown as MockDb;
 
     const result = await listUsersForAdmin({ db });
 
@@ -117,7 +121,7 @@ describe('banUserCore', () => {
 
   it('throws SelfBanError when targetUserId === adminUserId', async () => {
     const transaction = vi.fn();
-    const db = { transaction } as unknown as Parameters<typeof banUserCore>[1]['db'];
+    const db = { transaction } as unknown as MockDb;
 
     await expect(
       banUserCore({ targetUserId: 'same', adminUserId: 'same' }, { db }),
@@ -132,7 +136,7 @@ describe('banUserCore', () => {
     const transaction = vi.fn(async (fn: (t: typeof tx) => Promise<void>) => {
       await fn(tx);
     });
-    const db = { transaction } as unknown as Parameters<typeof banUserCore>[1]['db'];
+    const db = { transaction } as unknown as MockDb;
 
     await banUserCore({ targetUserId: 'target', adminUserId: 'admin' }, { db });
 
@@ -147,7 +151,7 @@ describe('banUserCore', () => {
     const transaction = vi.fn(async (fn: (t: typeof tx) => Promise<void>) => {
       await fn(tx);
     });
-    const db = { transaction } as unknown as Parameters<typeof banUserCore>[1]['db'];
+    const db = { transaction } as unknown as MockDb;
 
     await expect(
       banUserCore({ targetUserId: 'ghost', adminUserId: 'admin' }, { db }),
@@ -173,7 +177,7 @@ describe('unbanUserCore', () => {
     }));
     const del = vi.fn();
 
-    const db = { update, delete: del } as unknown as Parameters<typeof unbanUserCore>[1]['db'];
+    const db = { update, delete: del } as unknown as MockDb;
 
     await unbanUserCore({ targetUserId: 'target' }, { db });
 
