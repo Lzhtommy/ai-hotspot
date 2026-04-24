@@ -13,7 +13,7 @@
  * Button states per UI-SPEC:
  *   - 过滤: enabled only on view==='all' (visual only — onClick wired in Plan 05 client island)
  *   - 导出: disabled, title="Phase 6 开放" per CONTEXT D-22
- *   - 手动同步: disabled, title="Phase 6 开放" per CONTEXT D-22
+ *   - 手动同步: admin-only client island (ManualSyncButton) — quick 260424-oyc
  *
  * Consumed by:
  *   - src/app/(reader)/page.tsx (view="featured")
@@ -24,6 +24,7 @@
 import { Button } from '@/components/layout/button';
 import { HamburgerButton } from '@/components/layout/hamburger-button';
 import { FeedTabs } from './feed-tabs';
+import { ManualSyncButton } from './manual-sync-button';
 
 export interface FeedTopBarProps {
   view: 'featured' | 'all' | 'favorites';
@@ -48,6 +49,13 @@ export interface FeedTopBarProps {
    * §/favorites page.
    */
   subtitle?: string;
+  /**
+   * Quick 260424-oyc: role-gate from the server. True iff
+   * `session.user.role === 'admin'`. The server `/api/admin/sync` route
+   * re-derives this authoritatively on every POST — this prop is UX only
+   * and never a security boundary (D-02).
+   */
+  canSync?: boolean;
 }
 
 export function FeedTopBar({
@@ -58,6 +66,7 @@ export function FeedTopBar({
   pathname,
   counts,
   subtitle: subtitleOverride,
+  canSync = false,
 }: FeedTopBarProps) {
   // Sync label — same format as sidebar pipeline card (UI-SPEC Copywriting Contract)
   const syncLabel =
@@ -134,10 +143,8 @@ export function FeedTopBar({
             <span className="max-sm:hidden">导出</span>
           </Button>
 
-          {/* 手动同步 — disabled, Phase 6 开放 — feed_views.jsx line 57; CONTEXT D-22 */}
-          <Button variant="primary" size="md" disabled title="Phase 6 开放">
-            <span className="max-sm:hidden">手动同步</span>
-          </Button>
+          {/* 手动同步 — quick 260424-oyc: admin-only Trigger.dev manual run */}
+          <ManualSyncButton canSync={canSync} />
         </div>
       </div>
 

@@ -26,6 +26,9 @@ export default async function FeaturedPage() {
   // Phase 5 Plan 05-07: thread session + initial interactions into every FeedCard.
   const session = await auth();
   const isAuthenticated = !!session?.user?.id;
+  // Quick 260424-oyc: role-gate the 手动同步 button. Cast-safe role extraction
+  // matches the established sidebar pattern (see sidebar-admin-nav).
+  const canSync = (session?.user as { role?: string } | undefined)?.role === 'admin';
   const interactionMap = isAuthenticated
     ? await getUserInteractions(
         session!.user!.id!,
@@ -40,6 +43,7 @@ export default async function FeaturedPage() {
         count={items.length}
         lastSyncMinutes={lastSyncMinutes}
         pathname="/"
+        canSync={canSync}
       />
       {items.length === 0 ? (
         <EmptyState
