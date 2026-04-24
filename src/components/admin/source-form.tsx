@@ -32,10 +32,7 @@
 
 import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  createSourceAction,
-  updateSourceAction,
-} from '@/server/actions/admin-sources';
+import { createSourceAction, updateSourceAction } from '@/server/actions/admin-sources';
 import type { SourceAdminRow } from '@/lib/admin/sources-repo';
 
 interface CategoryOption {
@@ -86,9 +83,7 @@ export function SourceForm({ mode, source }: SourceFormProps) {
     // zod parser (readString returns undefined for '').
     try {
       const result =
-        mode === 'create'
-          ? await createSourceAction(formData)
-          : await updateSourceAction(formData);
+        mode === 'create' ? await createSourceAction(formData) : await updateSourceAction(formData);
 
       if (result.ok) {
         router.push('/admin/sources');
@@ -112,9 +107,7 @@ export function SourceForm({ mode, source }: SourceFormProps) {
       <h2 style={titleStyle}>{isEdit ? '编辑信源' : '新建信源'}</h2>
 
       {/* Hidden id on edit so the server action knows which row to patch. */}
-      {isEdit && prefill ? (
-        <input type="hidden" name="id" value={prefill.id} />
-      ) : null}
+      {isEdit && prefill ? <input type="hidden" name="id" value={prefill.id} /> : null}
 
       <Field label="名称" htmlFor="source-name">
         <input
@@ -191,10 +184,21 @@ export function SourceForm({ mode, source }: SourceFormProps) {
         </select>
       </Field>
 
+      {/*
+        Hidden sentinel + checkbox pair: HTML omits an unchecked checkbox
+        from FormData, so without the sentinel the server action could not
+        distinguish "admin unchecked 启用" from "field absent" — making it
+        impossible to deactivate a source from the edit form (see 06-REVIEW
+        WR-02). By posting `isActive=false` first, a present checkbox
+        appends `isActive=true` and FormData.get() returns the last value;
+        an absent checkbox leaves the sentinel in place.
+      */}
+      <input type="hidden" name="isActive" value="false" />
       <label style={checkboxLabelStyle}>
         <input
           type="checkbox"
           name="isActive"
+          value="true"
           defaultChecked={prefill ? prefill.isActive : true}
         />
         <span>启用(取消勾选则加入后不轮询)</span>
@@ -238,10 +242,7 @@ function Field({
 }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <label
-        htmlFor={htmlFor}
-        style={{ fontSize: 12.5, color: 'var(--ink-700)', fontWeight: 500 }}
-      >
+      <label htmlFor={htmlFor} style={{ fontSize: 12.5, color: 'var(--ink-700)', fontWeight: 500 }}>
         {label}
       </label>
       {children}

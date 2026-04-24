@@ -36,11 +36,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { auth } from '@/lib/auth';
 import { assertAdmin, AdminAuthError } from '@/lib/auth/admin';
-import {
-  createSourceCore,
-  softDeleteSourceCore,
-  updateSourceCore,
-} from '@/lib/admin/sources-repo';
+import { createSourceCore, softDeleteSourceCore, updateSourceCore } from '@/lib/admin/sources-repo';
 
 // ────────────────────────────────────────────────────────────────────────
 // Result shapes
@@ -103,15 +99,24 @@ function readString(fd: FormData, key: string): string | undefined {
 }
 
 /**
- * Read a FormData checkbox. HTML checkbox posts 'on' / 'true' when checked
- * and omits the key entirely when unchecked — so `fd.has(key)` plus a value
- * normalization covers both the native form case and programmatic submits.
+ * Read a FormData checkbox. HTML checkbox posts its `value` attribute when
+ * checked and omits the key entirely when unchecked. The create/edit form
+ * pairs every checkbox with a hidden sentinel (`<input type="hidden"
+ * name="..." value="false">` before `<input type="checkbox" name="..."
+ * value="true">`) so the "unchecked" state is always distinguishable from
+ * "field absent" — see 06-REVIEW WR-02.
+ *
+ * Because FormData.get() returns the FIRST occurrence of a repeated key, we
+ * read via getAll() and treat the LAST value as authoritative: the sentinel
+ * posts first, the checkbox (if present) appends after. A missing key
+ * returns `false`; a non-string value is still considered truthy.
  */
 function readBool(fd: FormData, key: string): boolean {
-  if (!fd.has(key)) return false;
-  const v = fd.get(key);
-  if (typeof v !== 'string') return true; // present but non-string — still truthy
-  return v !== '' && v !== 'false' && v !== '0' && v !== 'off';
+  const all = fd.getAll(key);
+  if (all.length === 0) return false;
+  const last = all[all.length - 1];
+  if (typeof last !== 'string') return true;
+  return last !== '' && last !== 'false' && last !== '0' && last !== 'off';
 }
 
 // ────────────────────────────────────────────────────────────────────────
@@ -153,9 +158,7 @@ export async function createSourceAction(
  * URL and break idempotency). That constraint is enforced here by not
  * reading `rssUrl` out of the FormData at all.
  */
-export async function updateSourceAction(
-  formData: FormData,
-): Promise<AdminActionResult> {
+export async function updateSourceAction(formData: FormData): Promise<AdminActionResult> {
   try {
     assertAdmin(await auth());
 
@@ -187,9 +190,7 @@ export async function updateSourceAction(
  * The underlying core sets `deleted_at = now()` and `is_active = false`;
  * items already in the DB are preserved (T-6-25).
  */
-export async function softDeleteSourceAction(
-  id: number,
-): Promise<AdminActionResult> {
+export async function softDeleteSourceAction(id: number): Promise<AdminActionResult> {
   try {
     assertAdmin(await auth());
 
