@@ -32,6 +32,7 @@ import {
   unbanUserCore,
   SelfBanError,
   UserNotFoundError,
+  AlreadyBannedError,
 } from '@/lib/admin/users-repo';
 
 const IdSchema = z.object({ targetUserId: z.string().uuid() });
@@ -44,14 +45,13 @@ export type AdminActionResult =
         | 'VALIDATION'
         | 'SELF_BAN'
         | 'NOT_FOUND'
+        | 'ALREADY_BANNED'
         | 'UNAUTHENTICATED'
         | 'FORBIDDEN'
         | 'INTERNAL';
     };
 
-export async function banUserAction(input: {
-  targetUserId: string;
-}): Promise<AdminActionResult> {
+export async function banUserAction(input: { targetUserId: string }): Promise<AdminActionResult> {
   try {
     const session = await auth();
     assertAdmin(session);
@@ -68,14 +68,13 @@ export async function banUserAction(input: {
   } catch (e) {
     if (e instanceof SelfBanError) return { ok: false, error: 'SELF_BAN' };
     if (e instanceof UserNotFoundError) return { ok: false, error: 'NOT_FOUND' };
+    if (e instanceof AlreadyBannedError) return { ok: false, error: 'ALREADY_BANNED' };
     if (e instanceof AdminAuthError) return { ok: false, error: e.code };
     return { ok: false, error: 'INTERNAL' };
   }
 }
 
-export async function unbanUserAction(input: {
-  targetUserId: string;
-}): Promise<AdminActionResult> {
+export async function unbanUserAction(input: { targetUserId: string }): Promise<AdminActionResult> {
   try {
     const session = await auth();
     assertAdmin(session);

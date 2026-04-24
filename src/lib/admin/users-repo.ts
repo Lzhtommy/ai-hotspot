@@ -38,7 +38,7 @@
  *   - T-6-32  Session revocation atomic with is_banned flip.
  *   - T-6-33  db.transaction() rollback on either failure — no half-banned state.
  */
-import { eq, sql as dsql } from 'drizzle-orm';
+import { and, eq, sql as dsql } from 'drizzle-orm';
 import { db as realDb } from '@/lib/db/client';
 import { users, sessions } from '@/lib/db/schema';
 
@@ -53,6 +53,21 @@ export class UserNotFoundError extends Error {
   constructor() {
     super('NOT_FOUND');
     this.name = 'UserNotFoundError';
+  }
+}
+
+/**
+ * Thrown when banUserCore is invoked on a user whose `is_banned` is already
+ * true. The UsersTable UI hides the ban button on banned rows (it shows
+ * 解封 instead) — but a hand-crafted POST or a race between two admins could
+ * still re-invoke the ban path. Short-circuiting preserves the original
+ * `banned_at` / `banned_by` audit record rather than overwriting it with the
+ * second admin's id. See 06-REVIEW WR-05.
+ */
+export class AlreadyBannedError extends Error {
+  constructor() {
+    super('ALREADY_BANNED');
+    this.name = 'AlreadyBannedError';
   }
 }
 
@@ -77,9 +92,7 @@ type DbLike = typeof realDb;
  * Using FILTER instead of a plain array_agg keeps the result `[]` (not `[null]`)
  * for users with zero linked accounts, which matches the UI's expectation.
  */
-export async function listUsersForAdmin(
-  deps: { db?: DbLike } = {},
-): Promise<UserAdminRow[]> {
+export async function listUsersForAdmin(deps: { db?: DbLike } = {}): Promise<UserAdminRow[]> {
   const d = deps.db ?? realDb;
   // Raw SQL (not drizzle-select) because the accounts column is quoted
   // camelCase ("userId") per Auth.js adapter convention — drizzle's query
@@ -111,8 +124,7 @@ export async function listUsersForAdmin(
           ? r.banned_at
           : new Date(r.banned_at as string),
     bannedBy: (r.banned_by as string | null) ?? null,
-    createdAt:
-      r.created_at instanceof Date ? r.created_at : new Date(r.created_at as string),
+    createdAt: r.created_at instanceof Date ? r.created_at : new Date(r.created_at as string),
     providers: Array.isArray(r.providers) ? (r.providers as string[]) : [],
   }));
 }
@@ -137,7 +149,12 @@ export async function banUserCore(
 
   const d = deps.db ?? realDb;
   await d.transaction(async (tx) => {
-    // STEP 1 — flip is_banned and write audit columns.
+    // STEP 1 — flip is_banned and write audit columns. The WHERE clause
+    // includes `is_banned = false` so a second admin re-banning an already-
+    // banned user matches zero rows (rather than overwriting the original
+    // banned_at / banned_by audit with the re-banning admin's id). The
+    // surrounding transaction + AlreadyBannedError thrown below makes this
+    // distinguishable from "target user doesn't exist". See 06-REVIEW WR-05.
     const updated = await tx
       .update(users)
       .set({
@@ -145,12 +162,20 @@ export async function banUserCore(
         bannedAt: new Date(),
         bannedBy: input.adminUserId,
       })
-      .where(eq(users.id, input.targetUserId))
+      .where(and(eq(users.id, input.targetUserId), eq(users.isBanned, false)))
       .returning({ id: users.id });
 
     if (updated.length === 0) {
+      // Disambiguate the two zero-row causes so callers can surface the right
+      // error copy: "already banned" vs "user not found".
+      const existing = await tx
+        .select({ isBanned: users.isBanned })
+        .from(users)
+        .where(eq(users.id, input.targetUserId))
+        .limit(1);
       // Throwing inside the transaction aborts it — the DELETE never runs.
-      throw new UserNotFoundError();
+      if (existing.length === 0) throw new UserNotFoundError();
+      throw new AlreadyBannedError();
     }
 
     // STEP 2 — revoke every active session (T-6-32). Auth.js v5 DB-session

@@ -24,15 +24,31 @@ import {
   unbanUserCore,
   SelfBanError,
   UserNotFoundError,
+  AlreadyBannedError,
 } from '@/lib/admin/users-repo';
 import type { db as realDb } from '@/lib/db/client';
 
 /** Structural alias for the injected `db` — matches the repo's DbLike. */
 type MockDb = typeof realDb;
 
-/** Construct a fake Drizzle-shaped tx that records which ops were invoked. */
-function makeTxSpy(options: { updateReturning?: Array<{ id: string }> } = {}) {
+/**
+ * Construct a fake Drizzle-shaped tx that records which ops were invoked.
+ *
+ * banUserCore's WHERE clause now includes `is_banned = false` (see 06-REVIEW
+ * WR-05), and on zero-row UPDATE it does a follow-up SELECT to disambiguate
+ * "user not found" from "already banned". The `selectReturning` option
+ * controls that second-step result:
+ *   - undefined  → existing user is present + banned (AlreadyBannedError)
+ *   - []         → user doesn't exist (UserNotFoundError)
+ */
+function makeTxSpy(
+  options: {
+    updateReturning?: Array<{ id: string }>;
+    selectReturning?: Array<{ isBanned: boolean }>;
+  } = {},
+) {
   const updateReturning = options.updateReturning ?? [{ id: 'target-uuid' }];
+  const selectReturning = options.selectReturning ?? [{ isBanned: true }];
   const calls: string[] = [];
 
   const update = vi.fn(() => ({
@@ -53,7 +69,19 @@ function makeTxSpy(options: { updateReturning?: Array<{ id: string }> } = {}) {
     }),
   }));
 
-  const tx = { update, delete: del };
+  // Disambiguation SELECT chain: .select().from().where().limit(1).
+  const select = vi.fn(() => ({
+    from: vi.fn(() => ({
+      where: vi.fn(() => ({
+        limit: vi.fn(async () => {
+          calls.push('select');
+          return selectReturning;
+        }),
+      })),
+    })),
+  }));
+
+  const tx = { update, delete: del, select };
   return { tx, calls };
 }
 
@@ -146,8 +174,10 @@ describe('banUserCore', () => {
     expect(tx.delete).toHaveBeenCalledTimes(1);
   });
 
-  it('throws UserNotFoundError and skips sessions delete when update returns no rows', async () => {
-    const { tx, calls } = makeTxSpy({ updateReturning: [] });
+  it('throws UserNotFoundError and skips sessions delete when the user row does not exist', async () => {
+    // UPDATE returns no rows AND the follow-up SELECT returns no rows → target
+    // does not exist at all.
+    const { tx, calls } = makeTxSpy({ updateReturning: [], selectReturning: [] });
     const transaction = vi.fn(async (fn: (t: typeof tx) => Promise<void>) => {
       await fn(tx);
     });
@@ -157,8 +187,31 @@ describe('banUserCore', () => {
       banUserCore({ targetUserId: 'ghost', adminUserId: 'admin' }, { db }),
     ).rejects.toBeInstanceOf(UserNotFoundError);
 
-    // UPDATE ran (to learn the user is missing) but DELETE must not have.
-    expect(calls).toEqual(['update']);
+    // UPDATE + SELECT ran (to disambiguate), DELETE must not have.
+    expect(calls).toEqual(['update', 'select']);
+    expect(tx.delete).not.toHaveBeenCalled();
+  });
+
+  it('throws AlreadyBannedError when the target user is already banned (preserves prior audit)', async () => {
+    // UPDATE matches zero rows because is_banned=true in the WHERE excluded
+    // it; the disambiguation SELECT finds the row, so we surface
+    // AlreadyBannedError. This preserves the original banned_at/banned_by
+    // audit columns rather than overwriting them with the re-banning admin's
+    // id (see 06-REVIEW WR-05).
+    const { tx, calls } = makeTxSpy({
+      updateReturning: [],
+      selectReturning: [{ isBanned: true }],
+    });
+    const transaction = vi.fn(async (fn: (t: typeof tx) => Promise<void>) => {
+      await fn(tx);
+    });
+    const db = { transaction } as unknown as MockDb;
+
+    await expect(
+      banUserCore({ targetUserId: 'already-banned', adminUserId: 'admin2' }, { db }),
+    ).rejects.toBeInstanceOf(AlreadyBannedError);
+
+    expect(calls).toEqual(['update', 'select']);
     expect(tx.delete).not.toHaveBeenCalled();
   });
 });
