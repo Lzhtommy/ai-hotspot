@@ -1,13 +1,11 @@
 // Quick task 260425-kg7 — Anonymous tab unification with card-star D-26 seam.
 //
-// Asserts FeedTabs renders the 收藏 tab as a <button> (not a Link) when the
-// caller has not authenticated, and dispatches the same `open-login-modal`
-// CustomEvent on `document` that LoginPromptModal listens for (Phase 4 D-26
-// seam preserved by Phase 5 Plan 05-07).
-//
-// The 精选 / 全部动态 tabs always remain Links. Only the 收藏 tab swaps
-// rendering to a button in the anonymous branch — this preserves deep-link
-// fallback semantics: the server-side redirect at /favorites stays untouched.
+// Asserts FeedTabs renders the 收藏 tab as the SAME <a> (Link) as the other
+// tabs in both auth branches. Anonymous click is intercepted via onClick +
+// e.preventDefault() to dispatch `open-login-modal` on `document` instead of
+// navigating; visual parity with the sibling Link tabs is preserved (no
+// <button> user-agent defaults). The server-side `/favorites` redirect remains
+// as the deep-link / middle-click fallback.
 
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
@@ -24,15 +22,16 @@ describe('FeedTabs anonymous favorites tab (260425-kg7)', () => {
     registeredListeners = [];
   });
 
-  it('renders 收藏 as <button> with no href when isAuthenticated=false', () => {
+  it('renders 收藏 as <a href="/favorites"> with anonymous data-attr when isAuthenticated=false', () => {
     render(<FeedTabs pathname="/" isAuthenticated={false} />);
 
-    const tab = screen.getByRole('button', { name: /收藏/ });
-    expect(tab.tagName).toBe('BUTTON');
-    expect(tab.hasAttribute('href')).toBe(false);
+    const tab = screen.getByRole('link', { name: /收藏/ });
+    expect(tab.tagName).toBe('A');
+    expect(tab.getAttribute('href')).toBe('/favorites');
+    expect(tab.getAttribute('data-anonymous-favorites')).toBe('true');
   });
 
-  it('clicking anonymous 收藏 tab dispatches open-login-modal on document', () => {
+  it('clicking anonymous 收藏 tab calls preventDefault and dispatches open-login-modal', () => {
     const spy = vi.fn();
     const listener = (() => {
       const handler = () => spy();
@@ -43,36 +42,40 @@ describe('FeedTabs anonymous favorites tab (260425-kg7)', () => {
 
     render(<FeedTabs pathname="/" isAuthenticated={false} />);
 
-    const tab = screen.getByRole('button', { name: /收藏/ });
-    fireEvent.click(tab);
+    const tab = screen.getByRole('link', { name: /收藏/ });
+    const evt = new MouseEvent('click', { bubbles: true, cancelable: true });
+    const dispatched = tab.dispatchEvent(evt);
 
     expect(spy).toHaveBeenCalledTimes(1);
+    // dispatchEvent returns false when default was prevented.
+    expect(dispatched).toBe(false);
   });
 
-  it('renders 收藏 as <a href="/favorites"> when isAuthenticated=true', () => {
+  it('renders 收藏 as <a href="/favorites"> without anonymous data-attr when isAuthenticated=true', () => {
     render(<FeedTabs pathname="/" isAuthenticated={true} />);
 
     const tab = screen.getByRole('link', { name: /收藏/ });
     expect(tab.tagName).toBe('A');
     expect(tab.getAttribute('href')).toBe('/favorites');
+    expect(tab.hasAttribute('data-anonymous-favorites')).toBe(false);
   });
 
-  it('defaults to anonymous (button) when isAuthenticated is omitted', () => {
+  it('defaults to anonymous semantics when isAuthenticated is omitted', () => {
     render(<FeedTabs pathname="/" />);
-    const tab = screen.getByRole('button', { name: /收藏/ });
-    expect(tab.tagName).toBe('BUTTON');
+    const tab = screen.getByRole('link', { name: /收藏/ });
+    expect(tab.getAttribute('data-anonymous-favorites')).toBe('true');
   });
 
   it('preserves aria-current="page" on active 收藏 tab in both branches', () => {
-    // Anonymous: button branch on /favorites still gets aria-current
     const { rerender } = render(<FeedTabs pathname="/favorites" isAuthenticated={false} />);
-    const buttonTab = screen.getByRole('button', { name: /收藏/ });
-    expect(buttonTab.getAttribute('aria-current')).toBe('page');
+    const anonTab = screen.getByRole('link', { name: /收藏/ });
+    expect(anonTab.getAttribute('aria-current')).toBe('page');
+    expect(anonTab.getAttribute('data-anonymous-favorites')).toBe('true');
 
-    // Authenticated: link branch on /favorites also gets aria-current
     rerender(<FeedTabs pathname="/favorites" isAuthenticated={true} />);
-    const linkTab = screen.getByRole('link', { name: /收藏/ });
-    expect(linkTab.getAttribute('aria-current')).toBe('page');
+    const authTab = screen.getByRole('link', { name: /收藏/ });
+    expect(authTab.getAttribute('aria-current')).toBe('page');
+    expect(authTab.hasAttribute('data-anonymous-favorites')).toBe(false);
   });
 
   it('精选 and 全部动态 remain Links in both auth branches', () => {

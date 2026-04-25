@@ -12,15 +12,17 @@
  *
  * Quick task 260425-kg7 (anonymous favorites tab unification):
  *   - When `isAuthenticated` is false (or omitted — the default), the 收藏
- *     tab renders as a <button> that dispatches `open-login-modal` on
- *     `document` instead of navigating. This mirrors the same D-26 seam used
- *     by feed-card-actions, so the existing LoginPromptModal mounted in
- *     (reader)/layout.tsx handles the prompt.
+ *     tab is still a next/link <a href="/favorites"> visually identical to the
+ *     other tabs, but its onClick calls `e.preventDefault()` and dispatches
+ *     `open-login-modal` on `document` instead. Same DOM element type as the
+ *     other tabs → no visual drift from `<button>` user-agent defaults.
+ *     Mirrors the D-26 seam used by feed-card-actions; LoginPromptModal mounted
+ *     in (reader)/layout.tsx handles the prompt.
  *   - When `isAuthenticated` is true, the 收藏 tab is a normal next/link
  *     <a href="/favorites"> — behaviour fully unchanged.
  *   - 精选 and 全部动态 are always Links regardless of auth state.
  *   - The server `redirect('/')` in /favorites remains as the deep-link
- *     fallback for users who paste the URL directly.
+ *     fallback for users who paste the URL directly (or middle-click).
  *
  * Consumed by:
  *   - src/components/feed/feed-top-bar.tsx
@@ -103,35 +105,28 @@ export function FeedTabs({ pathname, counts, isAuthenticated = false }: FeedTabs
         const ariaCurrent = t.active ? ('page' as const) : undefined;
         const label = t.count != null ? `${t.label} (${t.count})` : t.label;
 
-        // 收藏 tab swaps to a button when the caller is anonymous (260425-kg7).
-        // Button styles inherit `appearance:none` + `background:transparent`
-        // explicitly so the user agent button chrome doesn't leak through.
-        if (t.href === '/favorites' && !isAuthenticated) {
-          return (
-            <button
-              key={t.href}
-              type="button"
-              onClick={openLoginModal}
-              aria-current={ariaCurrent}
-              style={{
-                ...tabStyle,
-                appearance: 'none',
-                background: 'transparent',
-                border: 'none',
-                borderBottom: tabStyle.borderBottom,
-                cursor: 'pointer',
-                font: 'inherit',
-                padding: 0,
-                paddingBottom: tabStyle.paddingBottom,
-              }}
-            >
-              {label}
-            </button>
-          );
-        }
+        // 收藏 tab when anonymous (260425-kg7): same <Link> DOM as the others
+        // (visual parity), but onClick prevents navigation and dispatches the
+        // open-login-modal event. Middle-click / cmd-click still resolves to
+        // /favorites and hits the server redirect — that's the intentional
+        // deep-link fallback.
+        const isAnonymousFavorites = t.href === '/favorites' && !isAuthenticated;
+        const onClick = isAnonymousFavorites
+          ? (e: React.MouseEvent<HTMLAnchorElement>) => {
+              e.preventDefault();
+              openLoginModal();
+            }
+          : undefined;
 
         return (
-          <Link key={t.href} href={t.href} style={tabStyle} aria-current={ariaCurrent}>
+          <Link
+            key={t.href}
+            href={t.href}
+            style={tabStyle}
+            aria-current={ariaCurrent}
+            onClick={onClick}
+            data-anonymous-favorites={isAnonymousFavorites ? 'true' : undefined}
+          >
             {label}
           </Link>
         );

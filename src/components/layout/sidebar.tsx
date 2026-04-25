@@ -84,6 +84,11 @@ export function Sidebar({ pathname, session, pipelineStatus }: SidebarProps) {
       : null;
   // Quick 260424-g2y: role-gate the 管理 section. Same cast pattern as line 88.
   const isAdmin = (session?.user as { role?: string } | undefined)?.role === 'admin';
+  // Quick 260425-kg7 follow-up: anonymous click on 收藏 dispatches open-login-modal
+  // (mirrors FeedTabs + feed-card-actions D-26 seam) instead of bouncing through
+  // the server redirect at /favorites. Sidebar is RSC, so we forward a boolean
+  // flag — the click handler is attached inside NavRow (Client Component).
+  const isAuthenticated = !!session?.user?.id;
   return (
     <aside
       style={{
@@ -186,6 +191,9 @@ export function Sidebar({ pathname, session, pipelineStatus }: SidebarProps) {
                     ? pathname.startsWith('/favorites')
                     : false
             }
+            // Quick 260425-kg7 follow-up: anonymous click on 收藏 opens login
+            // modal instead of navigating into the /favorites server redirect.
+            loginModalIntercept={item.id === 'favorites' && !isAuthenticated}
           />
         ))}
       </nav>
