@@ -16,6 +16,7 @@ import { FeedTopBar } from '@/components/feed/feed-top-bar';
 import { Timeline } from '@/components/feed/timeline';
 import { EmptyState } from '@/components/feed/empty-state';
 import { FilterPopover } from '@/components/feed/filter-popover';
+import { and, eq, isNull } from 'drizzle-orm';
 import { db } from '@/lib/db/client';
 import { sources } from '@/lib/db/schema';
 import { auth } from '@/lib/auth';
@@ -51,8 +52,11 @@ export default async function AllFeedPage({
       )
     : new Map<string, { favorited: boolean; vote: -1 | 0 | 1 }>();
 
-  // Available sources for the filter popover
-  const availableSources = await db.select({ id: sources.id, name: sources.name }).from(sources);
+  // Available sources for the filter popover — exclude soft-deleted (ADMIN-05) and inactive
+  const availableSources = await db
+    .select({ id: sources.id, name: sources.name })
+    .from(sources)
+    .where(and(isNull(sources.deletedAt), eq(sources.isActive, true)));
 
   // Available tags derived from items on this page (stable for ISR)
   const availableTags = Array.from(new Set(items.flatMap((i) => i.tags ?? []))).sort();
