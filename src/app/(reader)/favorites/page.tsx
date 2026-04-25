@@ -126,6 +126,9 @@ export default async function FavoritesPage() {
         count={feedItems.length}
         subtitle={subtitle}
         canSync={canSync}
+        // Reaching this render path means session is authenticated (anonymous
+        // users were redirect('/')'d above). Pass true explicitly for clarity.
+        isAuthenticated={true}
       />
       {feedItems.length === 0 ? (
         <FavoritesEmpty authenticated />

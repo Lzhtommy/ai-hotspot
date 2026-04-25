@@ -56,6 +56,12 @@ export interface FeedTopBarProps {
    * and never a security boundary (D-02).
    */
   canSync?: boolean;
+  /**
+   * Quick 260425-kg7: forwarded to <FeedTabs/> so the 收藏 tab renders as a
+   * button that dispatches `open-login-modal` (instead of a Link to
+   * /favorites that would be server-redirected back to /). Default false.
+   */
+  isAuthenticated?: boolean;
 }
 
 export function FeedTopBar({
@@ -67,6 +73,7 @@ export function FeedTopBar({
   counts,
   subtitle: subtitleOverride,
   canSync = false,
+  isAuthenticated = false,
 }: FeedTopBarProps) {
   // Sync label — same format as sidebar pipeline card (UI-SPEC Copywriting Contract)
   const syncLabel =
@@ -149,7 +156,7 @@ export function FeedTopBar({
       </div>
 
       {/* Tab navigation — rendered below title/buttons */}
-      <FeedTabs pathname={pathname} counts={counts} />
+      <FeedTabs pathname={pathname} counts={counts} isAuthenticated={isAuthenticated} />
     </div>
   );
 }

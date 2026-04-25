@@ -71,6 +71,7 @@ export default async function AllFeedPage({
         lastSyncMinutes={lastSyncMinutes}
         pathname="/all"
         canSync={canSync}
+        isAuthenticated={isAuthenticated}
       />
       <div className="px-[32px] pt-[8px] max-sm:px-[16px]">
         <FilterPopover availableTags={availableTags} availableSources={availableSources} />

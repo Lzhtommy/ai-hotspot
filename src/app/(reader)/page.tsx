@@ -44,6 +44,7 @@ export default async function FeaturedPage() {
         lastSyncMinutes={lastSyncMinutes}
         pathname="/"
         canSync={canSync}
+        isAuthenticated={isAuthenticated}
       />
       {items.length === 0 ? (
         <EmptyState
