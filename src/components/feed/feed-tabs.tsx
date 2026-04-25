@@ -1,13 +1,26 @@
+'use client';
+
 /**
  * FeedTabs — Phase 4 FEED-06, feed_views.jsx lines 64–93.
  *
- * RSC tab navigation bar with 3 tabs driven by pathname prop.
- * Uses next/link for navigation — no client state needed; active tab
- * is purely derived from the pathname passed by the RSC page.
+ * Tab navigation bar with 3 tabs driven by pathname prop.
+ * Active tab is purely derived from the pathname passed by the RSC parent.
  *
  * Tab labels (UI-SPEC Copywriting Contract):
  *   精选 / 全部动态 / 收藏
  *   Note: "全部动态" in tabs vs. "全部 AI 动态" in H1 — both correct per design.
+ *
+ * Quick task 260425-kg7 (anonymous favorites tab unification):
+ *   - When `isAuthenticated` is false (or omitted — the default), the 收藏
+ *     tab renders as a <button> that dispatches `open-login-modal` on
+ *     `document` instead of navigating. This mirrors the same D-26 seam used
+ *     by feed-card-actions, so the existing LoginPromptModal mounted in
+ *     (reader)/layout.tsx handles the prompt.
+ *   - When `isAuthenticated` is true, the 收藏 tab is a normal next/link
+ *     <a href="/favorites"> — behaviour fully unchanged.
+ *   - 精选 and 全部动态 are always Links regardless of auth state.
+ *   - The server `redirect('/')` in /favorites remains as the deep-link
+ *     fallback for users who paste the URL directly.
  *
  * Consumed by:
  *   - src/components/feed/feed-top-bar.tsx
@@ -24,9 +37,24 @@ interface FeedTabsProps {
     all?: number;
     favorites?: number;
   };
+  /**
+   * Quick 260425-kg7: when true, the 收藏 tab is a Link to /favorites; when
+   * false/undefined the 收藏 tab is a button that opens LoginPromptModal via
+   * the document-level `open-login-modal` event. Default is false (anonymous-
+   * safe): RSC parents that haven't been updated to thread the prop fall into
+   * the modal path rather than the broken redirect-bounce.
+   */
+  isAuthenticated?: boolean;
 }
 
-export function FeedTabs({ pathname, counts }: FeedTabsProps) {
+function openLoginModal() {
+  // Phase 4 D-26 seam — LoginPromptModal listens for this on `document`.
+  // Same implementation as feed-card-actions.tsx (intentionally duplicated
+  // to keep this Client Component import-light).
+  document.dispatchEvent(new CustomEvent('open-login-modal'));
+}
+
+export function FeedTabs({ pathname, counts, isAuthenticated = false }: FeedTabsProps) {
   const tabs = [
     {
       label: '精选',
@@ -60,27 +88,54 @@ export function FeedTabs({ pathname, counts }: FeedTabsProps) {
       }}
       aria-label="内容分类"
     >
-      {tabs.map((t) => (
-        <Link
-          key={t.href}
-          href={t.href}
-          // Active tab: ink-900 text + 2px bottom border
-          // Inactive tab: fg-3 text, hover → ink-900
-          style={{
-            paddingBottom: 10,
-            fontSize: 14,
-            fontWeight: 500,
-            letterSpacing: '-0.003em',
-            textDecoration: 'none',
-            borderBottom: t.active ? '2px solid var(--ink-900)' : '2px solid transparent',
-            color: t.active ? 'var(--ink-900)' : 'var(--fg-3)',
-            transition: 'color 120ms var(--ease)',
-          }}
-          aria-current={t.active ? 'page' : undefined}
-        >
-          {t.count != null ? `${t.label} (${t.count})` : t.label}
-        </Link>
-      ))}
+      {tabs.map((t) => {
+        // Shared style — single const so Link and button branches cannot drift.
+        const tabStyle: React.CSSProperties = {
+          paddingBottom: 10,
+          fontSize: 14,
+          fontWeight: 500,
+          letterSpacing: '-0.003em',
+          textDecoration: 'none',
+          borderBottom: t.active ? '2px solid var(--ink-900)' : '2px solid transparent',
+          color: t.active ? 'var(--ink-900)' : 'var(--fg-3)',
+          transition: 'color 120ms var(--ease)',
+        };
+        const ariaCurrent = t.active ? ('page' as const) : undefined;
+        const label = t.count != null ? `${t.label} (${t.count})` : t.label;
+
+        // 收藏 tab swaps to a button when the caller is anonymous (260425-kg7).
+        // Button styles inherit `appearance:none` + `background:transparent`
+        // explicitly so the user agent button chrome doesn't leak through.
+        if (t.href === '/favorites' && !isAuthenticated) {
+          return (
+            <button
+              key={t.href}
+              type="button"
+              onClick={openLoginModal}
+              aria-current={ariaCurrent}
+              style={{
+                ...tabStyle,
+                appearance: 'none',
+                background: 'transparent',
+                border: 'none',
+                borderBottom: tabStyle.borderBottom,
+                cursor: 'pointer',
+                font: 'inherit',
+                padding: 0,
+                paddingBottom: tabStyle.paddingBottom,
+              }}
+            >
+              {label}
+            </button>
+          );
+        }
+
+        return (
+          <Link key={t.href} href={t.href} style={tabStyle} aria-current={ariaCurrent}>
+            {label}
+          </Link>
+        );
+      })}
     </nav>
   );
 }
