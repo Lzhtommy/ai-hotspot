@@ -1,6 +1,12 @@
 import { describe, it, expect, vi } from 'vitest';
 import { embedDocument, EmbedError } from './embed';
 
+vi.mock('@anthropic-ai/sdk', () => ({
+  default: class MockAnthropic {
+    constructor() {}
+  },
+}));
+
 // Build a minimal mock for the Voyage client's embed method.
 // We do NOT use vi.mock('@/lib/llm/client') — only DI via deps parameter.
 function makeVoyageMock(behavior: 'ok' | 'wrong-length' | 'network-error') {

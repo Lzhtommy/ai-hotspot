@@ -4,6 +4,12 @@ import { runProcessItem } from './process-item-core';
 import { EnrichError } from './enrich';
 import { EmbedError } from './embed';
 
+vi.mock('@anthropic-ai/sdk', () => ({
+  default: class MockAnthropic {
+    constructor() {}
+  },
+}));
+
 // Helper: build a minimal db mock that records calls.
 // Extends the makeDbMock factory pattern from src/lib/ingest/fetch-source-core.test.ts.
 function makeDbMock(

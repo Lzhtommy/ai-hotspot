@@ -2,6 +2,12 @@ import { describe, it, expect, vi } from 'vitest';
 import { processPending, claimPendingItems } from './process-pending';
 import * as barrel from './index';
 
+vi.mock('@anthropic-ai/sdk', () => ({
+  default: class MockAnthropic {
+    constructor() {}
+  },
+}));
+
 describe('processPending task', () => {
   it('has id "process-pending"', () => {
     expect((processPending as unknown as { id: string }).id).toBe('process-pending');

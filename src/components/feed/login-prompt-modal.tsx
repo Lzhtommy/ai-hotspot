@@ -2,10 +2,9 @@
 
 /**
  * Login prompt modal — Phase 4 FEED-03, D-26; extended by Phase 5 Plan 05-04
- * (AUTH-02, AUTH-03, AUTH-04, VOTE-04) to wire three real providers:
+ * (AUTH-02, AUTH-03, AUTH-04, VOTE-04). Two OAuth providers only:
  *   - GitHub OAuth (accent, primary)
- *   - Email magic link (accent; Resend transport; inline 检查邮箱 success)
- *   - Google OAuth (secondary; separated by 其他方式 divider)
+ *   - Google OAuth (secondary)
  *
  * Client Component listening for 'open-login-modal' custom event on document.
  * Uses native <dialog> element for:
@@ -18,10 +17,8 @@
  *   1. Heading    登录以继续
  *   2. Body       登录后才可以收藏、点赞或屏蔽动态。
  *   3. GitHub     使用 GitHub 登录           (accent, full-width, form → signInGithubAction)
- *   4. Email      邮箱 + 你的邮箱地址 + 发送登录链接 (accent, full-width, form → signInResendAction)
- *   5. Divider    其他方式
- *   6. Google     使用 Google 登录           (secondary, full-width, form → signInGoogleAction)
- *   7. Dismiss    稍后再说                    (ghost, right-aligned)
+ *   4. Google     使用 Google 登录           (secondary, full-width, form → signInGoogleAction)
+ *   5. Dismiss    稍后再说                    (ghost, right-aligned)
  *
  * Closes on: Escape (native), backdrop click, 稍后再说 button.
  *
@@ -31,9 +28,9 @@
  *     'open-login-modal' event on document.
  */
 
-import { useEffect, useRef, useState, useTransition } from 'react';
+import { useEffect, useRef } from 'react';
 import { Button } from '@/components/layout/button';
-import { signInGithubAction, signInGoogleAction, signInResendAction } from '@/server/actions/auth';
+import { signInGithubAction, signInGoogleAction } from '@/server/actions/auth';
 
 /**
  * Canonical GitHub mark (octocat "G"). 16×16 inline SVG, currentColor fill,
@@ -88,163 +85,6 @@ function GoogleMarkSvg() {
         d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.3-4.1 5.6l6.2 5.2C41.6 35.8 44 30.3 44 24c0-1.3-.1-2.4-.4-3.5Z"
       />
     </svg>
-  );
-}
-
-/**
- * Small green dot used beside the 检查邮箱 success copy. Matches
- * --success-500 per UI-SPEC §Color.
- */
-function SuccessDot() {
-  return (
-    <span
-      aria-hidden="true"
-      style={{
-        display: 'inline-block',
-        width: 8,
-        height: 8,
-        borderRadius: '50%',
-        background: 'var(--success-500)',
-        marginRight: 8,
-        flexShrink: 0,
-      }}
-    />
-  );
-}
-
-/**
- * Email magic-link form. Internal subcomponent so the idle/success/error
- * state toggle stays scoped to the email surface without re-rendering the
- * whole modal.
- */
-function EmailMagicLinkForm() {
-  const [pending, startTransition] = useTransition();
-  const [state, setState] = useState<'idle' | 'success' | 'error'>('idle');
-
-  // Use onSubmit (not action={fn}) so the handler is invoked in both Next.js
-  // runtime (client-side RSC submit) AND the Vitest/jsdom test environment.
-  // React 18.3 does NOT support function-valued `action` on <form>; it only
-  // works through the Next.js App Router compiler transform. Calling the
-  // server action from an onSubmit handler preserves the server-action
-  // semantics (fetch POST under the hood) while remaining testable.
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    startTransition(async () => {
-      const result = await signInResendAction(formData);
-      if ('success' in result && result.success) {
-        setState('success');
-      } else {
-        setState('error');
-      }
-    });
-  }
-
-  if (state === 'success') {
-    return (
-      <div
-        role="status"
-        style={{
-          width: '100%',
-          padding: '12px 14px',
-          borderRadius: 6,
-          border: '1px solid var(--line-weak)',
-          background: 'var(--surface-1)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 4,
-        }}
-      >
-        <p
-          style={{
-            margin: 0,
-            fontSize: 14,
-            lineHeight: 1.4,
-            color: 'var(--ink-900)',
-            display: 'flex',
-            alignItems: 'center',
-          }}
-        >
-          <SuccessDot />
-          链接已发送，请检查邮箱。
-        </p>
-        <p
-          style={{
-            margin: 0,
-            marginLeft: 16,
-            fontSize: 12,
-            lineHeight: 1.4,
-            color: 'var(--ink-500)',
-          }}
-        >
-          链接 10 分钟内有效。
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <form onSubmit={handleSubmit} style={{ width: '100%' }}>
-      <label
-        htmlFor="login-email"
-        style={{
-          display: 'block',
-          marginBottom: 4,
-          fontSize: 14,
-          fontWeight: 500,
-          color: 'var(--ink-900)',
-        }}
-      >
-        邮箱
-      </label>
-      <input
-        id="login-email"
-        name="email"
-        type="email"
-        autoComplete="email"
-        inputMode="email"
-        placeholder="你的邮箱地址"
-        required
-        disabled={pending}
-        style={{
-          width: '100%',
-          height: 40,
-          padding: '0 14px',
-          borderRadius: 6,
-          border: '1px solid var(--line)',
-          background: 'var(--surface-0)',
-          color: 'var(--ink-900)',
-          fontFamily: 'inherit',
-          fontSize: 14,
-          marginBottom: 8,
-          boxSizing: 'border-box',
-        }}
-      />
-      <Button
-        type="submit"
-        variant="accent"
-        size="lg"
-        disabled={pending}
-        aria-label="发送登录链接"
-        style={{ width: '100%' }}
-      >
-        {pending ? '正在发送…' : '发送登录链接'}
-      </Button>
-      {state === 'error' && (
-        <p
-          role="alert"
-          style={{
-            margin: 0,
-            marginTop: 8,
-            fontSize: 14,
-            lineHeight: 1.4,
-            color: 'var(--danger-500)',
-          }}
-        >
-          发送失败，请检查邮箱格式后重试。
-        </p>
-      )}
-    </form>
   );
 }
 
@@ -349,47 +189,7 @@ export function LoginPromptModal() {
             </Button>
           </form>
 
-          {/* 4. Email magic-link form (idle → success | error) */}
-          <EmailMagicLinkForm />
-
-          {/* 5. Divider — 其他方式 */}
-          <div
-            role="separator"
-            aria-orientation="horizontal"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              margin: '4px 0',
-            }}
-          >
-            <hr
-              style={{
-                flex: 1,
-                border: 0,
-                borderTop: '1px solid var(--line-weak)',
-                margin: 0,
-              }}
-            />
-            <span
-              style={{
-                padding: '0 12px',
-                fontSize: 12,
-                color: 'var(--ink-500)',
-              }}
-            >
-              其他方式
-            </span>
-            <hr
-              style={{
-                flex: 1,
-                border: 0,
-                borderTop: '1px solid var(--line-weak)',
-                margin: 0,
-              }}
-            />
-          </div>
-
-          {/* 6. Google (secondary, full-width) */}
+          {/* 4. Google (secondary, full-width) */}
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -410,7 +210,7 @@ export function LoginPromptModal() {
           </form>
         </div>
 
-        {/* 7. Dismiss — ghost, right-aligned */}
+        {/* 5. Dismiss — ghost, right-aligned */}
         <div
           style={{
             marginTop: 20,
