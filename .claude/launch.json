@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Next.js dev server",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["dev"],
+      "port": 3000
+    },
+    {
+      "name": "Drizzle Studio",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["db:studio"],
+      "port": 4983
+    },
+    {
+      "name": "Trigger.dev dev worker",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["trigger:dev"],
+      "port": 0
+    }
+  ]
+}
