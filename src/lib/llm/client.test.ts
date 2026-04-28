@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
+vi.mock('@anthropic-ai/sdk', () => ({
+  default: class MockAnthropic {
+    constructor() {}
+  },
+}));
+
 describe('voyage.embed — in-process rate limit + 429 handling', () => {
   beforeEach(() => {
     vi.resetModules();

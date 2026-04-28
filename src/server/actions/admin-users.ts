@@ -30,12 +30,18 @@ import { assertAdmin, AdminAuthError } from '@/lib/auth/admin';
 import {
   banUserCore,
   unbanUserCore,
+  changeUserRoleCore,
   SelfBanError,
+  SelfRoleChangeError,
   UserNotFoundError,
   AlreadyBannedError,
 } from '@/lib/admin/users-repo';
 
 const IdSchema = z.object({ targetUserId: z.string().uuid() });
+const ChangeRoleSchema = z.object({
+  targetUserId: z.string().uuid(),
+  newRole: z.enum(['user', 'admin']),
+});
 
 export type AdminActionResult =
   | { ok: true }
@@ -44,6 +50,7 @@ export type AdminActionResult =
       error:
         | 'VALIDATION'
         | 'SELF_BAN'
+        | 'SELF_ROLE_CHANGE'
         | 'NOT_FOUND'
         | 'ALREADY_BANNED'
         | 'UNAUTHENTICATED'
@@ -86,6 +93,32 @@ export async function unbanUserAction(input: { targetUserId: string }): Promise<
     revalidatePath('/admin/users');
     return { ok: true };
   } catch (e) {
+    if (e instanceof UserNotFoundError) return { ok: false, error: 'NOT_FOUND' };
+    if (e instanceof AdminAuthError) return { ok: false, error: e.code };
+    return { ok: false, error: 'INTERNAL' };
+  }
+}
+
+export async function changeUserRoleAction(input: {
+  targetUserId: string;
+  newRole: string;
+}): Promise<AdminActionResult> {
+  try {
+    const session = await auth();
+    assertAdmin(session);
+
+    const parsed = ChangeRoleSchema.safeParse(input);
+    if (!parsed.success) return { ok: false, error: 'VALIDATION' };
+
+    await changeUserRoleCore({
+      targetUserId: parsed.data.targetUserId,
+      adminUserId: session.user.id,
+      newRole: parsed.data.newRole,
+    });
+    revalidatePath('/admin/users');
+    return { ok: true };
+  } catch (e) {
+    if (e instanceof SelfRoleChangeError) return { ok: false, error: 'SELF_ROLE_CHANGE' };
     if (e instanceof UserNotFoundError) return { ok: false, error: 'NOT_FOUND' };
     if (e instanceof AdminAuthError) return { ok: false, error: e.code };
     return { ok: false, error: 'INTERNAL' };

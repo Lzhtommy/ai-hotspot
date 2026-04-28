@@ -64,6 +64,13 @@ export class UserNotFoundError extends Error {
  * `banned_at` / `banned_by` audit record rather than overwriting it with the
  * second admin's id. See 06-REVIEW WR-05.
  */
+export class SelfRoleChangeError extends Error {
+  constructor() {
+    super('SELF_ROLE_CHANGE');
+    this.name = 'SelfRoleChangeError';
+  }
+}
+
 export class AlreadyBannedError extends Error {
   constructor() {
     super('ALREADY_BANNED');
@@ -203,4 +210,24 @@ export async function unbanUserCore(
       bannedBy: null,
     })
     .where(eq(users.id, input.targetUserId));
+}
+
+export async function changeUserRoleCore(
+  input: { targetUserId: string; adminUserId: string; newRole: 'user' | 'admin' },
+  deps: { db?: DbLike } = {},
+): Promise<void> {
+  if (input.targetUserId === input.adminUserId) {
+    throw new SelfRoleChangeError();
+  }
+
+  const d = deps.db ?? realDb;
+  const updated = await d
+    .update(users)
+    .set({ role: input.newRole })
+    .where(eq(users.id, input.targetUserId))
+    .returning({ id: users.id });
+
+  if (updated.length === 0) {
+    throw new UserNotFoundError();
+  }
 }

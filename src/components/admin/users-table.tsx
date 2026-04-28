@@ -16,6 +16,7 @@
  */
 import type { UserAdminRow } from '@/lib/admin/users-repo';
 import { UserBanButton } from './user-ban-button';
+import { UserRoleSelect } from './user-role-select';
 
 interface UsersTableProps {
   rows: UserAdminRow[];
@@ -159,27 +160,10 @@ export function UsersTable({ rows, currentAdminId }: UsersTableProps) {
             const isOtherAdmin = !isSelf && row.role === 'admin';
             return (
               <tr key={row.id}>
-                <td style={{ ...td, fontFamily: 'var(--font-mono, monospace)' }}>
-                  {row.email}
-                </td>
+                <td style={{ ...td, fontFamily: 'var(--font-mono, monospace)' }}>{row.email}</td>
                 <td style={td}>{row.name ?? '—'}</td>
                 <td style={td}>
-                  <span
-                    style={{
-                      fontSize: 11,
-                      padding: '2px 6px',
-                      borderRadius: 4,
-                      background:
-                        row.role === 'admin' ? 'rgba(16, 185, 129, 0.12)' : 'var(--surface-1)',
-                      color: row.role === 'admin' ? '#10b981' : 'var(--ink-700)',
-                      border:
-                        row.role === 'admin'
-                          ? '1px solid rgba(16, 185, 129, 0.3)'
-                          : '1px solid var(--line-weak)',
-                    }}
-                  >
-                    {row.role === 'admin' ? '管理员' : '用户'}
-                  </span>
+                  <UserRoleSelect userId={row.id} currentRole={row.role} disabled={isSelf} />
                 </td>
                 <td style={td}>
                   <ProvidersCell providers={row.providers} />
@@ -194,7 +178,10 @@ export function UsersTable({ rows, currentAdminId }: UsersTableProps) {
                   {isSelf ? (
                     <span style={{ fontSize: 11, color: 'var(--fg-3)' }}>当前管理员</span>
                   ) : isOtherAdmin ? (
-                    <span style={{ fontSize: 11, color: 'var(--fg-3)' }} title="无法通过 UI 操作其他管理员">
+                    <span
+                      style={{ fontSize: 11, color: 'var(--fg-3)' }}
+                      title="无法通过 UI 操作其他管理员"
+                    >
                       —
                     </span>
                   ) : (

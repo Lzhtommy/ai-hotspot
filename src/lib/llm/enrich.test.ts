@@ -4,6 +4,18 @@ import { enrichWithClaude, EnrichError } from './enrich';
 import { EnrichmentSchema } from './schema';
 import { ZodError } from 'zod/v4';
 
+vi.mock('@anthropic-ai/sdk', () => ({
+  default: class MockAnthropic {
+    constructor() {}
+  },
+  APIError: class APIError extends Error {
+    constructor(message: string) {
+      super(message);
+      this.name = 'APIError';
+    }
+  },
+}));
+
 // Build a minimal mock for the Anthropic client's messages.parse method.
 // We do NOT use vi.mock('@/lib/llm/client') — only DI via deps parameter.
 function makeAnthropicMock(behavior: 'ok' | 'schema-fail' | 'api-error' | 'ok-with-cache') {

@@ -8,9 +8,8 @@
  * (2) BigInt wrap, (3) delegation to voteItemCore (which enforces D-12 exclusive
  * toggle + VOTE-04 value contract).
  *
- * Intentionally does NOT invalidate the /favorites cache — votes do not affect
- * the favorites page. Over-revalidating wastes cache and adds latency (see
- * RESEARCH §Anti-Patterns). The revalidation call is deliberately absent.
+ * After the mutation, revalidates the (reader) layout so feed pages reflect
+ * the updated vote state without a manual page refresh.
  *
  * Errors thrown (caught by caller):
  *   - AuthError{UNAUTHENTICATED}  → client opens login modal
@@ -21,19 +20,15 @@
  * Consumed by:
  *   - src/components/feed/feed-card-actions.tsx (Plan 05-07 — UI wiring)
  */
+import { revalidatePath } from 'next/cache';
 import { auth } from '@/lib/auth';
 import { requireLiveUserCore } from '@/lib/user-actions/auth-guard';
-import {
-  voteItemCore,
-  type VoteValue,
-  type VoteState,
-} from '@/lib/user-actions/votes-core';
+import { voteItemCore, type VoteValue, type VoteState } from '@/lib/user-actions/votes-core';
 
-export async function voteItem(
-  itemId: string,
-  value: VoteValue,
-): Promise<{ vote: VoteState }> {
+export async function voteItem(itemId: string, value: VoteValue): Promise<{ vote: VoteState }> {
   const session = await auth();
   const userId = await requireLiveUserCore(session);
-  return voteItemCore({ userId, itemId: BigInt(itemId), value });
+  const result = await voteItemCore({ userId, itemId: BigInt(itemId), value });
+  revalidatePath('/(reader)', 'layout');
+  return result;
 }
