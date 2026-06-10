@@ -14,7 +14,7 @@
  *
  * Requires at runtime:
  *   - `pnpm dev` (or a matching server) on http://localhost:3000
- *   - DATABASE_URL pointing at a non-prod Neon branch (makeTestDb guard)
+ *   - DATABASE_URL pointing at a non-prod Supabase test database (makeTestDb guard)
  *   - users / sessions / accounts tables migrated (Plan 05-01)
  */
 import { test, expect } from '@playwright/test';

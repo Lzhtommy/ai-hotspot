@@ -7,9 +7,8 @@ A public-facing Chinese-language AI news aggregator. Pulls from official lab blo
 ## Tech Stack
 
 - Next.js 15 App Router (TypeScript, pnpm)
-- Neon Postgres + pgvector (via Drizzle ORM, `@neondatabase/serverless`)
+- Supabase Postgres + pgvector (via Drizzle ORM, `node-postgres`)
 - Trigger.dev v4 (hourly ingestion + LLM pipeline workers)
-- Upstash Redis (HTTP — feed cache + rate limiting)
 - RSSHub (self-hosted on Hugging Face Space — see `docs/rsshub.md`)
 - Anthropic Claude Haiku 4.5 (summarization, scoring, tagging, 推荐理由)
 - Voyage AI `voyage-3.5` (1024-dim embeddings for clustering)
@@ -20,8 +19,7 @@ A public-facing Chinese-language AI news aggregator. Pulls from official lab blo
 
 - Node.js 20.9 or newer (use `nvm use` — respects `.nvmrc`)
 - pnpm 9+ (`npm i -g pnpm`)
-- A Neon project (free tier is fine) — see `docs/database.md`
-- An Upstash Redis database — see `docs/vercel.md`
+- A Supabase project (free tier is fine) — see `docs/database.md`
 - A Trigger.dev Cloud project — see `docs/ci.md`
 
 ### Setup
@@ -30,11 +28,11 @@ A public-facing Chinese-language AI news aggregator. Pulls from official lab blo
 nvm use                                 # picks up .nvmrc → Node 20
 pnpm install
 cp .env.example .env.local              # then fill in values — see docs/vercel.md for sources
-pnpm db:migrate                         # applies pgvector + schema to your Neon dev branch
+pnpm db:migrate                         # applies pgvector + schema to your Supabase database
 pnpm dev
 ```
 
-Then open http://localhost:3000/api/health — should return `{ ok: true, services: { neon: "ok", redis: "ok", rsshub: "ok", trigger: "ok" } }`.
+Then open http://localhost:3000/api/health — should return `{ ok: true, services: { db: "ok", rsshub: "ok", trigger: "ok" } }`.
 
 ### Useful scripts
 
@@ -60,7 +58,6 @@ src/
     api/health/        # Phase 1 acceptance gate
   lib/
     db/                # Drizzle client + schema (all 11 tables)
-    redis/             # Upstash client
     rsshub.ts          # RSSHub fetch wrapper
   trigger/             # Trigger.dev tasks
 drizzle/               # Migration SQL (generated + 0000 pgvector manual)
@@ -72,7 +69,7 @@ docs/                  # Runbooks — rsshub, health, ci, vercel, database
 
 - `docs/rsshub.md` — RSSHub HF Space pointer + key rotation runbook
 - `docs/health.md` — `/api/health` contract
-- `docs/database.md` — Drizzle + Neon + pgvector migration workflow
+- `docs/database.md` — Drizzle + Supabase + pgvector migration workflow
 - `docs/ci.md` — GitHub Actions + secrets
 - `docs/vercel.md` — Vercel env vars + project settings
 - `docs/auth-providers.md` — Auth.js v5 provider setup, Vercel env scope matrix, admin promotion SQL, preview OAuth smoke test

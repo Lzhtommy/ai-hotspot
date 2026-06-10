@@ -14,7 +14,7 @@
  *
  * Requires at runtime:
  *   - `pnpm dev` on http://localhost:3000
- *   - DATABASE_URL pointing at a non-prod Neon branch (for seedSession helper)
+ *   - DATABASE_URL pointing at a non-prod Supabase test database (for seedSession helper)
  *   - verification_tokens table migrated (Plan 05-01)
  */
 import { test, expect } from '@playwright/test';

@@ -3,7 +3,7 @@
  *
  * drizzle-kit push is non-TTY-hostile and, when inspecting the divergence,
  * proposed to DROP the hand-authored HNSW index from Plan 03-01. To avoid that,
- * apply only the committed migration file via the project's Neon driver
+ * apply only the committed migration file via the project's Postgres driver
  * (psql fallback equivalent; psql is not installed on this host).
  *
  * After apply, runs the 5 post-migration verification checks from 05-01 PLAN.md.

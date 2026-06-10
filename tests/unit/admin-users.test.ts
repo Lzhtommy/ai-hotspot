@@ -2,7 +2,7 @@
  * Plan 06-03 Task 1 — unit tests for src/lib/admin/users-repo.ts.
  *
  * Covers listUsersForAdmin + banUserCore + unbanUserCore with an injected
- * Drizzle-shaped mock db so no live Neon round-trip is needed. The critical
+ * Drizzle-shaped mock db so no live Postgres round-trip is needed. The critical
  * behavior — banUserCore runs UPDATE users AND DELETE sessions inside the
  * SAME db.transaction — is asserted by recording call order on a shared
  * transaction-level spy.

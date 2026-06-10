@@ -24,7 +24,7 @@
  *     also gives the user a chance to see any post-ban UI they missed.
  *
  * Both `core` variants accept an optional injected `db` for unit tests — the
- * real client is `@/lib/db/client#db` under neon-serverless Pool, which supports
+ * real client is `@/lib/db/client#db` under a node-postgres Pool, which supports
  * `db.transaction(tx => ...)` (verified fix 5be492b from Plan 03-05).
  *
  * Consumed by:
@@ -104,7 +104,7 @@ export async function listUsersForAdmin(deps: { db?: DbLike } = {}): Promise<Use
   // Raw SQL (not drizzle-select) because the accounts column is quoted
   // camelCase ("userId") per Auth.js adapter convention — drizzle's query
   // builder LEFT JOIN on that is awkward. The execute() shape matches the
-  // claimPendingItems pattern in src/trigger/process-pending.ts (neon Pool
+  // claimPendingItems pattern in src/trigger/process-pending.ts (node-postgres
   // returns { rows: [...] }).
   const result = (await d.execute(dsql`
     SELECT u.id, u.email, u.name, u.role, u.is_banned, u.banned_at, u.banned_by, u.created_at,

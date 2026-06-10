@@ -3,8 +3,8 @@
  *
  * Delegates GET/POST to NextAuth(authConfig).handlers.
  * runtime = 'nodejs' required — @auth/drizzle-adapter uses Node-only APIs
- * (crypto.randomUUID for sessionToken generation, Drizzle's Neon serverless
- * pool which binds `ws` unconditionally — see src/lib/db/client.ts).
+ * (crypto.randomUUID for sessionToken generation, and Drizzle's node-postgres
+ * Pool which opens a TCP socket — see src/lib/db/client.ts).
  *
  * This file is a thin re-export; all config lives in src/lib/auth/config.ts
  * and the singleton lives in src/lib/auth/index.ts.

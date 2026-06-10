@@ -19,19 +19,17 @@ Next.js deploys are triggered by the Vercel GitHub App, independent of GitHub Ac
 
 All must be set in BOTH Preview and Production environments unless noted. Values differ per environment (dev API keys vs prod API keys).
 
-| Variable                   | Preview                                                                         | Production                                       | Source                                                       |
-| -------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------ | ------------------------------------------------------------ |
-| `DATABASE_URL`             | Neon `dev` branch pooled URL (or leave empty to inherit CI-injected per-PR URL) | Neon `main` branch pooled URL                    | Neon Console → branch → Connection Details                   |
-| `UPSTASH_REDIS_REST_URL`   | Same as dev                                                                     | Production Upstash DB URL                        | Upstash Console → Redis DB → REST API                        |
-| `UPSTASH_REDIS_REST_TOKEN` | Same as dev                                                                     | Production Upstash token                         | Upstash Console                                              |
-| `TRIGGER_SECRET_KEY`       | `tr_dev_...`                                                                    | `tr_prod_...`                                    | Trigger.dev Dashboard → Project → API Keys                   |
-| `TRIGGER_PROJECT_REF`      | `proj_XXXXXX`                                                                   | same                                             | Trigger.dev Dashboard → Project Settings                     |
-| `RSSHUB_BASE_URL`          | `https://lurnings-rsshub.hf.space`                                              | same                                             | D-01                                                         |
-| `RSSHUB_ACCESS_KEY`        | same as HF Space                                                                | same                                             | HF Space → Variables and secrets → ACCESS_KEY (D-02 rotated) |
-| `ANTHROPIC_API_KEY`        | Placeholder OK in Phase 1                                                       | same                                             | Anthropic Console                                            |
-| `VOYAGE_API_KEY`           | Placeholder OK in Phase 1                                                       | same                                             | Voyage AI Console                                            |
-| `AUTH_SECRET`              | Phase 5                                                                         | Phase 5                                          | `openssl rand -base64 32`                                    |
-| `AUTH_URL`                 | Vercel Preview URL (set in Phase 5)                                             | `https://ai-hotspot.vercel.app` or custom domain | Phase 5                                                      |
+| Variable              | Preview                                                       | Production                                       | Source                                                       |
+| --------------------- | ------------------------------------------------------------- | ------------------------------------------------ | ------------------------------------------------------------ |
+| `DATABASE_URL`        | Supabase pooler URL (Transaction pooler :6543 for serverless) | Production Supabase pooler URL                   | Supabase Dashboard → Project → Connect → connection pooling  |
+| `TRIGGER_SECRET_KEY`  | `tr_dev_...`                                                  | `tr_prod_...`                                    | Trigger.dev Dashboard → Project → API Keys                   |
+| `TRIGGER_PROJECT_REF` | `proj_XXXXXX`                                                 | same                                             | Trigger.dev Dashboard → Project Settings                     |
+| `RSSHUB_BASE_URL`     | `https://lurnings-rsshub.hf.space`                            | same                                             | D-01                                                         |
+| `RSSHUB_ACCESS_KEY`   | same as HF Space                                              | same                                             | HF Space → Variables and secrets → ACCESS_KEY (D-02 rotated) |
+| `ANTHROPIC_API_KEY`   | Placeholder OK in Phase 1                                     | same                                             | Anthropic Console                                            |
+| `VOYAGE_API_KEY`      | Placeholder OK in Phase 1                                     | same                                             | Voyage AI Console                                            |
+| `AUTH_SECRET`         | Phase 5                                                       | Phase 5                                          | `openssl rand -base64 32`                                    |
+| `AUTH_URL`            | Vercel Preview URL (set in Phase 5)                           | `https://ai-hotspot.vercel.app` or custom domain | Phase 5                                                      |
 
 **Never prefix any of these with `NEXT_PUBLIC_`** — they are all server-only secrets.
 

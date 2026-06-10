@@ -1,13 +1,13 @@
 /**
  * Phase 2 verification harness — exercises the ingestion pipeline end-to-end
- * against a live Neon dev branch + live RSSHub and asserts all 4 Phase 2
+ * against a live Supabase database + live RSSHub and asserts all 4 Phase 2
  * success criteria from ROADMAP.md.
  *
  * Run: `pnpm verify:ingest`
  *
  * Exits 0 on PASS, 1 on any failure. Cleans up its own sentinel source on exit.
  *
- * NOT run by CI — requires live RSSHub reachability + live Neon dev branch.
+ * NOT run by CI — requires live RSSHub reachability + live Supabase database.
  *
  * Success criteria asserted:
  *   SC#1 idempotency        — two consecutive runs produce zero new items on Run 2;

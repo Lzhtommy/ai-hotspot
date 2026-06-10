@@ -18,7 +18,7 @@
  *
  * Requires at runtime:
  *   - Dev server on http://localhost:3000
- *   - DATABASE_URL → non-prod Neon branch
+ *   - DATABASE_URL → non-prod Supabase test database
  */
 import { test, expect } from '@playwright/test';
 import { eq } from 'drizzle-orm';

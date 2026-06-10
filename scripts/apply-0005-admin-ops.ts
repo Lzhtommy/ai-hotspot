@@ -2,8 +2,8 @@
 /**
  * Phase 6 Plan 06-01 — admin + ops schema migration applier.
  *
- * Reads drizzle/0005_admin_ops.sql and executes against the live Neon dev branch
- * via the project's Drizzle/Neon client. Non-TTY safe (mirrors the 05-01
+ * Reads drizzle/0005_admin_ops.sql and executes against the live Supabase database
+ * via the project's Drizzle client. Non-TTY safe (mirrors the 05-01
  * apply-0004-auth.ts precedent established when drizzle-kit push was blocked
  * by interactive prompts AND proposed to drop the Plan 03-01 HNSW index).
  *

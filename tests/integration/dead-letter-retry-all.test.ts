@@ -1,6 +1,6 @@
 /**
  * Plan 06-05 follow-up — integration test proving retryAllCore actually flips
- * multiple dead_letter rows to pending against a real Neon dev branch.
+ * multiple dead_letter rows to pending against a real Supabase test database.
  *
  * Why this exists: 06-REVIEW CR-01 flagged that the unit test for retryAllCore
  * only walked the rendered Drizzle SQL queryChunks — it never executed the
@@ -9,15 +9,13 @@
  * single parameter. This test exercises the query-builder (inArray) fix end
  * to end against real Postgres so the bulk path is proved, not just rendered.
  *
- * Follows the Pool driver pattern from tests/integration/ban-revokes-sessions.test.ts
- * because drizzle-orm/neon-http's transaction/execute semantics differ from
- * neon-serverless, and the production client uses neon-serverless.
+ * Uses the same node-postgres Pool driver as the production client
+ * (src/lib/db/client.ts), so transaction/execute semantics match.
  */
 import { describe, it, expect, beforeEach, afterEach, afterAll } from 'vitest';
 import { eq, inArray } from 'drizzle-orm';
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from 'ws';
+import { Pool } from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres';
 import { retryAllCore } from '@/lib/admin/dead-letter-repo';
 import { items, sources } from '@/lib/db/schema';
 import * as schema from '@/lib/db/schema';
@@ -25,16 +23,17 @@ import { urlFingerprint, contentHash } from '@/lib/ingest/fingerprint';
 
 const url = process.env.DATABASE_URL ?? '';
 const hasRealDb =
-  process.env.RUN_INTEGRATION_DB === '1' || url.includes('.neon.') || url.includes('.neon.tech');
+  process.env.RUN_INTEGRATION_DB === '1' ||
+  url.includes('.supabase.') ||
+  url.includes('.pooler.supabase.com');
 
 // Fail-closed against production — mirror tests/helpers/test-db.ts guard.
-const isProd = /prod/i.test(url) || /ep-[a-z0-9-]+-prod/i.test(url);
+const isProd = /prod/i.test(url);
 
 describe('retryAllCore — bulk dead-letter → pending (integration)', () => {
   const describeDb = hasRealDb && !isProd ? describe : describe.skip;
 
-  describeDb('with a live Neon branch (Pool driver)', () => {
-    neonConfig.webSocketConstructor = ws;
+  describeDb('with a live Supabase database (Pool driver)', () => {
     const pool = new Pool({ connectionString: url });
     const db = drizzle({ client: pool, schema });
 

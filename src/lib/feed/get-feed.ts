@@ -1,9 +1,9 @@
 /**
- * Redis-cached feed reader — Phase 4 FEED-01, FEED-02, FEED-10, FEED-11, FEED-12.
+ * Feed reader — Phase 4 FEED-01, FEED-02, FEED-11, FEED-12.
  *
  * Returns paginated published items for the 精选 (featured) or 全部 AI 动态 (all) views.
- * Reads through Upstash Redis with a 300s TTL; falls back to Neon on miss.
- * Invalidation is out-of-band (see src/lib/feed/cache-invalidate.ts).
+ * Reads directly from Postgres; the page-level ISR cache (revalidate) serves
+ * the heavy lifting at the CDN/HTML layer.
  *
  * Consumed by:
  *   - src/app/(reader)/page.tsx (view: 'featured')
@@ -11,10 +11,8 @@
  */
 import { and, asc, desc, eq, gte, inArray, not, sql } from 'drizzle-orm';
 import { db as realDb } from '@/lib/db/client';
-import { redis as realRedis } from '@/lib/redis/client';
 import { items, clusters, sources } from '@/lib/db/schema';
 
-const TTL = 300;
 const PAGE_SIZE = 50;
 
 export type FeedListItem = {
@@ -51,33 +49,12 @@ export type GetFeedResult = {
 
 export interface GetFeedDeps {
   db?: typeof realDb;
-  redis?: typeof realRedis;
   now?: () => Date;
-}
-
-/**
- * Build the Redis cache key for a given set of feed params.
- * Keys follow the D-24 convention:
- *   feed:featured:page:{N}
- *   feed:all:page:{N}:tags:{sorted,csv}:source:{id|all}
- * Tags are sorted alphabetically (case-sensitive) and empty strings filtered out.
- */
-export function buildFeedKey(p: GetFeedParams): string {
-  if (p.view === 'featured') return `feed:v2:featured:page:${p.page}`;
-  const tags = (p.tags ?? []).filter(Boolean).sort().join(',');
-  const source = p.sourceId != null ? String(p.sourceId) : 'all';
-  return `feed:v2:all:page:${p.page}:tags:${tags}:source:${source}`;
 }
 
 export async function getFeed(params: GetFeedParams, deps?: GetFeedDeps): Promise<GetFeedResult> {
   const db = deps?.db ?? realDb;
-  const redis = deps?.redis ?? realRedis;
   const now = deps?.now ?? (() => new Date());
-  const key = buildFeedKey(params);
-
-  // Cache-aside: try Redis first
-  const cached = await redis.get<GetFeedResult>(key);
-  if (cached) return cached;
 
   // Build base predicates
   const predicates = [
@@ -234,6 +211,5 @@ export async function getFeed(params: GetFeedParams, deps?: GetFeedDeps): Promis
     clusterSiblings,
   };
 
-  await redis.set(key, result, { ex: TTL });
   return result;
 }

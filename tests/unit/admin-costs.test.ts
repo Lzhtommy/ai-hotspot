@@ -2,7 +2,7 @@
  * Task 6-04-01 | Plan 06-04 | Admin costs repo unit tests.
  *
  * Exercises `src/lib/admin/costs-repo.ts` with a mocked `db.execute()` so
- * the real Neon client is never contacted. The test suite asserts:
+ * the real Postgres client is never contacted. The test suite asserts:
  *
  *   (a) getDailyCosts returns rows in {date DESC, model ASC} order
  *   (b) cacheHitRatio is computed as cache_read / (cache_read + input),
@@ -119,9 +119,7 @@ describe('getDailyCosts', () => {
   it('cacheHitRatio is 0 when both input and cache_read tokens are 0', async () => {
     const { db } = makeDb(FAKE_ROWS);
     const out = await getDailyCosts({ days: 30 }, { db: db as never });
-    const zeroRow = out.find(
-      (r) => r.date === '2026-04-23' && r.model === 'claude-sonnet-4-6',
-    );
+    const zeroRow = out.find((r) => r.date === '2026-04-23' && r.model === 'claude-sonnet-4-6');
     expect(zeroRow).toBeDefined();
     expect(zeroRow!.cacheHitRatio).toBe(0);
   });
@@ -156,9 +154,7 @@ describe('getCostsSummary', () => {
     const { db } = makeDb(FAKE_ROWS);
     const summary = await getCostsSummary({ days: 30 }, { db: db as never });
     expect(summary.modelBreakdown).toHaveLength(2);
-    const haiku = summary.modelBreakdown.find(
-      (m) => m.model === 'claude-haiku-4-5-20251001',
-    );
+    const haiku = summary.modelBreakdown.find((m) => m.model === 'claude-haiku-4-5-20251001');
     const sonnet = summary.modelBreakdown.find((m) => m.model === 'claude-sonnet-4-6');
     expect(haiku).toBeDefined();
     expect(sonnet).toBeDefined();

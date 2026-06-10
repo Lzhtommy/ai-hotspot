@@ -1,7 +1,7 @@
 /**
  * Tests for searchItems — Quick 260424-ogp.
  *
- * Pure unit tests with a mocked `db.execute`. No Neon / network access.
+ * Pure unit tests with a mocked `db.execute`. No database / network access.
  *
  * Covers:
  *   - Empty / <2-char queries return `[]` without touching db

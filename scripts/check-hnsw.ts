@@ -2,7 +2,7 @@
  * Post-migration assertion — Phase 3 CLUST-02.
  *
  * Asserts that drizzle/0003_hnsw_index_and_settings_seed.sql has been applied
- * against the connected Neon branch: items_embedding_hnsw_idx exists, is an
+ * against the connected database: items_embedding_hnsw_idx exists, is an
  * HNSW index, and covers the embedding column. Also verifies settings seed.
  *
  * Run: `pnpm check:hnsw`

@@ -1,6 +1,8 @@
 # Database
 
-Neon Postgres with pgvector extension, schema defined in Drizzle, migrated via `drizzle-kit`.
+Supabase Postgres with pgvector extension, schema defined in Drizzle, migrated via `drizzle-kit`.
+The app connects through `node-postgres` (`pg`) against Supabase's connection pooler — see
+`src/lib/db/client.ts`.
 
 ## Schema
 
@@ -25,7 +27,7 @@ Two files, ordered lexicographically:
 
 ## Workflows
 
-### Local development (your Neon dev branch or local Postgres)
+### Local development (your Supabase database or local Postgres)
 
 ```bash
 # Option A: push (fast, skips SQL files) — wraps `drizzle-kit push`
@@ -38,18 +40,19 @@ pnpm db:migrate          # applies pending migrations
 
 The `pnpm db:*` scripts are thin wrappers around `drizzle-kit` subcommands (see `package.json`). Never run `db:push` in CI — no audit trail.
 
-### CI (per-PR Neon branch)
+### CI (ephemeral pgvector container)
 
 `.github/workflows/ci.yml`:
 
-1. `neondatabase/create-branch-action@v6` → new branch `pr-<N>`
-2. `pnpm db:migrate` with `DATABASE_URL=${{ steps.neon-branch.outputs.db_url }}`
+1. A `pgvector/pgvector:pg16` service container boots alongside the job (pgvector preinstalled).
+2. `pnpm db:migrate` with `DATABASE_URL=postgres://postgres:postgres@localhost:5432/ci_test`.
 
+No external DB credentials are needed for PR CI — the container is thrown away with the runner.
 Migration failure blocks PR merge.
 
 ### Production (on merge to main)
 
-Same `pnpm db:migrate` — uses `secrets.DATABASE_URL_MAIN`.
+Same `pnpm db:migrate` — uses `secrets.DATABASE_URL_MAIN` (the production Supabase pooler URL).
 
 ## Adding a Migration
 

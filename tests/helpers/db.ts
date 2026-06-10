@@ -2,15 +2,16 @@
  * Test DB helpers — Phase 5 Wave 0.
  *
  * Provides two factories:
- *   - makeTestDb():  real Drizzle+Neon HTTP connection (integration tests on a Neon branch)
- *                    re-exported from `./test-db` so Playwright specs can import
- *                    it without transitively pulling in Vitest.
+ *   - makeTestDb():  real Drizzle + node-postgres connection (integration tests
+ *                    on a Supabase test database) re-exported from `./test-db`
+ *                    so Playwright specs can import it without transitively
+ *                    pulling in Vitest.
  *   - makeMockDb():  typed stub with chainable vi.fn() for unit tests
  *
  * Threat-model guard (T-5-W0-01): `makeTestDb` fail-closes when DATABASE_URL
- * appears to point at a production Neon branch. Integration tests MUST run
- * against a non-prod branch (set DATABASE_URL to a branch-scoped connection
- * string in CI / local dev).
+ * appears to point at a production database. Integration tests MUST run
+ * against a non-prod database (set DATABASE_URL to a test connection string
+ * in CI / local dev).
  *
  * Consumed by:
  *   - tests/integration/*.test.ts (real DB path)

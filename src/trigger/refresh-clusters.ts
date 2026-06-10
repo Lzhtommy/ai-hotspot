@@ -17,9 +17,8 @@ import { invalidateFeedCache } from '@/lib/feed/cache-invalidate';
  * No OTel needed here — no Anthropic or Voyage calls are made.
  *
  * Phase 4 extension (FEED-10): after a successful cluster refresh where at least
- * one cluster was updated, flush the Redis feed:* cache and trigger ISR revalidation
- * via /api/revalidate. Errors are swallowed — a cache flush failure must never cause
- * the cluster refresh task to fail.
+ * one cluster was updated, trigger ISR revalidation via /api/revalidate. Errors are
+ * swallowed — a cache flush failure must never cause the cluster refresh task to fail.
  *
  * Consumed by:
  *   - src/trigger/process-pending.ts (post-fan-out, with debounce: { key: 'refresh-clusters', delay: '60s' })

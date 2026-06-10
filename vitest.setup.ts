@@ -3,9 +3,10 @@
  *
  * Sets a placeholder DATABASE_URL so that src/lib/db/client.ts can be imported
  * transitively without throwing. Unit tests that exercise DB logic inject a
- * mocked `db` via the `deps` parameter; the real Neon client is never used in
- * tests. Setting the env var here is strictly to satisfy the eager `neon()`
- * call in src/lib/db/client.ts at module-load time.
+ * mocked `db` via the `deps` parameter; the real Postgres client is never used
+ * in tests. Setting the env var here is strictly to satisfy the eager
+ * `new Pool(...)` call in src/lib/db/client.ts at module-load time (node-postgres
+ * Pool is lazy — it does not connect until the first query).
  */
 process.env.DATABASE_URL ??= 'postgresql://test:test@localhost:5432/test?sslmode=require';
 process.env.ANTHROPIC_API_KEY ??= 'sk-ant-test-dummy';

@@ -35,7 +35,7 @@ export type SearchResultItem = {
 
 export interface SearchItemsDeps {
   /**
-   * Drizzle neon-http client. Only `.execute()` is used; typed loosely so
+   * Drizzle node-postgres client. Only `.execute()` is used; typed loosely so
    * tests can pass a `{ execute: vi.fn() }` stand-in.
    */
   db?: Pick<typeof realDb, 'execute'>;

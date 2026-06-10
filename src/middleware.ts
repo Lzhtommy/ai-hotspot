@@ -14,7 +14,7 @@
  *   Layer 2 — src/app/admin/layout.tsx (RSC) — `await requireAdmin()`.
  *             Performs the DB-backed session + role check via Auth.js v5's
  *             `auth()` callback chain (which reads users.role + users.isBanned
- *             from Neon). This is the authoritative check.
+ *             from Postgres). This is the authoritative check.
  *
  *   Layer 3 — per-action `assertAdmin(session)` inside every admin Server
  *             Action shipped in Plans 06-02..06-05. Guards mutating paths
@@ -31,7 +31,7 @@
  *
  *   - Middleware runs in the Edge runtime. We deliberately do NOT import
  *     `auth()` from '@/lib/auth' here — doing so would pull the Drizzle +
- *     Neon adapter into the Edge bundle, blowing the size budget and
+ *     node-postgres adapter into the Edge bundle, blowing the size budget and
  *     requiring node: module polyfills.
  *
  *   - The `matcher` is scoped to `/admin/:path*` so the middleware has zero
