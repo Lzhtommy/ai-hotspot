@@ -1,6 +1,6 @@
 # Admin Operations Runbook
 
-> **Status: current as of Phase 6 completion (2026-04-24).** This runbook is the hand-off document for anyone operating the `/admin` backend. All admin data lives in Neon Postgres; there is no separate admin database. UI copy is Chinese (v1); this runbook is English prose with Chinese for the exact in-app strings that operators must recognize.
+> **Status: current as of Phase 6 completion (2026-04-24).** This runbook is the hand-off document for anyone operating the `/admin` backend. All admin data lives in Supabase Postgres; there is no separate admin database. UI copy is Chinese (v1); this runbook is English prose with Chinese for the exact in-app strings that operators must recognize.
 
 ## 1. Overview
 
@@ -35,7 +35,7 @@ Plan 06-00 wired all three layers. Sub-plans (06-02..06-05) MUST NOT redeclare t
 ### Prerequisites
 
 - The target user has already signed in at least once via the normal OAuth or magic-link flow. Their `users` row exists (sign-up is passive on first session).
-- You have direct `psql` access to the Neon production branch. Connection string: Neon Console → **Connection Details** → copy the `psql` command.
+- You have direct `psql` access to the production database. Connection string: Supabase Dashboard → **Connect** → copy the `psql` command.
 
 ### Promote
 
@@ -178,21 +178,13 @@ Dead-letter items carry a `failure_reason` (error class name + first 300 chars o
 
 ### Retry a single item
 
-Click **重试** on a row. This calls `retryItemAction` which (a) enforces the rate limit, then (b) `UPDATE items SET status='pending', failure_reason=NULL, retry_count=retry_count+1 WHERE id={id} AND status='dead_letter'`. The `status='dead_letter'` guard is a race-guard (T-6-52) — two admins clicking retry on the same row concurrently will have one UPDATE match zero rows instead of double-incrementing `retry_count`.
+Click **重试** on a row. This calls `retryItemAction` which `UPDATE items SET status='pending', failure_reason=NULL, retry_count=retry_count+1 WHERE id={id} AND status='dead_letter'`. The `status='dead_letter'` guard is a race-guard (T-6-52) — two admins clicking retry on the same row concurrently will have one UPDATE match zero rows instead of double-incrementing `retry_count`.
 
 The item re-enters the pending queue; the next `process-pending` cron tick (every 5 minutes) picks it up.
 
 ### Bulk retry
 
-Click **全部重试** — retries up to `BULK_LIMIT=20` items in one call. Counts as a **single** rate-limit credit (rationale: preserves the 20-items/60-s ceiling whether an admin retries one at a time or all at once).
-
-### Rate limit
-
-**20 retries / 60 s / admin**, sliding-window (Upstash Ratelimit). Returns `error: 'RATE_LIMITED'` when exhausted.
-
-Why sliding-window: a naive tumbling-bucket would allow up to 2×N retries in the 1-second neighbourhood of the minute boundary, which maps directly to 2× the LLM cost ceiling under an adversarial retry loop. Sliding-window closes that window.
-
-Redis prefix: `admin:retry`. If you need to flush the limiter (emergency unthrottle), connect to Upstash and delete keys matching `admin:retry:*`.
+Click **全部重试** — retries up to `BULK_LIMIT=20` items in one call.
 
 ## 6. LLM cost dashboard (`/admin/costs`)
 
@@ -232,7 +224,6 @@ If the page is down but you still need cost data, query `pipeline_runs` directly
 | ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Admin visits `/admin` and lands on `/admin/access-denied`    | `users.role != 'admin'` — role promotion hasn't taken effect yet                                                                                          | Verify with `SELECT role FROM users WHERE email=...`. If `admin`, the session cookie is stale — the admin should sign out and back in, OR wait for the next session-callback refresh.       |
 | Admin navigates to `/admin/sources` and gets bounced to `/`  | No session at all (cookie missing/expired). Middleware caught it at Layer 1                                                                               | Sign in and try again.                                                                                                                                                                      |
-| Server Action returns `{ ok: false, error: 'RATE_LIMITED' }` | 20-retries-per-60-s ceiling hit                                                                                                                           | Wait 60s, or flush `admin:retry:*` keys in Upstash for emergency unthrottle.                                                                                                                |
 | `banUserAction` returns `SELF_BAN`                           | Admin tried to ban their own account                                                                                                                      | By design (T-6-30). Use SQL if you really need to self-lock.                                                                                                                                |
 | Banned user still sees admin nav in a second browser tab     | Browser has a cached RSC payload                                                                                                                          | The ban clears their sessions row; the user becomes anonymous on the next _network_ request. A client-cached RSC render can persist until they navigate. Have them refresh.                 |
 | `/admin/dead-letter` retry button does nothing               | Item `status` changed between list load and button click (race)                                                                                           | Reload the page. The race-guard (`WHERE status='dead_letter'`) silently matched zero rows — the item was already retried by another admin.                                                  |
@@ -242,7 +233,7 @@ If the page is down but you still need cost data, query `pipeline_runs` directly
 
 - `docs/observability.md` — Langfuse dashboards, Sentry errors, Vercel Analytics, `pipeline_runs` SQL.
 - `docs/auth-providers.md` — OAuth provider setup, Vercel env matrix, admin-role SQL bootstrap (originates here, cross-linked for convenience).
-- `docs/database.md` — Drizzle + Neon + pgvector migration workflow.
+- `docs/database.md` — Drizzle + Supabase + pgvector migration workflow.
 - `docs/rsshub.md` — RSSHub HF Space pointer + access-key rotation runbook.
-- `docs/health.md` — `/api/health` contract for Neon / Redis / Trigger.dev / RSSHub.
+- `docs/health.md` — `/api/health` contract for Supabase / Trigger.dev / RSSHub.
 - `.planning/phases/06-admin-operational-hardening/06-UAT.md` — the SC-by-SC UAT checklist for the phase.

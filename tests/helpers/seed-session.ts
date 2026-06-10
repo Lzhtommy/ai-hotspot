@@ -1,7 +1,7 @@
 /**
  * seed-session — Phase 5 Plan 05-09.
  *
- * Inserts a `users` row + a `sessions` row on the active Neon branch and
+ * Inserts a `users` row + a `sessions` row on the active test database and
  * returns a Playwright-compatible cookie shape for authenticated E2E flows.
  *
  * Usage:
@@ -61,7 +61,7 @@ export interface SeedSessionOptions {
 }
 
 /**
- * Seeds a user + session row on the active Neon test branch and returns
+ * Seeds a user + session row on the active test database and returns
  * the cookie + cleanup. Cookie name follows Auth.js v5 convention:
  *   - `authjs.session-token`            (http — dev / localhost)
  *   - `__Secure-authjs.session-token`   (https — preview / prod)

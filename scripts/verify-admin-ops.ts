@@ -1,6 +1,6 @@
 /**
  * Phase 6 verification harness — asserts all 5 Phase 6 ROADMAP success criteria
- * programmatically against a live Neon dev branch. Cleans up its own sentinels
+ * programmatically against a live Supabase database. Cleans up its own sentinels
  * in a finally{} block.
  *
  * Run: `pnpm verify:admin-ops`

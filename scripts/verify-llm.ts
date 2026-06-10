@@ -1,6 +1,6 @@
 /**
  * Phase 3 verification harness — runs the LLM pipeline end-to-end against
- * a live Neon dev branch + live Anthropic + live Voyage + live Langfuse,
+ * a live Supabase database + live Anthropic + live Voyage + live Langfuse,
  * asserts ROADMAP §Phase 3 Success Criteria #1-4 programmatically, and
  * prints a Langfuse trace URL for SC#5 human UAT.
  *

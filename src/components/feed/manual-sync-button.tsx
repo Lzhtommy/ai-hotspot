@@ -11,16 +11,14 @@
  *   - `canSync` prop decides the disabled state for the non-admin UX path.
  *     NON-authoritative — the server `/api/admin/sync` endpoint enforces
  *     `assertAdmin()` regardless of what the client claims.
- *   - Server-side Upstash sliding-window(1 / 120 s / admin user id) is the
- *     authoritative cooldown. This component OPTIONALLY reads localStorage
- *     to show a visual countdown for the same window; if localStorage
- *     disagrees with the server the server wins (429 → "请稍后再试").
+ *   - A client-side localStorage countdown shows a 120s cooldown hint after a
+ *     successful trigger. This is purely UX — there is no server-side rate
+ *     limit; nothing stops a determined admin from re-triggering early.
  *
  * Status text (inline, same row, left of the button):
  *   idle       → ""
  *   loading    → "同步中…"
  *   success    → "已触发同步" (auto-clears after 3 s)
- *   429        → "请稍后再试"
  *   401/403    → "仅管理员可操作" (defensive — button is disabled for non-admins)
  *   other err  → "触发失败,请稍后再试"
  *
@@ -36,7 +34,7 @@ const STORAGE_KEY = 'aihotspot:sync:cooledUntil';
 
 type SyncResponse =
   | { ok: true; runId: string }
-  | { ok: false; error: 'UNAUTHENTICATED' | 'FORBIDDEN' | 'RATE_LIMITED' | 'INTERNAL' };
+  | { ok: false; error: 'UNAUTHENTICATED' | 'FORBIDDEN' | 'INTERNAL' };
 
 export function ManualSyncButton({ canSync }: { canSync: boolean }) {
   const [loading, setLoading] = useState(false);
@@ -99,16 +97,6 @@ export function ManualSyncButton({ canSync }: { canSync: boolean }) {
         }
         if (successTimeoutRef.current) clearTimeout(successTimeoutRef.current);
         successTimeoutRef.current = setTimeout(() => setStatus(''), 3000);
-      } else if (!body.ok && body.error === 'RATE_LIMITED') {
-        setStatus('请稍后再试');
-        // Server says cooled — respect it client-side too (best-effort).
-        const until = Date.now() + COOLDOWN_MS;
-        setCooledUntil(until);
-        try {
-          window.localStorage.setItem(STORAGE_KEY, String(until));
-        } catch {
-          /* ignore */
-        }
       } else if (!body.ok && (body.error === 'UNAUTHENTICATED' || body.error === 'FORBIDDEN')) {
         setStatus('仅管理员可操作');
       } else {

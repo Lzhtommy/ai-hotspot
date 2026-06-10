@@ -53,7 +53,6 @@ function relativeTime(d: Date | null): string {
 }
 
 const BULK_CONFIRM_MSG = `将重新入队最近 ${BULK_LIMIT} 条死信,确认继续吗?`;
-const BULK_RATE_LIMITED_MSG = '触发速率限制,请稍后再试 (60 秒内最多 20 次)';
 const BULK_AUTH_ERROR_MSG = '权限不足,请重新登录';
 const BULK_GENERIC_ERROR_MSG = '批量重试失败,请稍后重试';
 
@@ -71,9 +70,6 @@ export function DeadLetterTable({ rows }: DeadLetterTableProps) {
         return;
       }
       switch (res.error) {
-        case 'RATE_LIMITED':
-          setBulkMessage(BULK_RATE_LIMITED_MSG);
-          break;
         case 'UNAUTHENTICATED':
         case 'FORBIDDEN':
           setBulkMessage(BULK_AUTH_ERROR_MSG);
@@ -123,11 +119,7 @@ export function DeadLetterTable({ rows }: DeadLetterTableProps) {
           {isPending ? '批量重试中…' : `批量重试 (最多 ${BULK_LIMIT})`}
         </button>
         {bulkMessage && (
-          <span
-            role="status"
-            aria-live="polite"
-            style={{ fontSize: 12, color: 'var(--fg-3)' }}
-          >
+          <span role="status" aria-live="polite" style={{ fontSize: 12, color: 'var(--fg-3)' }}>
             {bulkMessage}
           </span>
         )}

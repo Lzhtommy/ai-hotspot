@@ -103,9 +103,9 @@ function toErrorCode(e: unknown): ErrorCode {
  * We catch this specifically so the admin sees "URL 已存在(可能在软删除的信源
  * 中)" rather than the opaque "服务器出错" (see 06-REVIEW WR-03).
  *
- * Drizzle + neon-serverless re-raises driver errors with `.code` on the error
- * object. A best-effort string match on `.message` is the fallback for
- * non-PG drivers used in tests.
+ * Drizzle + node-postgres re-raises driver errors with `.code` on the error
+ * object (the Postgres SQLSTATE). A best-effort string match on `.message` is
+ * the fallback for non-PG drivers used in tests.
  */
 function isUniqueViolation(e: unknown): boolean {
   if (!e || typeof e !== 'object') return false;

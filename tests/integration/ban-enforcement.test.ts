@@ -4,11 +4,11 @@
 //
 // Runs as a unit-style integration test: with database session strategy,
 // Auth.js passes the DB user row as the `user` param directly to the callback,
-// so we can exercise the full Layer 1 branch without touching Neon. The
-// plan explicitly permits this fallback variant when a Neon branch isn't
+// so we can exercise the full Layer 1 branch without touching a real database.
+// The plan explicitly permits this fallback variant when a test database isn't
 // available (which is the case in CI / local `pnpm test`).
 //
-// A separate Neon-branch integration test covering the full Auth.js adapter
+// A separate database-backed integration test covering the full Auth.js adapter
 // sign-in → session-refresh loop can be added in Plan 05-06 alongside the
 // server-action Layer 2 guards.
 import { describe, it, expect } from 'vitest';

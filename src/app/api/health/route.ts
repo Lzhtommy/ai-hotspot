@@ -1,23 +1,21 @@
 /**
  * GET /api/health
  *
- * Aggregates four parallel reachability checks:
- *   1. Neon Postgres + pgvector extension
- *   2. Upstash Redis
- *   3. RSSHub (HF Space) — with 60s cold-start budget (D-05)
- *   4. Trigger.dev Cloud API — with graceful fallback if the whoami endpoint is unavailable
+ * Aggregates three parallel reachability checks:
+ *   1. Supabase Postgres + pgvector extension
+ *   2. RSSHub (HF Space) — with 60s cold-start budget (D-05)
+ *   3. Trigger.dev Cloud API — with graceful fallback if the whoami endpoint is unavailable
  *
  * Response shape (D-16):
- *   { ok: boolean, services: { neon, redis, rsshub, trigger: "ok" | { error } } }
+ *   { ok: boolean, services: { db, rsshub, trigger: "ok" | { error } } }
  * HTTP status: 200 if all green, 503 otherwise.
  *
- * Runtime MUST be nodejs (D-15) — the Neon HTTP driver requires Node globals.
+ * Runtime MUST be nodejs (D-15) — the node-postgres driver needs Node sockets.
  *
  * Consumed by Plan 05 CI as the phase acceptance gate.
  */
 import { sql } from 'drizzle-orm';
 import { db } from '@/lib/db/client';
-import { redis } from '@/lib/redis/client';
 import { fetchRSSHub, RSSHubError } from '@/lib/rsshub';
 
 export const runtime = 'nodejs';
@@ -26,25 +24,16 @@ export const revalidate = 0;
 
 type ServiceResult = 'ok' | { error: string };
 
-async function checkNeon(): Promise<ServiceResult> {
+async function checkDb(): Promise<ServiceResult> {
   try {
     await db.execute(sql`SELECT 1`);
     const ext = await db.execute(sql`SELECT extname FROM pg_extension WHERE extname = 'vector'`);
-    // db.execute with neon-http returns an object with .rows (array)
+    // node-postgres db.execute returns a QueryResult with a .rows array.
     const rows = (ext as unknown as { rows?: unknown[] }).rows ?? (ext as unknown as unknown[]);
     if (!Array.isArray(rows) || rows.length === 0) {
       return { error: 'pgvector extension not installed' };
     }
     return 'ok';
-  } catch (err) {
-    return { error: sanitize(err) };
-  }
-}
-
-async function checkRedis(): Promise<ServiceResult> {
-  try {
-    const pong = await redis.ping();
-    return pong === 'PONG' ? 'ok' : { error: `Unexpected ping: ${String(pong)}` };
   } catch (err) {
     return { error: sanitize(err) };
   }
@@ -99,20 +88,14 @@ function sanitize(err: unknown): string {
 }
 
 export async function GET() {
-  const [neonResult, redisResult, rsshubResult, triggerResult] = await Promise.allSettled([
-    checkNeon(),
-    checkRedis(),
+  const [dbResult, rsshubResult, triggerResult] = await Promise.allSettled([
+    checkDb(),
     checkRSSHub(),
     checkTrigger(),
   ]);
 
   const services = {
-    neon:
-      neonResult.status === 'fulfilled' ? neonResult.value : { error: sanitize(neonResult.reason) },
-    redis:
-      redisResult.status === 'fulfilled'
-        ? redisResult.value
-        : { error: sanitize(redisResult.reason) },
+    db: dbResult.status === 'fulfilled' ? dbResult.value : { error: sanitize(dbResult.reason) },
     rsshub:
       rsshubResult.status === 'fulfilled'
         ? rsshubResult.value

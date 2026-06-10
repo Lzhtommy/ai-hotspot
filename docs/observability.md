@@ -173,14 +173,13 @@ Vercel Analytics is cookieless by design — it uses a daily-rotating, hashed vi
 
 ### Contract
 
-`GET /api/health` runs four parallel `Promise.allSettled` probes:
+`GET /api/health` runs three parallel `Promise.allSettled` probes:
 
-| Service         | Check                                                              | Timeout                 |
-| --------------- | ------------------------------------------------------------------ | ----------------------- |
-| Neon (Postgres) | `SELECT 1` via Drizzle                                             | Neon HTTP default (~5s) |
-| Upstash Redis   | `redis.ping()`                                                     | HTTP default            |
-| Trigger.dev     | `whoami` API call (fallback: tr\_-prefix token presence)           | HTTP default            |
-| RSSHub          | `fetchRSSHub(warmup HEAD)` — 5s warmup + up to 60s measured budget | 60s                     |
+| Service             | Check                                                              | Timeout          |
+| ------------------- | ------------------------------------------------------------------ | ---------------- |
+| Supabase (Postgres) | `SELECT 1` via Drizzle                                             | pg default (~5s) |
+| Trigger.dev         | `whoami` API call (fallback: tr\_-prefix token presence)           | HTTP default     |
+| RSSHub              | `fetchRSSHub(warmup HEAD)` — 5s warmup + up to 60s measured budget | 60s              |
 
 Response:
 
@@ -188,15 +187,14 @@ Response:
 {
   "ok": true,
   "services": {
-    "neon": "ok",
-    "redis": "ok",
+    "db": "ok",
     "rsshub": "ok",
     "trigger": "ok"
   }
 }
 ```
 
-Any failing probe flips `ok: false` and the individual service key to a descriptive string (e.g. `"redis": "error: WRONGPASS"`). Full contract: `docs/health.md`.
+Any failing probe flips `ok: false` and the individual service key to a descriptive string (e.g. `"rsshub": "error: HTTP 503"`). Full contract: `docs/health.md`.
 
 ### Use as a cheap first-response for paging
 

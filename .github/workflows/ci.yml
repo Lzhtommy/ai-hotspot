@@ -20,6 +20,25 @@ jobs:
     name: Typecheck / Lint / Build / Migrate
     runs-on: ubuntu-latest
     timeout-minutes: 15
+
+    # Ephemeral Postgres with pgvector preinstalled — replaces the per-PR Neon
+    # branch. Migrations (incl. `CREATE EXTENSION vector`) run against this
+    # throwaway container, so PR CI needs no external DB credentials.
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ci_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -53,26 +72,17 @@ jobs:
       - name: Drizzle schema drift check
         run: pnpm db:check
 
-      # --- Per-PR Neon branch + migrate (D-11, D-17) ---
+      # --- Migrate against the ephemeral pgvector container on PRs (D-11, D-17) ---
 
-      - name: Create Neon branch for PR
-        if: github.event_name == 'pull_request'
-        id: neon-branch
-        uses: neondatabase/create-branch-action@v6
-        with:
-          project_id: ${{ vars.NEON_PROJECT_ID }}
-          branch_name: pr-${{ github.event.number }}
-          parent: main
-          api_key: ${{ secrets.NEON_API_KEY }}
-          username: ${{ vars.NEON_DB_USERNAME || 'neondb_owner' }}
-
-      - name: Run Drizzle migrations on PR branch
+      - name: Run Drizzle migrations on the CI Postgres container
         if: github.event_name == 'pull_request'
         run: pnpm db:migrate
         env:
-          DATABASE_URL: ${{ steps.neon-branch.outputs.db_url }}
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/ci_test
 
-      - name: Run Drizzle migrations on main Neon branch
+      # --- Migrate the production Supabase database on merge to main ---
+
+      - name: Run Drizzle migrations on production (Supabase)
         if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
         run: pnpm db:migrate
         env:

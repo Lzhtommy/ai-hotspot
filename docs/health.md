@@ -1,6 +1,6 @@
 # /api/health
 
-Aggregates four parallel reachability checks into a single HTTP response. This is the Phase 1 acceptance gate — Plan 05 CI curls this endpoint post-deploy to confirm the pipeline is wired.
+Aggregates three parallel reachability checks into a single HTTP response. This is the Phase 1 acceptance gate — Plan 05 CI curls this endpoint post-deploy to confirm the pipeline is wired.
 
 ## Request
 
@@ -14,8 +14,7 @@ Aggregates four parallel reachability checks into a single HTTP response. This i
 {
   "ok": true,
   "services": {
-    "neon": "ok",
-    "redis": "ok",
+    "db": "ok",
     "rsshub": "ok",
     "trigger": "ok"
   }
@@ -28,8 +27,7 @@ Aggregates four parallel reachability checks into a single HTTP response. This i
 {
   "ok": false,
   "services": {
-    "neon": "ok",
-    "redis": { "error": "Error: Connection timeout" },
+    "db": { "error": "Error: Connection timeout" },
     "rsshub": "ok",
     "trigger": "ok"
   }
@@ -40,14 +38,13 @@ Aggregates four parallel reachability checks into a single HTTP response. This i
 
 | Service   | Check                                                                                       | Timeout      | Notes                                                                                           |
 | --------- | ------------------------------------------------------------------------------------------- | ------------ | ----------------------------------------------------------------------------------------------- |
-| `neon`    | `SELECT 1` + `SELECT extname FROM pg_extension WHERE extname = 'vector'`                    | ~3s implicit | Confirms Postgres AND pgvector extension                                                        |
-| `redis`   | `redis.ping()` (Upstash)                                                                    | ~3s implicit | Expects `PONG` response                                                                         |
+| `db`      | `SELECT 1` + `SELECT extname FROM pg_extension WHERE extname = 'vector'`                    | ~3s implicit | Confirms Supabase Postgres AND pgvector extension                                               |
 | `rsshub`  | `GET /?key=<ACCESS_KEY>` against HF Space                                                   | 60s          | Preceded by fire-and-forget warmup for cold-start                                               |
 | `trigger` | `GET https://api.trigger.dev/api/v1/whoami` with `Authorization: Bearer TRIGGER_SECRET_KEY` | 10s          | Fallback to `tr_*` prefix format check if whoami endpoint is unreachable (see [RESEARCH.md A1]) |
 
 ## Runtime
 
-Route runs in Node.js runtime (`export const runtime = 'nodejs'`). Edge runtime cannot use the Neon HTTP driver.
+Route runs in Node.js runtime (`export const runtime = 'nodejs'`). Edge runtime cannot use the node-postgres TCP driver.
 
 ## Error Sanitization
 
@@ -59,13 +56,12 @@ Error messages are sanitized via `sanitize()` in `src/app/api/health/route.ts`:
 
 ## Operational Playbook
 
-| Service reports                                       | Most likely cause                                                         | Fix                                                                                                             |
-| ----------------------------------------------------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `neon: { error: ... }`                                | `DATABASE_URL` wrong or Neon branch paused                                | Verify env var; wake branch in Neon console                                                                     |
-| `neon: { error: "pgvector extension not installed" }` | 0000 migration skipped                                                    | Run `pnpm db:migrate`                                                                                           |
-| `redis: { error: ... }`                               | Upstash DB deleted or REST_URL/REST_TOKEN wrong                           | Verify env vars; check Upstash console                                                                          |
-| `rsshub: { error: ... }`                              | HF Space sleeping (wait 60s) or ACCESS_KEY rotated without updating vault | Retry; or follow `docs/rsshub.md` rotation runbook                                                              |
-| `trigger: { error: ... }`                             | `TRIGGER_SECRET_KEY` wrong or the whoami endpoint changed                 | Verify key starts with `tr_dev_`/`tr_prod_`; manual dashboard trigger still proves Phase 1 Success Criterion #3 |
+| Service reports                                     | Most likely cause                                                         | Fix                                                                                                             |
+| --------------------------------------------------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `db: { error: ... }`                                | `DATABASE_URL` wrong or Supabase project paused                           | Verify env var; resume the project in the Supabase dashboard                                                    |
+| `db: { error: "pgvector extension not installed" }` | 0000 migration skipped                                                    | Run `pnpm db:migrate`                                                                                           |
+| `rsshub: { error: ... }`                            | HF Space sleeping (wait 60s) or ACCESS_KEY rotated without updating vault | Retry; or follow `docs/rsshub.md` rotation runbook                                                              |
+| `trigger: { error: ... }`                           | `TRIGGER_SECRET_KEY` wrong or the whoami endpoint changed                 | Verify key starts with `tr_dev_`/`tr_prod_`; manual dashboard trigger still proves Phase 1 Success Criterion #3 |
 
 ## Phase Evolution
 

@@ -4,7 +4,7 @@
  * Returns up to 10 published items whose title / title_zh / summary_zh
  * substring-matches the query. Delegates to src/lib/search/search-items.ts.
  *
- * Runtime MUST be nodejs — the Neon HTTP driver needs Node globals.
+ * Runtime MUST be nodejs — the node-postgres driver needs Node sockets.
  * Marked `force-dynamic` because the response depends on a query param and
  * there is no ISR win for per-keystroke searches.
  *

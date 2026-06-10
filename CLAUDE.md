@@ -26,10 +26,9 @@ A public-facing Chinese-language webpage that aggregates AI news from across the
 |------------|-------------|---------|-----------------|
 | Next.js App Router | 15.x | Full-stack framework, RSC, routing | Already decided; ISR + RSC-first is the correct model for this product |
 | TypeScript | 5.x | Type safety | Already decided |
-| Neon Postgres | Serverless (managed) | Primary database + pgvector | Serverless-native, native Drizzle driver, pgvector built-in, Vercel integration, database branching for CI |
+| Supabase Postgres | Managed | Primary database + pgvector | Managed Postgres with pgvector built-in, Drizzle-compatible via node-postgres over the Supavisor pooler |
 | Drizzle ORM | `drizzle-orm` latest | Type-safe SQL ORM | Edge-native, tiny bundle, no cold-start penalty, SQL-close API matches pgvector usage well |
 | Inngest | Latest | Hourly ingestion cron + background job orchestration | Vercel Marketplace integration, step functions with retries, scheduled cron, no separate worker infra |
-| Upstash Redis | Serverless (managed) | Rate limiting, feed caching, dedup lock | HTTP-first, edge-compatible, pay-per-request — no connection pool pain |
 | Auth.js v5 (NextAuth) | `next-auth@5` | Email + OAuth (Google, GitHub) login | 2.5M weekly downloads, native App Router support, self-hosted (no user-data vendor lock-in), Drizzle adapter available |
 | `@anthropic-ai/sdk` | `^0.26.0+` | Claude API — scoring, summary, tags, clustering | Official SDK; prompt caching supported since 0.26.0 |
 | shadcn/ui + Tailwind v4 | shadcn latest, Tailwind 4.x | UI components, dark theme | Tailwind v4 is now the shadcn default; CSS variable theming matches the reference dark-green design |
@@ -45,13 +44,12 @@ A public-facing Chinese-language webpage that aggregates AI news from across the
 - Cards, timeline, sidebar: Server Components (zero JS shipped).
 - Like/favorite buttons, infinite scroll triggers, search input: Client Components (`'use client'`).
 - State management: **None needed beyond RSC + URL state** (`nuqs` for URL query params if needed). React Context only for theme toggle.
-## 2. Database: Neon + Drizzle ORM
-- **vs Supabase**: Supabase bundles auth, storage, realtime — we don't need those (using Auth.js + Inngest + no realtime). Supabase's bundled features add $25+/mo overhead for unused services. Neon's pure-Postgres model at $19/mo (or free tier with auto-suspend) is the right fit when you own your own auth.
-- **vs Vercel Postgres**: Vercel Postgres *is* Neon under the hood, but with a Vercel pricing markup. Use Neon directly for lower cost and access to Neon's database branching feature (invaluable for CI/CD preview deployments).
-- **pgvector**: Neon supports pgvector v0.8.1+ natively — just `CREATE EXTENSION vector;`. No separate vector DB needed.
+## 2. Database: Supabase Postgres + Drizzle ORM
+- We use Supabase **only as managed Postgres** — Auth.js v5 still owns auth, Inngest/Trigger.dev own async, and we use no realtime/storage. Supabase Auth/Storage/Realtime are intentionally left unused (see §5).
+- **pgvector**: Supabase ships pgvector — just `CREATE EXTENSION vector;` (handled by migration `0000_enable_pgvector.sql`). No separate vector DB needed.
+- **Driver**: `drizzle-orm/node-postgres` (`pg`) over Supabase's connection pooler (Supavisor). Use the Transaction pooler (:6543) for serverless or the Session pooler (:5432); the connection string must carry `sslmode=require`. `node-postgres` returns `db.execute()` results as `{ rows, ... }`, which the query call sites rely on.
+- **Runtime**: the `pg` Pool lives only in Node-runtime code paths (`src/lib/db/client.ts`); no Edge route imports it. Keep `pg` in `serverExternalPackages` so webpack doesn't try to bundle its optional native binding.
 - Drizzle has no native binary / Rust engine. Bundle size is ~90% smaller. Vercel serverless cold starts are under 500ms vs 1-3s for Prisma.
-- Edge-runtime compatible out of the box (needed for potential Vercel Edge Middleware rate limiting).
-- `drizzle-orm/neon-http` driver is purpose-built for Neon's serverless HTTP transport — single roundtrip per query, no TCP connection pool management.
 - Schema is TypeScript-first; types update instantly without a code generation step.
 - Prisma 7 narrowed the gap but Drizzle remains the better default for Vercel/serverless.
 ## 3. Queue / Cron: Inngest
@@ -63,10 +61,10 @@ A public-facing Chinese-language webpage that aggregates AI news from across the
 - **`voyage-4-lite` (Voyage AI)** — $0.02/MTok, same cost, slightly better MTEB on retrieval benchmarks. Reasonable alternative.
 ## 5. Auth: Auth.js v5 (NextAuth)
 - **vs Clerk**: Clerk is managed SaaS — user PII lives in Clerk's US infrastructure. For a Chinese-user product, this creates potential data-residency concerns (PIPL compliance risk). Clerk charges $0.02/MAU after 10k free MAUs — at moderate traffic this adds meaningful cost. Clerk's prebuilt UI is English-first and not easily localizable to Chinese.
-- **vs Supabase Auth**: We're not using Supabase as DB, so pulling in Supabase Auth just for auth creates an extra managed dependency with no benefit.
+- **vs Supabase Auth**: Even though the DB is Supabase, we keep Auth.js v5 rather than Supabase Auth — it avoids coupling the auth layer to the DB vendor, keeps user/session tables under our own Drizzle schema, and sidesteps Supabase Auth's hosted-PII/UI constraints (the same reasons we avoid Clerk above).
 - **vs Better Auth**: Better Auth is newer (2024) and more feature-rich (built-in 2FA, passkeys), but Auth.js v5 now has Better Auth team maintenance per the Sept 2025 announcement. For v1 of this product (email + Google + GitHub only, no 2FA), Auth.js v5 is simpler to set up and has mature documentation. Migrate to Better Auth in v2 if RBAC/2FA is needed.
 - Providers: `Google`, `GitHub`, `Resend` (email magic link — no password complexity)
-- Adapter: `@auth/drizzle-adapter` — sessions stored in Neon Postgres
+- Adapter: `@auth/drizzle-adapter` — sessions stored in Supabase Postgres
 - Strategy: database sessions (revocable, supports server-side session invalidation on ban)
 - Anonymous read: middleware allows unauthenticated access to feed routes; auth gate only on `/favorites`, `/profile`, POST actions
 ## 6. RSSHub Deployment
@@ -112,12 +110,10 @@ A public-facing Chinese-language webpage that aggregates AI news from across the
 ## Supporting Libraries
 | Library | Version | Purpose | When to Use |
 |---------|---------|---------|-------------|
-| `@neondatabase/serverless` | latest | Neon HTTP driver for Drizzle | Always — replaces `pg` in serverless |
+| `pg` (node-postgres) | latest | Postgres driver for Drizzle (`drizzle-orm/node-postgres`) | Always — connects to the Supabase pooler |
 | `drizzle-kit` | latest (0.31.x+) | Schema migrations | Dev time; `drizzle-kit push` for schema sync |
 | `@auth/drizzle-adapter` | latest | Auth.js + Drizzle sessions/users table | Auth setup |
 | `resend` | latest | Transactional email (magic links) | Auth.js email provider |
-| `@upstash/redis` | latest | Redis client (HTTP) | Rate limiting, feed-level caching |
-| `@upstash/ratelimit` | latest | Sliding window rate limiting | API routes + Edge Middleware |
 | `openai` | latest | OpenAI embedding API client | Item embedding generation |
 | `nuqs` | latest | URL search param state management | Feed filters, tab state |
 | `langfuse` | latest | LLM observability SDK | Every Claude API call |
@@ -127,7 +123,7 @@ A public-facing Chinese-language webpage that aggregates AI news from across the
 | Tool | Purpose | Notes |
 |------|---------|-------|
 | `drizzle-kit` | Schema migrations + introspection | `drizzle-kit push` for dev, `drizzle-kit migrate` for prod |
-| Neon branching | Per-PR database isolation | Create branch per preview deploy in CI |
+| pgvector service container | Per-PR migration isolation in CI | `pgvector/pgvector:pg16` service in ci.yml; thrown away with the runner |
 | `@sentry/wizard` | Sentry auto-setup | `npx @sentry/wizard -i nextjs` — creates all config files |
 | ESLint + Prettier | Linting + formatting | Use `eslint-config-next` |
 | Biome | Optional faster alternative to ESLint+Prettier | If ESLint config becomes unwieldy |
@@ -137,22 +133,21 @@ A public-facing Chinese-language webpage that aggregates AI news from across the
 # Database
 # Auth
 # Background jobs
-# Cache / rate limiting
 # LLM + observability
 # Utilities
 # Error monitoring
 ## Alternatives Considered
 | Category | Recommended | Alternative | Why Not Alternative |
 |----------|-------------|-------------|---------------------|
-| Database | Neon | Supabase | Supabase bundles unused services; higher cost; auth overlap with Auth.js |
-| Database | Neon | Vercel Postgres | Vercel Postgres = Neon with markup; lose direct Neon branching feature |
+| Database | Supabase Postgres | Neon | Migrated off Neon; Supabase used as managed Postgres only (Auth.js still owns auth, no Supabase Auth/Storage/Realtime) |
+| Database | Supabase Postgres | Vercel Postgres | Vercel Postgres carries a pricing markup over the underlying provider |
 | ORM | Drizzle | Prisma | Prisma binary causes cold-start penalty; larger bundle; edge-runtime friction |
 | Queue/cron | Inngest | Vercel native cron | No retry/step/fan-out; 5-min timeout kills LLM pipeline; Hobby = 1/day limit |
 | Queue/cron | Inngest | QStash | No orchestration primitives for multi-step fan-out |
 | Queue/cron | Inngest | Trigger.dev | Separate infra layer unnecessary for hourly cadence; same cost complexity |
 | Auth | Auth.js v5 | Clerk | User PII in US infra (PIPL risk); $0.02/MAU; English-first prebuilt UI |
 | Auth | Auth.js v5 | Better Auth | Newer/less mature docs; overkill for v1 email+OAuth scope |
-| Auth | Auth.js v5 | Supabase Auth | Adds Supabase dependency for no benefit (DB is Neon) |
+| Auth | Auth.js v5 | Supabase Auth | Even though the DB is Supabase, keeping Auth.js avoids coupling auth to the DB vendor and keeps user/session tables in our own Drizzle schema |
 | LLM observability | Langfuse | Helicone | Helicone proxy-based (extra hop); Langfuse traces are richer; both are free at launch scale |
 | State management | None (RSC) | Zustand | No global state needed; RSC eliminates client-side data fetching overhead |
 | RSSHub hosting | Railway Docker | Bare VPS (Hetzner) | Railway removes OS/SSL/uptime overhead; Hetzner valid if budget is critical |
@@ -162,11 +157,11 @@ A public-facing Chinese-language webpage that aggregates AI news from across the
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
 | Prisma (v6 or earlier) | Large bundle, cold-start penalty, Rust binary friction on Vercel | Drizzle ORM |
-| Supabase for everything | Unnecessary bundling of auth+storage+realtime we don't need; higher base cost | Neon (DB) + Auth.js (auth) + Inngest (async) |
+| Supabase Auth / Storage / Realtime | We use Supabase as managed Postgres only; pulling in its auth/storage/realtime adds coupling we don't need | Supabase Postgres (DB) + Auth.js (auth) + Inngest/Trigger.dev (async) |
 | Clerk | US-hosted user PII, per-MAU cost, English-first prebuilt UI not suitable for Chinese-only product | Auth.js v5 |
 | Vercel native cron alone | 5-min timeout, no retry, no fan-out, Hobby plan = 1/day | Inngest (with optional Vercel cron as Inngest trigger backup) |
 | Redux / Zustand / Jotai | Zero justification in RSC-first app | React `useOptimistic` + `nuqs` for URL state |
-| Separate vector DB (Pinecone, Qdrant, Weaviate) | pgvector in Neon handles <1M vectors comfortably with HNSW index; no separate infra needed | pgvector extension on Neon |
+| Separate vector DB (Pinecone, Qdrant, Weaviate) | pgvector in Supabase handles <1M vectors comfortably with HNSW index; no separate infra needed | pgvector extension on Supabase |
 | WeChat OAuth in v1 | Requires ICP registration or routing through a Chinese server; substantial compliance overhead | Email magic link (Resend) as universal fallback |
 | MinHash for clustering | Detects near-duplicate text (exact), not semantic duplicates across sources | pgvector cosine similarity |
 | `tailwindcss-animate` | Deprecated March 2025 | `tw-animate-css` or custom keyframes |
@@ -174,10 +169,9 @@ A public-facing Chinese-language webpage that aggregates AI news from across the
 ## Cost Model (Monthly Estimates at Moderate Traffic)
 | Line Item | Estimate | Notes |
 |-----------|----------|-------|
-| Neon Postgres | $19/mo | Launch plan; auto-suspend on idle |
+| Supabase Postgres | $0–25/mo | Free tier (pauses on inactivity) or Pro ($25/mo) for always-on + larger DB |
 | Vercel (Pro) | $20/mo | Required for hourly Vercel cron (if used as Inngest trigger) or >10 GB bandwidth |
 | Inngest | $20/mo | ~144k runs/month (200 items × 24h × 30d) |
-| Upstash Redis | ~$0–5/mo | Pay-per-request; very low at this scale |
 | Anthropic (Claude) | ~$15–40/mo | 200 items/hr × 24 × 30 = 144k items/mo; Haiku 4.5 at ~500 input + 150 output tokens each = ~94M tokens; at $1 input + $5 output → ~$15–20/mo; with prompt caching ~60% reduction → ~$8–12/mo |
 | OpenAI embeddings | ~$0.10/mo | 144k items × ~300 tokens = 43M tokens × $0.02/MTok |
 | Langfuse | $0 | Free tier covers 50k events/mo; at 3 traces/item × 144k = 432k traces → paid ($29/mo) |
@@ -190,7 +184,7 @@ A public-facing Chinese-language webpage that aggregates AI news from across the
 |---------|-----------------|-------|
 | `next-auth@5` | Next.js 14+ App Router | v5 is stable for production as of 2025 |
 | `@auth/drizzle-adapter` | `drizzle-orm` latest | Must use same Drizzle version |
-| `drizzle-orm/neon-http` | `@neondatabase/serverless` latest | Pinned to Neon serverless driver |
+| `drizzle-orm/node-postgres` | `pg` latest | Connects to the Supabase pooler; `{ rows }`-shaped `db.execute()` results |
 | Tailwind v4 | shadcn/ui latest | shadcn switched to v4 default in early 2025; older shadcn components need updating |
 | `@anthropic-ai/sdk` >=0.26.0 | `cache_control` on content blocks | Versions below 0.26 lack prompt caching support |
 | `inngest` v3 | Next.js App Router Route Handlers | v3 required for Standard Schema support (Zod 4 compat) |
@@ -198,9 +192,9 @@ A public-facing Chinese-language webpage that aggregates AI news from across the
 - [Anthropic Models Overview](https://platform.claude.com/docs/en/about-claude/models/overview) — model IDs, pricing, context windows (HIGH confidence, official)
 - [Anthropic Pricing](https://platform.claude.com/docs/en/about-claude/pricing) — token pricing, batch API, prompt caching multipliers (HIGH confidence, official)
 - [Anthropic SDK TypeScript — Context7](/anthropics/anthropic-sdk-typescript) — prompt caching API, batch API examples (HIGH confidence)
-- [Drizzle ORM Docs — Context7](/drizzle-team/drizzle-orm-docs) — Neon driver integration, serverless patterns (HIGH confidence)
+- [Drizzle ORM Docs — Context7](/drizzle-team/drizzle-orm-docs) — Supabase + node-postgres connection patterns (HIGH confidence)
 - [NextAuth / Auth.js — Context7](/nextauthjs/next-auth) — App Router setup, provider config (HIGH confidence)
-- [Neon pgvector docs](https://neon.com/docs/extensions/pgvector) — pgvector support confirmed in Neon (HIGH confidence)
+- [Supabase pgvector / Drizzle docs](https://supabase.com/docs/guides/database/extensions/pgvector) — pgvector support + connection pooler (HIGH confidence, official)
 - [Inngest Vercel integration](https://vercel.com/marketplace/inngest) — Marketplace availability, step function patterns (HIGH confidence)
 - [RSSHub Deployment](https://docs.rsshub.app/deploy/) — Docker config, env vars (HIGH confidence, official)
 - [Railway RSSHub deploy](https://railway.com/deploy/rsshub) — one-click template (HIGH confidence, verified March 2026)

@@ -5,13 +5,11 @@ import type { NextConfig } from 'next';
 import { withSentryConfig } from '@sentry/nextjs';
 
 const nextConfig: NextConfig = {
-  // Neon serverless opens a WebSocket via `ws`, which relies on a native
-  // `bufferutil` mask addon. When webpack bundles `ws` into the Vercel
-  // lambda, the addon is stripped and `b.mask is not a function` kills the
-  // first query (~1.6s handshake timeout surfaces as "Connection terminated
-  // unexpectedly"). Keep `ws` external so Node resolves it from
-  // node_modules at runtime with its native deps intact.
-  serverExternalPackages: ['ws', 'bufferutil', 'utf-8-validate'],
+  // node-postgres (`pg`) ships an optional native binding (`pg-native`) and
+  // references `cloudflare:sockets`, both of which webpack tries (and fails)
+  // to resolve when bundling into the Vercel lambda. Keep `pg` external so
+  // Node resolves it from node_modules at runtime with its deps intact.
+  serverExternalPackages: ['pg'],
 
   // Phase 5 D-04 + RESEARCH §Pitfall 7 — OAuth avatar allowlist.
   // next/image proxies every remote image through the Next server, so the

@@ -81,7 +81,7 @@ v1 does **not** ship an admin-promotion UI or API (per `.planning/phases/05-auth
 ### Prerequisites
 
 - The target user has signed in at least once via the normal OAuth or magic-link flow, so their `users` row exists.
-- You have direct `psql` access to the Neon production branch (Neon Console → **Connection Details** → copy the `psql` command).
+- You have direct `psql` access to the production database (Supabase Dashboard → **Connect** → copy the `psql` command).
 
 ### Promote
 

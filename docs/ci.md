@@ -10,43 +10,33 @@ Two GitHub Actions workflows govern builds and migrations.
 
 Runs on every pull request (open, synchronize, reopen) and every push to `main`.
 
-| Step                     | PR  | main | Purpose                                                      |
-| ------------------------ | --- | ---- | ------------------------------------------------------------ |
-| install                  | ✓   | ✓    | `pnpm install --frozen-lockfile`                             |
-| typecheck                | ✓   | ✓    | `pnpm typecheck`                                             |
-| lint                     | ✓   | ✓    | `pnpm lint`                                                  |
-| build                    | ✓   | ✓    | `pnpm build`                                                 |
-| db:check                 | ✓   | ✓    | `drizzle-kit check` — fails on schema drift                  |
-| create Neon branch       | ✓   | —    | `neondatabase/create-branch-action@v6` → `pr-<N>`            |
-| db:migrate (PR branch)   | ✓   | —    | `pnpm db:migrate` against `steps.neon-branch.outputs.db_url` |
-| db:migrate (main branch) | —   | ✓    | `pnpm db:migrate` against `secrets.DATABASE_URL_MAIN`        |
-| trigger:deploy (prod)    | —   | ✓    | Separate `trigger-deploy` job on main only                   |
+| Step                     | PR  | main | Purpose                                                                  |
+| ------------------------ | --- | ---- | ------------------------------------------------------------------------ |
+| install                  | ✓   | ✓    | `pnpm install --frozen-lockfile`                                         |
+| typecheck                | ✓   | ✓    | `pnpm typecheck`                                                         |
+| lint                     | ✓   | ✓    | `pnpm lint`                                                              |
+| build                    | ✓   | ✓    | `pnpm build`                                                             |
+| db:check                 | ✓   | ✓    | `drizzle-kit check` — fails on schema drift                              |
+| db:migrate (PR)          | ✓   | —    | `pnpm db:migrate` against the `pgvector/pgvector:pg16` service container |
+| db:migrate (main branch) | —   | ✓    | `pnpm db:migrate` against `secrets.DATABASE_URL_MAIN` (Supabase)         |
+| trigger:deploy (prod)    | —   | ✓    | Separate `trigger-deploy` job on main only                               |
 
-### `.github/workflows/cleanup-neon-branch.yml`
-
-Runs on PR close — deletes the per-PR Neon branch via `neondatabase/delete-branch-action@v3`.
+PR migrations run against an ephemeral Postgres service container (pgvector preinstalled) that boots
+alongside the job and is discarded with the runner — no external DB and no per-PR branch lifecycle to
+clean up.
 
 ## Required Repository Secrets
 
-| Name                   | Purpose                                                             | Source                                                               |
-| ---------------------- | ------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| `NEON_API_KEY`         | Create/delete branches via Neon API                                 | Neon Console → Account → API keys                                    |
-| `DATABASE_URL_MAIN`    | Connection string to the Neon `main` branch for on-merge migrations | Neon Console → Project → Connection Details (main branch pooled URL) |
-| `TRIGGER_ACCESS_TOKEN` | Deploy Trigger.dev tasks to prod env                                | Trigger.dev Dashboard → Profile → Personal Access Tokens             |
+| Name                   | Purpose                                                | Source                                                                |
+| ---------------------- | ------------------------------------------------------ | --------------------------------------------------------------------- |
+| `DATABASE_URL_MAIN`    | Production Supabase pooler URL for on-merge migrations | Supabase Dashboard → Project → Connect → connection pooling (Session) |
+| `TRIGGER_ACCESS_TOKEN` | Deploy Trigger.dev tasks to prod env                   | Trigger.dev Dashboard → Profile → Personal Access Tokens              |
 
 **NOT required as Actions secrets** (these live only in Vercel + Trigger.dev Cloud + HF Space):
 
 - `TRIGGER_SECRET_KEY` (runtime only)
-- `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` (runtime)
 - `RSSHUB_ACCESS_KEY` (runtime)
 - `ANTHROPIC_API_KEY` / `VOYAGE_API_KEY` (runtime)
-
-## Required Repository Variables (not secrets)
-
-| Name                          | Purpose                                   | Source                                    |
-| ----------------------------- | ----------------------------------------- | ----------------------------------------- |
-| `NEON_PROJECT_ID`             | Identifier of the Neon project            | Neon Console → Project Settings → General |
-| `NEON_DB_USERNAME` (optional) | DB user to impersonate in per-PR branches | Defaults to `neondb_owner`                |
 
 ## Branch Protection Recommendations (Phase 6 — not Phase 1)
 
@@ -62,11 +52,11 @@ Phase 1 is greenfield and a single developer — branch protection is optional. 
 | Failure                                       | Diagnosis                                     | Fix                                                                                              |
 | --------------------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------ |
 | `ERR_PNPM_FROZEN_LOCKFILE_VIOLATION`          | `pnpm-lock.yaml` not committed or out of sync | Run `pnpm install` locally and commit lockfile                                                   |
-| Neon branch create fails with 401             | `NEON_API_KEY` missing / wrong                | Re-add in repo Secrets                                                                           |
+| Migrate step cannot connect on a PR           | pgvector service container not healthy yet    | Check the `services.postgres` health-check block in `ci.yml`; the job waits for `pg_isready`     |
 | `type "vector" does not exist` during migrate | 0000 extension migration skipped or reordered | Confirm `drizzle/0000_enable_pgvector.sql` is committed and `_journal.json` lists it before 0001 |
 | `drizzle-kit check` fails with drift          | schema.ts changed without regenerating SQL    | Run `pnpm db:generate` locally, commit new migration                                             |
 | `trigger:deploy` 401                          | `TRIGGER_ACCESS_TOKEN` wrong                  | Rotate + re-add in repo Secrets                                                                  |
 
-## Why GitHub Actions, Not Vercel Neon Integration
+## PR isolation without per-PR databases
 
-Vercel's Neon integration triggers branch creation as part of Vercel's own preview build — which can race with the preview booting against an unmigrated schema. GitHub Actions gives explicit ordering (per D-18): Actions creates the branch AND finishes migrations, THEN Vercel preview boots against a migrated schema. Actions and Vercel run in parallel but by the time Vercel's `/api/health` is curlable, Actions has typically completed migrations.
+Supabase has no drop-in per-PR branch action equivalent to Neon's, so PR CI validates migrations against a throwaway `pgvector/pgvector:pg16` service container instead of a real cloud branch. This keeps PR runs hermetic and credential-free; the production Supabase schema is only ever touched by the on-merge `db:migrate` step using `secrets.DATABASE_URL_MAIN`. If you later want preview deployments to run against an isolated cloud schema, Supabase's paid Branching feature (or a dedicated staging project) can be wired into a preview-only step.

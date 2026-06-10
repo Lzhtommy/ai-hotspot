@@ -16,7 +16,7 @@
  * Requires at runtime:
  *   - Dev server on http://localhost:3000 with at least one published item
  *     visible on / (otherwise the 收藏 button won't exist)
- *   - DATABASE_URL → non-prod Neon branch with Plan 05-01 tables migrated
+ *   - DATABASE_URL → non-prod Supabase test database with Plan 05-01 tables migrated
  */
 import { test, expect } from '@playwright/test';
 import { eq } from 'drizzle-orm';

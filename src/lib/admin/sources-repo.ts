@@ -4,7 +4,7 @@
  * Pure DB access layer for /admin/sources. Mirrors the core/adapter split
  * established by src/lib/ingest/fetch-source-core.ts: the real Drizzle `db`
  * is injected so unit tests can pass a lightweight mock that records calls
- * and asserts on the SQL-fragment shape without spinning up Neon.
+ * and asserts on the SQL-fragment shape without spinning up a database.
  *
  * All functions accept an optional `deps.db` so a test can substitute a
  * fake chain-builder. Production callers omit the dep and receive the real

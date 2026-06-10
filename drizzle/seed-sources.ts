@@ -5,7 +5,7 @@
  * ingestion cron (src/trigger/ingest-hourly.ts) has real data to poll.
  *
  * Idempotent: ON CONFLICT (rss_url) DO NOTHING — re-running is a no-op.
- * Not invoked by CI. Run manually via `pnpm db:seed` against a dev/preview Neon branch.
+ * Not invoked by CI. Run manually via `pnpm db:seed` against a dev/preview Supabase database.
  *
  * Admin UI for full source CRUD is Phase 6 (ADMIN-02..06).
  *
@@ -35,7 +35,7 @@ const SEEDS: SeedRow[] = [
 
 async function main() {
   if (!process.env.DATABASE_URL) {
-    throw new Error('DATABASE_URL not set — .env.local should provide the Neon dev branch URL.');
+    throw new Error('DATABASE_URL not set — .env.local should provide the Supabase database URL.');
   }
 
   let attempted = 0;
